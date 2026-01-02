@@ -1,0 +1,115 @@
+.tile {
+    position: relative;
+    background: rgba(10, 10, 15, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: all 0.2s ease;
+    overflow: hidden;
+}
+
+.tile:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.icon {
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.content {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #f8fafc;
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+.valuePositive {
+    color: #10b981;
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+.valueNegative {
+    color: #ef4444;
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+}
+
+.subtext {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Simulated Sparkline / Progress Bar */
+.progressContainer {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+    margin-top: auto;
+    overflow: hidden;
+    position: relative;
+}
+
+.progressBar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+}
+
+.progressBarPositive {
+    background: linear-gradient(90deg, #10b981, #34d399);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.progressBarNegative {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.progressBarNeutral {
+    background: linear-gradient(90deg, #64748b, #94a3b8);
+}
+
+/* Optional glowing background blob */
+.glow {
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 100px;
+    height: 100px;
+    background: var(--glow-color, rgba(255, 255, 255, 0.05));
+    filter: blur(40px);
+    border-radius: 50%;
+    pointer-events: none;
+    transition: background 0.3s ease;
+}

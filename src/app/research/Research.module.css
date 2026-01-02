@@ -1,0 +1,86 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.header {
+    margin-bottom: 8px;
+}
+
+.ledgerGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+}
+
+.entry {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.entryHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sourceTag {
+    font-size: 0.65rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    color: var(--color-text-muted);
+    border: 1px solid var(--border-color);
+}
+
+.thesis {
+    font-size: 0.875rem;
+    color: var(--color-text-dim);
+    line-height: 1.6;
+}
+
+.edgeBox {
+    padding: 12px;
+    background: hsla(var(--brand-primary), 0.05);
+    border-left: 2px solid hsl(var(--brand-primary));
+    font-size: 0.8rem;
+    color: var(--color-text);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.iconCyan {
+    color: hsl(var(--brand-primary));
+}
+
+.iconPurple {
+    color: hsl(var(--brand-accent));
+}
+
+.iconGreen {
+    color: hsl(var(--status-success));
+}
+
+/* Nature theme overrides - Solid cream panels */
+:global([data-theme='nature']) .sourceTag {
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(160, 140, 110, 0.25);
+}
+
+:global([data-theme='nature']) .edgeBox {
+    background: rgba(74, 104, 56, 0.1);
+    border-left: 2px solid #4a6838;
+}
+
+:global([data-theme='nature']) .iconCyan {
+    color: #4a6838;
+}
+
+:global([data-theme='nature']) .iconPurple {
+    color: #6a5a48;
+}
+
+:global([data-theme='nature']) .iconGreen {
+    color: #4a6838;
+}

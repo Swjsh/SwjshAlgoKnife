@@ -1,0 +1,129 @@
+{
+  "fx": {
+    "last_updated": "2026-01-01T21:10:00Z",
+    "status": "ACTIVE",
+    "active_pairs": 5,
+    "total_zones_found": 12,
+    "performance": {
+      "win_rate": 68,
+      "total_pnl": 1245.50,
+      "trades": 42
+    },
+    "pending_orders": [
+      {
+        "created_at": "2026-01-01 20:30:00",
+        "type": "DEMAND",
+        "ticker": "SOLUSD",
+        "entry": 145.50,
+        "stop_loss": 142.30,
+        "status": "PENDING"
+      }
+    ],
+    "active_trades": [],
+    "closed_trades": [],
+    "meta": {
+      "name": "Satoshi Sprinter",
+      "type": "Crypto Scalper"
+    }
+  },
+  "crypto": {
+    "last_updated": "2026-01-01T21:10:00Z",
+    "status": "ACTIVE",
+    "active_pairs": 3,
+    "total_zones_found": 8,
+    "performance": {
+      "win_rate": 72,
+      "total_pnl": 3450.20,
+      "trades": 24
+    },
+    "pending_orders": [
+      {
+        "created_at": "2026-01-01 20:45:00",
+        "type": "DEMAND",
+        "ticker": "BTCUSD",
+        "entry": 94250,
+        "stop_loss": 93800,
+        "status": "PENDING"
+      },
+      {
+        "created_at": "2026-01-01 21:00:00",
+        "type": "SUPPLY",
+        "ticker": "ETHUSD",
+        "entry": 2750,
+        "stop_loss": 2800,
+        "status": "PENDING"
+      }
+    ],
+    "active_trades": [],
+    "closed_trades": [],
+    "meta": {
+      "name": "Bitcoin Bob",
+      "type": "BTC Specialist"
+    }
+  },
+  "futures": {
+    "last_updated": "2026-01-01T21:10:00Z",
+    "status": "ACTIVE",
+    "active_pairs": 4,
+    "total_zones_found": 208,
+    "performance": {
+      "win_rate": 60,
+      "total_pnl": 750.00,
+      "trades": 15
+    },
+    "pending_orders": [
+      {
+        "created_at": "2026-01-01 22:00:00",
+        "type": "DEMAND",
+        "ticker": "XRPUSD",
+        "entry": 2.45,
+        "stop_loss": 2.30,
+        "status": "PENDING"
+      }
+    ],
+    "active_trades": [],
+    "closed_trades": [],
+    "meta": {
+      "name": "Altcoin Al",
+      "type": "Alt Swing"
+    }
+  },
+  "professor": {
+    "last_updated": "2026-01-01T21:10:00Z",
+    "status": "ONLINE",
+    "active_pairs": 0,
+    "total_zones_found": 0,
+    "performance": {
+      "win_rate": 100,
+      "total_pnl": 0,
+      "trades": 0
+    },
+    "pending_orders": [],
+    "active_trades": [],
+    "closed_trades": [],
+    "reviews": [],
+    "audits": [],
+    "meta": {
+      "name": "The Professor",
+      "type": "Auditor"
+    }
+  },
+  "boba": {
+    "last_updated": "2026-01-01T21:10:00Z",
+    "status": "ACTIVE",
+    "active_pairs": 1,
+    "total_zones_found": 7,
+    "performance": {
+      "win_rate": 65,
+      "total_pnl": 0,
+      "trades": 0
+    },
+    "pending_orders": [],
+    "active_trades": [],
+    "closed_trades": [],
+    "meta": {
+      "name": "Boba",
+      "type": "Meme Trends"
+    }
+  }
+}

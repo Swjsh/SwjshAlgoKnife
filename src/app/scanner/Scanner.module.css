@@ -1,0 +1,240 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.headerActions {
+  display: flex;
+  gap: 12px;
+}
+
+.scanBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btnPrimary {
+  background-color: hsla(var(--brand-primary), 0.15);
+  color: hsl(var(--brand-primary));
+}
+
+.btnPrimary:hover {
+  background-color: hsla(var(--brand-primary), 0.25);
+}
+
+.btnSuccess {
+  background-color: hsla(var(--status-success), 0.15);
+  color: hsl(var(--status-success));
+}
+
+.btnDanger {
+  background-color: hsla(var(--status-danger), 0.15);
+  color: hsl(var(--status-danger));
+}
+
+.strategyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.strategyCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.strategyCheckbox:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.strategyCheckbox input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.combinationMode {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: hsla(var(--brand-accent), 0.05);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+
+.modeSelect {
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  color: var(--color-text);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 32px;
+  color: var(--color-text-dim);
+  text-align: center;
+  gap: 16px;
+}
+
+.resultsTable {
+  overflow-x: auto;
+}
+
+.resultsTable table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.resultsTable th {
+  text-align: left;
+  padding: 12px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-dim);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.resultsTable td {
+  padding: 16px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.875rem;
+}
+
+.resultsTable tr.confidenceHIGH {
+  background: hsla(var(--status-success), 0.05);
+}
+
+.resultsTable tr.confidenceMEDIUM {
+  background: hsla(var(--status-warning), 0.03);
+}
+
+.ticker {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badgeSetup {
+  background-color: hsla(var(--brand-primary), 0.15);
+  color: hsl(var(--brand-primary));
+}
+
+.badgeHIGH {
+  background-color: hsla(var(--status-success), 0.2);
+  color: hsl(var(--status-success));
+}
+
+.badgeMEDIUM {
+  background-color: hsla(var(--status-warning), 0.2);
+  color: hsl(var(--status-warning));
+}
+
+.badgeLOW {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--color-text-muted);
+}
+
+.metrics {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+}
+
+.optionPlay {
+  font-size: 0.75rem;
+}
+
+.optionTarget {
+  color: hsl(var(--status-success));
+  font-weight: 600;
+}
+
+/* Nature theme overrides - Solid cream panels */
+:global([data-theme='nature']) .strategyCheckbox {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+:global([data-theme='nature']) .strategyCheckbox:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+:global([data-theme='nature']) .btnPrimary {
+    background-color: rgba(74, 104, 56, 0.15);
+    color: #4a6838;
+}
+
+:global([data-theme='nature']) .btnPrimary:hover {
+    background-color: rgba(74, 104, 56, 0.25);
+}
+
+:global([data-theme='nature']) .btnSuccess {
+    background-color: rgba(74, 104, 56, 0.2);
+    color: #4a6838;
+}
+
+:global([data-theme='nature']) .btnDanger {
+    background-color: rgba(192, 144, 122, 0.2);
+    color: #8a5a4a;
+}
+
+:global([data-theme='nature']) .resultsTable th {
+    border-bottom: 1px solid rgba(160, 140, 110, 0.2);
+}
+
+:global([data-theme='nature']) .resultsTable td {
+    border-bottom: 1px solid rgba(160, 140, 110, 0.1);
+}
+
+:global([data-theme='nature']) .badgeSetup {
+    background-color: rgba(74, 104, 56, 0.15);
+    color: #4a6838;
+}
+
+:global([data-theme='nature']) .badgeHIGH {
+    background-color: rgba(74, 104, 56, 0.2);
+    color: #4a6838;
+}
+
+:global([data-theme='nature']) .badgeMEDIUM {
+    background-color: rgba(212, 160, 64, 0.2);
+    color: #a08030;
+}

@@ -1,0 +1,128 @@
+.header {
+    height: var(--header-height);
+    background: var(--bg-surface);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border-base);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    gap: 24px;
+}
+
+.leftSection {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.crumbDivider {
+    color: var(--border-bright);
+}
+
+.crumbActive {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.tickerContainer {
+    flex: 1;
+    max-width: 400px;
+    height: 32px;
+    background: var(--bg-subtle);
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+}
+
+.tickerTrack {
+    display: flex;
+    gap: 32px;
+    animation: scroll 40s linear infinite;
+    padding: 0 16px;
+    align-items: center;
+    height: 100%;
+}
+
+@keyframes scroll {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.tickerItem {
+    display: flex;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.tickerValue {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.iconBtn {
+    background: transparent;
+    border: 1px solid var(--border-base);
+    color: var(--text-secondary);
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.iconBtn:hover {
+    background: var(--bg-subtle);
+    color: var(--brand-primary);
+    border-color: var(--brand-primary);
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-base);
+}
+
+.statusDot {
+    width: 6px;
+    height: 6px;
+    background: var(--status-success);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--status-success);
+}

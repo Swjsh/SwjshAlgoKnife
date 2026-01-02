@@ -1,0 +1,200 @@
+.rowContainer {
+    background: rgba(10, 10, 15, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+}
+
+.rowContainer:hover {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.collapsedHeader {
+    display: grid;
+    grid-template-columns: 80px 2fr 1fr 1fr 1fr 40px;
+    align-items: center;
+    padding: 16px 20px;
+    cursor: pointer;
+    gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .collapsedHeader {
+        grid-template-columns: 60px 1fr 1fr 40px;
+    }
+
+    .hideMobile {
+        display: none;
+    }
+}
+
+.agentAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #2a2a35;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    position: relative;
+    border: 2px solid rgba(255, 255, 255, 0.05);
+}
+
+.statusDot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid #1a1a20;
+}
+
+.statusWin {
+    background: #10b981;
+}
+
+.statusLoss {
+    background: #ef4444;
+}
+
+.statusOpen {
+    background: #3b82f6;
+}
+
+.mainInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.symbol {
+    font-weight: 700;
+    color: #fff;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sideBadge {
+    font-size: 0.625rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.long {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.short {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.agentName {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.metric {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.metricLabel {
+    font-size: 0.625rem;
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+}
+
+.metricValue {
+    font-family: var(--font-mono);
+    color: #cbd5e1;
+    font-size: 0.9375rem;
+}
+
+.valPos {
+    color: #10b981;
+}
+
+.valNeg {
+    color: #ef4444;
+}
+
+.expandIcon {
+    color: rgba(255, 255, 255, 0.3);
+    transition: transform 0.2s;
+}
+
+.rotate {
+    transform: rotate(180deg);
+}
+
+.expandedContent {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.2);
+    padding: 24px;
+}
+
+.intelGrid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+
+.intelSection h4 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #a855f7;
+    margin: 0 0 12px 0;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.reasoningText {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.02);
+    padding: 16px;
+    border-radius: 8px;
+    border-left: 2px solid #a855f7;
+}
+
+.chartPlaceholder {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #1a1a20;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 0.875rem;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.detailRow {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.875rem;
+}
+
+.detailLabel {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.detailVal {
+    color: #fff;
+    font-family: var(--font-mono);
+}

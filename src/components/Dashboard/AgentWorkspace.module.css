@@ -1,0 +1,242 @@
+.workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 20px;
+    gap: 16px;
+    /* Use variable if available, fallback for safety */
+    background: var(--bg-workspace, radial-gradient(circle at top right, #1a1a24 0%, #0a0a0c 40%));
+    overflow-y: auto;
+    transition: background 0.3s ease;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.agentTitle {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.titleText h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    /* Dynamic gradient text */
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--brand-primary) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.statusLive {
+    font-size: 0.75rem;
+    color: var(--status-success);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 4px 8px;
+    border-radius: 100px;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.statusLive::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: currentColor;
+    border-radius: 50%;
+    box-shadow: 0 0 8px currentColor;
+}
+
+/* 
+ New Grid Logic:
+ Uses CSS variables for dynamic resizing.
+ Defaults: --col-split (75%), --row-split (60%)
+*/
+
+.bentoGrid {
+    /* Track 1: Content, Track 2: Gutter (12px), Track 3: Content */
+    display: grid;
+    grid-template-columns: var(--col-split, 75%) 12px 1fr;
+    grid-template-rows: var(--row-split, 60%) 12px 1fr;
+    gap: 0;
+    /* Gap is now handled by the explicit gutter tracks */
+    flex: 1;
+    min-height: 0;
+    position: relative;
+}
+
+.chartPanel {
+    grid-column: 1;
+    grid-row: 1;
+    background: var(--panel-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-base);
+    box-shadow: var(--shadow-sm);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, border-color 0.3s;
+}
+
+.statsPanel {
+    grid-column: 3;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    /* Prevent overflow */
+}
+
+.logsPanel {
+    grid-column: 1;
+    grid-row: 3;
+    min-height: 0;
+}
+
+.signalsPanel {
+    grid-column: 3;
+    grid-row: 3;
+    min-height: 0;
+}
+
+/* Resizers */
+.resizerVertical {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    /* Span entire height */
+    cursor: col-resize;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 0.2s;
+    z-index: 50;
+}
+
+.resizerHorizontal {
+    grid-column: 1 / -1;
+    /* Span entire width */
+    grid-row: 2;
+    cursor: row-resize;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 0.2s;
+    z-index: 50;
+}
+
+/* Visual Handles */
+.resizerVertical::after,
+.resizerHorizontal::after {
+    content: '';
+    background: var(--border-bright);
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.resizerVertical::after {
+    width: 4px;
+    height: 40px;
+}
+
+.resizerHorizontal::after {
+    width: 40px;
+    height: 4px;
+}
+
+.resizerVertical:hover::after,
+.resizerHorizontal:hover::after,
+.resizerVertical:active::after,
+.resizerHorizontal:active::after {
+    background: var(--brand-primary);
+    /* Accent on hover */
+}
+
+.statCard {
+    background: var(--panel-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-base);
+    box-shadow: var(--shadow-sm);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    flex: 1;
+    transition: background 0.3s, border-color 0.3s;
+}
+
+.statGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    height: 100%;
+}
+
+.statItem {
+    background: var(--input-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.statLabel {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.statValue {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.value-pos {
+    color: var(--status-success);
+}
+
+.value-neg {
+    color: var(--status-danger);
+}
+
+@media (max-width: 1200px) {
+    .bentoGrid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* Hide resizers on mobile/tablet */
+    .resizerVertical,
+    .resizerHorizontal {
+        display: none;
+    }
+
+    .chartPanel {
+        height: 400px;
+        grid-column: auto;
+        grid-row: auto;
+    }
+
+    .statsPanel,
+    .logsPanel,
+    .signalsPanel {
+        grid-column: auto;
+        grid-row: auto;
+    }
+}

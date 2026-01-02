@@ -1,0 +1,200 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(26, 16, 53, 0.9);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal {
+    width: 100%;
+    max-width: 560px;
+    position: relative;
+    animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.closeBtn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.closeBtn:hover {
+    color: var(--accent-orange);
+    background: rgba(247, 147, 26, 0.1);
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.input,
+.select,
+.textarea {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--panel-border);
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-family: inherit;
+    outline: none;
+    transition: all var(--transition-fast);
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 0 3px rgba(247, 147, 26, 0.15);
+}
+
+.textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 14px;
+    margin-top: 8px;
+    padding-top: 20px;
+    border-top: 1px solid var(--panel-border);
+}
+
+.cancelBtn {
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--text-secondary);
+    padding: 12px 24px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all var(--transition-fast);
+}
+
+.cancelBtn:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+}
+
+.submitBtn {
+    background: linear-gradient(135deg, var(--accent-orange), var(--accent-gold));
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all var(--transition-fast);
+}
+
+.submitBtn:hover {
+    box-shadow: 0 4px 20px rgba(247, 147, 26, 0.4);
+    transform: translateY(-1px);
+}
+
+.submitBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Nature theme overrides - Coffee-toned modal overlay */
+:global([data-theme='nature']) .overlay {
+    background: rgba(61, 43, 31, 0.85);
+    backdrop-filter: blur(8px);
+}
+
+:global([data-theme='nature']) .input,
+:global([data-theme='nature']) .select,
+:global([data-theme='nature']) .textarea {
+    background: #fff;
+    border: 1px solid rgba(139, 94, 60, 0.2);
+    color: var(--text-primary);
+}
+
+:global([data-theme='nature']) .input:focus,
+:global([data-theme='nature']) .select:focus,
+:global([data-theme='nature']) .textarea:focus {
+    border-color: var(--leather-brown);
+    box-shadow: 0 0 0 3px rgba(139, 94, 60, 0.05);
+}
+
+:global([data-theme='nature']) .closeBtn:hover {
+    color: var(--sage-green);
+    background: rgba(122, 138, 98, 0.1);
+}
+
+:global([data-theme='nature']) .cancelBtn {
+    background: #fff;
+    border: 1px solid rgba(139, 94, 60, 0.2);
+    color: var(--text-secondary);
+}
+
+:global([data-theme='nature']) .cancelBtn:hover {
+    background: #fdfaf5;
+    border-color: var(--leather-brown);
+}
+
+:global([data-theme='nature']) .submitBtn {
+    background: var(--sage-green);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(122, 138, 98, 0.2);
+}
+
+:global([data-theme='nature']) .submitBtn:hover {
+    background: var(--sage-green-light);
+    box-shadow: 0 4px 12px rgba(122, 138, 98, 0.3);
+}

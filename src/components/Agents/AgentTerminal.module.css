@@ -1,0 +1,360 @@
+.terminalWindow {
+    background: #09090b;
+    border: 1px solid #3f3f46;
+    border-radius: 12px;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    margin-bottom: 2rem;
+}
+
+.header {
+    background: #18181b;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #3f3f46;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #a1a1aa;
+}
+
+.title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #e4e4e7;
+}
+
+.cpuIcon {
+    color: #a1a1aa;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #4ade80;
+    font-weight: 700;
+    background: rgba(74, 222, 128, 0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background: #4ade80;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #4ade80;
+    animation: blink 2s infinite;
+}
+
+.content {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    font-size: 1.05rem;
+    /* Larger human-friendly text */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #09090b;
+    line-height: 1.6;
+}
+
+/* Scrollbar */
+.content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.content::-webkit-scrollbar-track {
+    background: #09090b;
+}
+
+.content::-webkit-scrollbar-thumb {
+    background: #3f3f46;
+    border-radius: 3px;
+}
+
+.logLine {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    animation: fadeIn 0.2s ease;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.logLine:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.timestamp {
+    color: #71717a;
+    font-size: 0.9rem;
+    min-width: 85px;
+    font-feature-settings: "tnum";
+}
+
+.icon {
+    min-width: 24px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.message {
+    color: #e4e4e7;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+}
+
+/* Levels */
+.info .message {
+    color: #d4d4d8;
+}
+
+.warn .message {
+    color: #fde047;
+}
+
+.success .message {
+    color: #86efac;
+}
+
+.action .message {
+    color: #60a5fa;
+    font-weight: 600;
+}
+
+.error .message {
+    color: #f87171;
+}
+
+/* Animations */
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cursorLine {
+    margin-top: 8px;
+    padding-left: 8px;
+}
+
+.cursor {
+    color: #4ade80;
+    font-size: 1.2rem;
+    animation: blink 1s infinite step-end;
+}
+
+
+.header {
+    background: #18181b;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #3f3f46;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #a1a1aa;
+}
+
+.title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.cpuIcon {
+    color: #a1a1aa;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: #4ade80;
+    font-weight: 700;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    background: #4ade80;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #4ade80;
+    animation: blink 2s infinite;
+}
+
+.content {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    font-size: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: #09090b;
+}
+
+/* Scrollbar */
+.content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.content::-webkit-scrollbar-track {
+    background: #09090b;
+}
+
+.content::-webkit-scrollbar-thumb {
+    background: #3f3f46;
+    border-radius: 3px;
+}
+
+.logLine {
+    display: flex;
+    gap: 10px;
+    line-height: 1.4;
+    animation: fadeIn 0.1s ease;
+}
+
+.timestamp {
+    color: #52525b;
+    font-size: 0.75rem;
+    min-width: 65px;
+}
+
+.icon {
+    min-width: 20px;
+    text-align: center;
+}
+
+/* Levels */
+.info {
+    color: #a1a1aa;
+}
+
+.warn {
+    color: #facc15;
+}
+
+.success {
+    color: #4ade80;
+}
+
+.action {
+    color: #60a5fa;
+    font-weight: 600;
+}
+
+.error {
+    color: #ef4444;
+}
+
+/* Animations */
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0.5;
+        transform: translateY(2px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cursorLine {
+    margin-top: 4px;
+}
+
+.cursor {
+    color: #4ade80;
+    animation: blink 1s infinite step-end;
+}
+
+/* Nature theme overrides - Coffee-toned terminal */
+:global([data-theme='nature']) .terminalWindow {
+    background: #231b15;
+    border: 1px solid rgba(139, 94, 60, 0.3);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+:global([data-theme='nature']) .header {
+    background: #2d231a;
+    border-bottom: 1px solid rgba(139, 94, 60, 0.25);
+}
+
+:global([data-theme='nature']) .content {
+    background: #1a1410;
+}
+
+:global([data-theme='nature']) .status {
+    color: var(--sage-green);
+    background: rgba(122, 138, 98, 0.15);
+}
+
+:global([data-theme='nature']) .dot {
+    background: var(--sage-green);
+    box-shadow: 0 0 8px var(--sage-green);
+}
+
+:global([data-theme='nature']) .cursor {
+    color: var(--sage-green);
+}
+
+:global([data-theme='nature']) .success .message {
+    color: #9cb888;
+}
+
+:global([data-theme='nature']) .action .message {
+    color: var(--accent-gold);
+}

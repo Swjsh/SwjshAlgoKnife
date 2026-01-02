@@ -1,0 +1,92 @@
+.widget {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-base);
+    box-shadow: var(--shadow-sm);
+}
+
+.statusSection {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.statusDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--status-success);
+    box-shadow: 0 0 8px var(--status-success);
+}
+
+.statusLabel {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    padding: 0 1.25rem;
+    border-left: 1px solid var(--border-subtle);
+}
+
+.statValue {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+}
+
+.statLabel {
+    font-size: 0.625rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.ticker {
+    display: flex;
+    gap: 1rem;
+    padding-left: 1.25rem;
+    border-left: 1px solid var(--border-subtle);
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+}
+
+.tickerItem strong {
+    color: var(--brand-primary);
+}
+
+.topPerformer {
+    margin-left: auto;
+    padding: 4px 10px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--status-success);
+}
+
+@media (max-width: 900px) {
+    .widget {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .ticker {
+        width: 100%;
+        padding-left: 0;
+        border-left: none;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border-subtle);
+    }
+}
