@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Users, Coffee, ArrowUpRight, Activity } from 'lucide-react';
+import { Users, Coffee, ArrowUpRight, Activity, BarChart3 } from 'lucide-react';
 import StatsTile from './StatsTile';
 
 interface Agent {
@@ -20,10 +21,16 @@ interface Agent {
 
 interface CoffeeRoomProps {
     agents: Agent[];
-    onSelectAgent: (id: string) => void;
+    onSelectAgent?: (id: string) => void;
 }
 
 export default function CoffeeRoom({ agents, onSelectAgent }: CoffeeRoomProps) {
+    const router = useRouter();
+    
+    const handleAgentClick = (id: string) => {
+        // Navigate to the full agent cockpit with chart
+        router.push(`/agent/${id}`);
+    };
     const activeAgents = agents.filter(a => a.status === 'active');
     const totalPnL = agents.reduce((acc, a) => acc + a.performance.total_pnl, 0);
 
@@ -65,7 +72,7 @@ export default function CoffeeRoom({ agents, onSelectAgent }: CoffeeRoomProps) {
                                     ? 'bg-gradient-to-br from-white/[0.03] to-white/[0.01] border-white/10 hover:border-purple-500/50'
                                     : 'bg-white/[0.01] border-white/5 opacity-60 grayscale'}
                             `}
-                            onClick={() => onSelectAgent(agent.id)}
+                            onClick={() => handleAgentClick(agent.id)}
                             whileHover={{ y: -4, scale: 1.01 }}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}

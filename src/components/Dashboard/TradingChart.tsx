@@ -15,7 +15,9 @@ import {
     LineSeries,
     MouseEventParams,
     IPriceLine,
-    SeriesMarker
+    SeriesMarker,
+    createSeriesMarkers,
+    ISeriesMarkersPluginApi
 } from 'lightweight-charts';
 import { IndicatorState } from './IndicatorControls';
 import { LayoutMode } from './ChartToolbar';
@@ -119,6 +121,7 @@ export default function TradingChart({ data = [], indicators, chartType, layoutM
     const sma50Ref = useRef<ISeriesApi<"Line"> | null>(null);
     const ema200Ref = useRef<ISeriesApi<"Line"> | null>(null);
     const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+    const markersPluginRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
     const lineSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
     const areaSeriesRef = useRef<ISeriesApi<"Area"> | null>(null);
     const levelsRef = useRef<Map<number, IPriceLine>>(new Map());
@@ -197,14 +200,9 @@ export default function TradingChart({ data = [], indicators, chartType, layoutM
             currentCandleRef.current = chartData[chartData.length - 1];
         }
 
-        // Apply visual markers immediately if available
-        if (markers && markers.length > 0) {
-            try {
-                (candleSeries as any).setMarkers(markers);
-            } catch (e) {
-                console.error("Failed to set initial markers", e);
-            }
-        }
+        // Initialize markers plugin
+        const markersPlugin = createSeriesMarkers(candleSeries, markers || []);
+        markersPluginRef.current = markersPlugin;
 
         // Logic for Layout Modes
         if (layoutMode === 'kiss') {
@@ -282,7 +280,7 @@ export default function TradingChart({ data = [], indicators, chartType, layoutM
                 lineWidth: 2,
                 visible: indicators?.ema200 ?? false,
             });
-            sma20Series.setData(calculateEMA(chartData, 200));
+            ema200Series.setData(calculateEMA(chartData, 200));
             ema200Ref.current = ema200Series;
         }
 
@@ -303,14 +301,14 @@ export default function TradingChart({ data = [], indicators, chartType, layoutM
     }, [data, timeframe]);
 
     // Update markers safely
+    // In lightweight-charts, setMarkers is called directly on the series
     useEffect(() => {
-        if (!candleSeriesRef.current) return;
+        if (!markersPluginRef.current) return;
 
-        // Safety check to avoid runtime crashes if the ref is stale or malformed
-        if (typeof (candleSeriesRef.current as any).setMarkers === 'function') {
-            (candleSeriesRef.current as any).setMarkers(markers);
-        } else {
-            console.warn("candleSeriesRef.current.setMarkers is not a function", candleSeriesRef.current);
+        try {
+            markersPluginRef.current.setMarkers(markers || []);
+        } catch (e) {
+            console.error("Failed to update markers", e);
         }
     }, [markers]);
 

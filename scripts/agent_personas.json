@@ -1,0 +1,51 @@
+{
+    "fx": {
+        "name": "Swjsh FX",
+        "avatar": "/avatars/fx.png",
+        "profile_path": "docs/agents/fx/profile.md",
+        "market": "Forex",
+        "voice": "professional-neural"
+    },
+    "crypto": {
+        "name": "Bitcoin Bob",
+        "avatar": "/avatars/crypto.png",
+        "profile_path": "docs/agents/crypto/profile.md",
+        "market": "Crypto",
+        "voice": "chill-hodl"
+    },
+    "spx": {
+        "name": "SPX Sniper",
+        "avatar": "/avatars/spx.png",
+        "profile_path": "docs/agents/spx/profile.md",
+        "market": "Options",
+        "voice": "tactical-elite"
+    },
+    "futures": {
+        "name": "Pivot Pete",
+        "avatar": "/avatars/futures.png",
+        "profile_path": "docs/agents/futures/profile.md",
+        "market": "Futures",
+        "voice": "methodical-elder"
+    },
+    "boba": {
+        "name": "Boba",
+        "avatar": "/avatars/boba.png",
+        "profile_path": "docs/agents/boba/profile.md",
+        "market": "Options",
+        "voice": "disciplined-boba-trader"
+    },
+    "professor": {
+        "name": "The Professor",
+        "avatar": "/avatars/professor.png",
+        "profile_path": "docs/agents/professor/profile.md",
+        "market": "Auditor",
+        "voice": "academic-critical"
+    },
+    "auditor": {
+        "name": "The Auditor",
+        "avatar": "/avatars/auditor.png",
+        "profile_path": "docs/agents/auditor/profile.md",
+        "market": "Oversight",
+        "voice": "skeptical-forensic"
+    }
+}

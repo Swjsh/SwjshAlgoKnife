@@ -39,3 +39,27 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Large media files (deployment blockers)
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.pdf
+*.docx
+docs/boba_strategy/
+docs/WeBull History/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Windows reserved
+nul
+
+# Database
+journal.db
+
+# Logs
+dev.log
+server.log

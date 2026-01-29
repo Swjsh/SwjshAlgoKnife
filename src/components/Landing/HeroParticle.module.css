@@ -62,7 +62,7 @@
        2. increase contrast to push darks to black and lights to pop
        3. screen blend mode makes the resulting black transparent
     */
-    filter: brightness(0.7) contrast(1.5) drop-shadow(0 0 20px rgba(168, 85, 247, 0.6));
+    filter: brightness(0.4) contrast(2.2) drop-shadow(0 0 20px rgba(168, 85, 247, 0.6));
     mix-blend-mode: screen;
 
     /* Floating animation */

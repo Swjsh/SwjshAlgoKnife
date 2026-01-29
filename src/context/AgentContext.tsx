@@ -20,6 +20,7 @@ interface Trade {
     exit?: number;
     stop?: number;
     side?: string;
+    type?: string;
     pnl?: number;
     status?: string;
     created_at?: string;
@@ -84,8 +85,8 @@ export function AgentProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         fetchAgents();
 
-        // Poll every 5 seconds
-        const interval = setInterval(fetchAgents, 5000);
+        // Poll every 30 seconds (reduce log noise)
+        const interval = setInterval(fetchAgents, 30000);
         return () => clearInterval(interval);
     }, []);
 

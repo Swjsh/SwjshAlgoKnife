@@ -1,0 +1,119 @@
+{
+  "last_updated": "2025-12-31T17:47:15.287225",
+  "status": "ACTIVE",
+  "active_pairs": 5,
+  "pending_orders": [
+    {
+      "created_at": "2025-12-31 16:00",
+      "type": "SUPPLY",
+      "top": 0.12,
+      "bottom": 0.12,
+      "entry": 0.12,
+      "stop_loss": 0.12,
+      "status": "PENDING",
+      "ticker": "DOGE-USD"
+    },
+    {
+      "created_at": "2025-12-31 15:00",
+      "type": "SUPPLY",
+      "top": 0.12,
+      "bottom": 0.12,
+      "entry": 0.12,
+      "stop_loss": 0.12,
+      "status": "PENDING",
+      "ticker": "DOGE-USD"
+    },
+    {
+      "created_at": "2025-12-29 09:00",
+      "type": "SUPPLY",
+      "top": 89694.11,
+      "bottom": 89399.91,
+      "entry": 89399.91,
+      "stop_loss": 89752.95,
+      "status": "PENDING",
+      "ticker": "BTC-USD"
+    },
+    {
+      "created_at": "2025-12-22 19:00",
+      "type": "SUPPLY",
+      "top": 0.13,
+      "bottom": 0.13,
+      "entry": 0.13,
+      "stop_loss": 0.14,
+      "status": "PENDING",
+      "ticker": "DOGE-USD"
+    },
+    {
+      "created_at": "2025-12-15 14:00",
+      "type": "SUPPLY",
+      "top": 3156.65,
+      "bottom": 3130.66,
+      "entry": 3130.66,
+      "stop_loss": 3161.85,
+      "status": "PENDING",
+      "ticker": "ETH-USD"
+    },
+    {
+      "created_at": "2025-12-15 14:00",
+      "type": "SUPPLY",
+      "top": 0.14,
+      "bottom": 0.14,
+      "entry": 0.14,
+      "stop_loss": 0.14,
+      "status": "PENDING",
+      "ticker": "DOGE-USD"
+    },
+    {
+      "created_at": "2025-12-12 15:00",
+      "type": "SUPPLY",
+      "top": 92589.55,
+      "bottom": 92012.87,
+      "entry": 92012.87,
+      "stop_loss": 92704.88,
+      "status": "PENDING",
+      "ticker": "BTC-USD"
+    },
+    {
+      "created_at": "2025-12-12 15:00",
+      "type": "SUPPLY",
+      "top": 3245.81,
+      "bottom": 3221.59,
+      "entry": 3221.59,
+      "stop_loss": 3250.66,
+      "status": "PENDING",
+      "ticker": "ETH-USD"
+    },
+    {
+      "created_at": "2025-12-12 15:00",
+      "type": "SUPPLY",
+      "top": 139.26,
+      "bottom": 138.5,
+      "entry": 138.5,
+      "stop_loss": 139.42,
+      "status": "PENDING",
+      "ticker": "SOL-USD"
+    },
+    {
+      "created_at": "2025-12-12 15:00",
+      "type": "SUPPLY",
+      "top": 0.14,
+      "bottom": 0.14,
+      "entry": 0.14,
+      "stop_loss": 0.14,
+      "status": "PENDING",
+      "ticker": "DOGE-USD"
+    }
+  ],
+  "total_zones_found": 10,
+  "equity_curve": [
+    {
+      "date": "2025-01-01",
+      "balance": 5000
+    }
+  ],
+  "performance": {
+    "win_rate": 0,
+    "total_pnl": 0,
+    "trades": 0
+  }
+}

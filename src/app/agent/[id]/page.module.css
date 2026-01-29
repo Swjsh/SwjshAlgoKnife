@@ -368,6 +368,18 @@
     border-color: var(--accent-purple);
 }
 
+/* Chart Panel */
+.chartPanel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    min-height: 500px;
+}
+
 /* Config Panel */
 .configPanel {
     padding: 24px;

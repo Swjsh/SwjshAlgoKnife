@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm test:*)",
+      "Bash(npx tsc:*)",
+      "Bash(set \"WEBHOOK_SECRET=build_test_secret\")",
+      "Bash(dir /b \"%APPDATA%\\\\Claude\")",
+      "mcp__testsprite__testsprite_bootstrap_tests",
+      "Bash(dir:*)",
+      "Bash(find:*)",
+      "Bash(npm run dev:*)",
+      "Bash(taskkill:*)",
+      "Bash(powershell -Command \"Stop-Process -Id 30052 -Force\")",
+      "mcp__testsprite__testsprite_generate_standardized_prd",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)"
+    ]
+  }
+}

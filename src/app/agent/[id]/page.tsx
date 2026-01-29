@@ -3,13 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Settings, History, Activity, TrendingUp, Target, Clock } from 'lucide-react';
+import { ArrowLeft, Settings, History, Activity, TrendingUp, Target, Clock, BarChart3 } from 'lucide-react';
 import { useAgent, useAgentContext } from '@/context/AgentContext';
 import { useStrategy } from '@/context/StrategyContext';
 import ThemeToggle from '@/components/UI/ThemeToggle';
+import AgentChartView from '@/components/Dashboard/AgentChartView';
 import styles from './page.module.css';
 
-type TabType = 'live' | 'configuration' | 'history';
+type TabType = 'chart' | 'live' | 'configuration' | 'history';
 
 export default function AgentCockpit() {
     const params = useParams();
@@ -17,7 +18,7 @@ export default function AgentCockpit() {
     const agentId = params.id as string;
     const agent = useAgent(agentId);
     const { theme, toggleTheme } = useStrategy();
-    const [activeTab, setActiveTab] = useState<TabType>('live');
+    const [activeTab, setActiveTab] = useState<TabType>('chart');
     const [chatMessages, setChatMessages] = useState<any[]>([]);
 
     // Generate messages from agent data
@@ -200,6 +201,13 @@ export default function AgentCockpit() {
                     {/* Tabs */}
                     <div className={styles.tabs}>
                         <button
+                            className={`${styles.tab} ${activeTab === 'chart' ? styles.tabActive : ''}`}
+                            onClick={() => setActiveTab('chart')}
+                        >
+                            <BarChart3 size={16} />
+                            Chart
+                        </button>
+                        <button
                             className={`${styles.tab} ${activeTab === 'live' ? styles.tabActive : ''}`}
                             onClick={() => setActiveTab('live')}
                         >
@@ -223,6 +231,12 @@ export default function AgentCockpit() {
                     </div>
 
                     {/* Tab Content */}
+                    {activeTab === 'chart' && (
+                        <div className={styles.chartPanel}>
+                            <AgentChartView agentId={agentId} agent={agent} height="500px" />
+                        </div>
+                    )}
+
                     {activeTab === 'live' && (
                         <div className={styles.chatContainer}>
                             <div className={styles.messages}>

@@ -7,7 +7,8 @@ import LiveSignals, { Signal } from './LiveSignals';
 import RealTimeAnalytics from './RealTimeAnalytics';
 import StatsTile from './StatsTile';
 import { motion } from 'framer-motion';
-import { Crosshair, DollarSign, Activity, Zap } from 'lucide-react';
+import { Crosshair, DollarSign, Activity, Zap, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 
 interface AgentData {
     id: string;
@@ -84,6 +85,10 @@ export default function AgentWorkspace({ agent, messages, onSendMessage, isTypin
                         </span>
                     </div>
                 </div>
+                <Link href={`/agent/${agent.id}`} className={styles.cockpitLink}>
+                    <ExternalLink size={16} />
+                    <span>Full Cockpit</span>
+                </Link>
             </header>
 
             <div

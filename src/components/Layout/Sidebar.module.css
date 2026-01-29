@@ -107,7 +107,37 @@
     transform: translateY(-1px);
 }
 
-/* Nav Item Styling */
+/* Simple Nav Link */
+.navLink {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.navLink:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.navLink.active {
+    background: linear-gradient(90deg, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0.05) 100%);
+    border-color: rgba(168, 85, 247, 0.3);
+    color: #fff;
+}
+
+.navLink.active .navIcon {
+    color: #d8b4fe;
+}
+
+/* Old Nav Item Styling (keeping for reference) */
 .navItem {
     position: relative;
     padding: 1px;
@@ -133,6 +163,7 @@
     opacity: 0;
     transition: opacity 0.3s ease;
     z-index: 0;
+    pointer-events: none;
 }
 
 @keyframes rotate {
@@ -161,6 +192,7 @@
     /* Slightly smaller than parent */
     z-index: 1;
     transition: background 0.3s ease;
+    pointer-events: none;
 }
 
 /* The Content Layer */

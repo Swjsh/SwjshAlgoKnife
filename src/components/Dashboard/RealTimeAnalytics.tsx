@@ -21,7 +21,10 @@ export default function RealTimeAnalytics({ symbol = 'BTC/USD', price = 98250 }:
     const [indicators, setIndicators] = useState<IndicatorState>({
         sma20: true,
         sma50: false,
-        ema200: true
+        ema200: true,
+        vwap: false,
+        bbands: false,
+        rsi: false
     });
 
     // Custom Hook for Stable Data
