@@ -7,6 +7,13 @@ import { Trade } from "@/types";
 import clsx from "clsx";
 import { useFirebaseSync } from "@/lib/hooks/useFirebaseSync";
 
+// Smart price formatting: FX gets 4-5 decimals, crypto/stocks get 2
+function formatPrice(price: number): string {
+    if (price < 200) return price.toFixed(price > 50 ? 3 : 5); // JPY=3, other FX=5
+    if (price > 1000) return price.toFixed(2); // Crypto/indices
+    return price.toFixed(2);
+}
+
 interface TradeListProps {
     onDataLoad?: (trades: Trade[]) => void;
 }
@@ -77,8 +84,8 @@ export default function TradeList({ onDataLoad }: TradeListProps) {
                                     </span>
                                 </td>
                                 <td className={styles.td}>{trade.strategy}</td>
-                                <td className={clsx(styles.td, styles.mono)}>{trade.entry_price.toFixed(2)}</td>
-                                <td className={clsx(styles.td, styles.mono)}>{trade.exit_price?.toFixed(2) || '-'}</td>
+                                <td className={clsx(styles.td, styles.mono)}>{formatPrice(trade.entry_price)}</td>
+                                <td className={clsx(styles.td, styles.mono)}>{trade.exit_price ? formatPrice(trade.exit_price) : '-'}</td>
                                 <td className={clsx(styles.td, "text-right", styles.mono)}>{trade.size}</td>
                                 <td className={clsx(styles.td, "text-right", styles.mono, trade.pnl && trade.pnl > 0 ? styles.win : trade.pnl && trade.pnl < 0 ? styles.loss : '')}>
                                     {trade.pnl ? (trade.pnl > 0 ? '+' + trade.pnl.toFixed(2) : trade.pnl.toFixed(2)) : '-'}
