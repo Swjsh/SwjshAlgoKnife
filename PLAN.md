@@ -124,9 +124,17 @@ Too many features attempted at once, no incremental milestones. Things break in 
 - ✅ 3D: Trade lifecycle works (EXIT closes trade, calculates P&L)
 - ⬜ 3E: Verify on dashboard + clean up old sim data
 
-### What's actually broken / needs work:
-1. **26K+ garbage trades** from old simulator spam — need DB cleanup
-2. **Position sizing** is wrong for FX (92 lots on $10K account)
-3. **Risk engine** needs FX-specific params (pip value, lot sizing)
-4. **No strategy evaluation** — webhook goes straight to executor, no ORB logic
-5. **The Professor agent** isn't wired up — it's just a persona, no code runs for FX/ORB
+### ✅ Phase 4: Journal & Analytics — DONE (already built, fixed FX price display)
+
+### Completed fixes:
+1. ~~26K+ garbage trades~~ → DB cleaned, reset to IDs 1-4
+2. ~~Position sizing wrong~~ → FX pip-based sizing (0.2 lots on $10K = correct)
+3. ~~Risk engine needs FX params~~ → Detects FX pairs, uses 50 pip default stop
+4. Strategy evaluation: webhook → executor is correct for TV-driven flow
+5. FX agent (Swjsh FX) picks up ORB 15m trades via stratMap
+
+### Next priorities:
+1. **Merge to main branch** and deploy
+2. **Connect TradingView** alerts to the webhook endpoint
+3. **Phase 5:** Add second strategy/agent
+4. **Phase 6:** OANDA broker integration for live paper trading
