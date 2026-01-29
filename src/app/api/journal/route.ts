@@ -1,15 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import db, { initDB } from '@/lib/db';
-
-// Ensure DB is ready
-try {
-    initDB();
-} catch (e) {
-    if (process.env.NODE_ENV === 'development') {
-        console.error("Failed to init DB:", e);
-    }
-}
+import db from '@/lib/db';
 
 // Input validation schema for trade creation
 const CreateTradeSchema = z.object({

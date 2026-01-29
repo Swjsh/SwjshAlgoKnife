@@ -89,4 +89,14 @@ export function initDB() {
   }
 }
 
+// Auto-initialize on first import
+try {
+  initDB();
+} catch (e) {
+  // Silently handle — mock DB will work for build environments
+  if (process.env.NODE_ENV === 'development') {
+    console.error('DB auto-init failed:', e);
+  }
+}
+
 export default db;
