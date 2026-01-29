@@ -112,5 +112,21 @@ Too many features attempted at once, no incremental milestones. Things break in 
 
 ---
 
-## Next Action
-Start Phase 0. Fix the build.
+## Status (Jan 28, 2026)
+
+### ✅ Phase 0: Stabilize — DONE
+### ✅ Phase 1: Core Data Layer — DONE  
+### ✅ Phase 2: Dashboard That Works — DONE (verified API + UI renders)
+### 🔄 Phase 3: One Agent, End-to-End
+- ✅ 3A: Webhook intake works (signal → DB)
+- ✅ 3B: Signal → executor processes it (BUY/SELL/EXIT)
+- ✅ 3C: Simulated execution works (trade opens in DB)
+- ✅ 3D: Trade lifecycle works (EXIT closes trade, calculates P&L)
+- ⬜ 3E: Verify on dashboard + clean up old sim data
+
+### What's actually broken / needs work:
+1. **26K+ garbage trades** from old simulator spam — need DB cleanup
+2. **Position sizing** is wrong for FX (92 lots on $10K account)
+3. **Risk engine** needs FX-specific params (pip value, lot sizing)
+4. **No strategy evaluation** — webhook goes straight to executor, no ORB logic
+5. **The Professor agent** isn't wired up — it's just a persona, no code runs for FX/ORB

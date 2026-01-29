@@ -82,11 +82,24 @@ export class TradeExecutor {
 
             const exitPrice = signal.price;
             let pnl = 0;
+            const priceDiff = openTrade.direction === 'LONG'
+                ? (exitPrice - openTrade.entry_price)
+                : (openTrade.entry_price - exitPrice);
 
-            if (openTrade.direction === 'LONG') {
-                pnl = (exitPrice - openTrade.entry_price) * openTrade.size;
+            // Detect FX pairs (size is in lots, price < 200)
+            const isFX = openTrade.entry_price > 0.5 && openTrade.entry_price < 200 && openTrade.size < 100;
+            if (isFX) {
+                // FX P&L: priceDiff * lots * 100,000 units/lot
+                // For USD-quoted pairs (EURUSD, GBPUSD): P&L in USD directly
+                // For JPY pairs: divide by exit price
+                const isJPY = exitPrice > 50;
+                const units = openTrade.size * 100000;
+                pnl = isJPY
+                    ? (priceDiff * units) / exitPrice
+                    : priceDiff * units;
             } else {
-                pnl = (openTrade.entry_price - exitPrice) * openTrade.size;
+                // Crypto/Stocks: simple price diff * size
+                pnl = priceDiff * openTrade.size;
             }
 
             const status = pnl >= 0 ? 'WIN' : 'LOSS';
