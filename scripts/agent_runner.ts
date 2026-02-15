@@ -76,6 +76,7 @@ interface DbSchema {
     spx: AgentState;
     futures: AgentState;
     boba: AgentState;
+    orb: AgentState;
     professor: AgentState;
     auditor: AgentState;
 }
@@ -137,6 +138,17 @@ const EXAMPLE_DB: DbSchema = {
         active_trades: [],
         closed_trades: [],
         meta: { name: 'Boba', type: 'Options' }
+    },
+    orb: {
+        last_updated: new Date().toISOString(),
+        status: 'ACTIVE',
+        active_pairs: 1,
+        total_zones_found: 0,
+        performance: { win_rate: 0, total_pnl: 0, trades: 0 },
+        pending_orders: [],
+        active_trades: [],
+        closed_trades: [],
+        meta: { name: 'ORB Runner', type: 'Futures' }
     },
     professor: {
 
@@ -315,6 +327,58 @@ function startSPX() {
 
 startSPX();
 
+// Start ORB Runner (TypeScript Engine)
+let orbProcess: any = null;
+function startORB() {
+    console.log('🚀 Starting ORB Runner (TypeScript Engine)...');
+    orbProcess = spawn('npx', ['tsx', 'scripts/run_orb_agent.ts'], {
+        cwd: process.cwd(),
+        stdio: ['ignore', 'pipe', 'pipe'],
+        shell: true,
+    });
+
+    orbProcess.stdout.on('data', (data: Buffer) => {
+        const output = data.toString().trim();
+        const lines = output.split('\n');
+
+        lines.forEach(line => {
+            if (line.startsWith('AGENT_STATUS_UPDATE:')) {
+                try {
+                    const jsonStr = line.replace('AGENT_STATUS_UPDATE:', '');
+                    const json = JSON.parse(jsonStr);
+                    db.orb = {
+                        ...db.orb,
+                        last_updated: json.generated_at || new Date().toISOString(),
+                        status: 'ACTIVE',
+                        active_pairs: 1,
+                        total_zones_found: json.signal_count || 0,
+                        performance: db.orb.performance,
+                        pending_orders: db.orb.pending_orders,
+                        active_trades: db.orb.active_trades,
+                        closed_trades: db.orb.closed_trades,
+                        meta: db.orb.meta,
+                    };
+                    saveDb();
+                } catch (e) {
+                    console.error('❌ [ORB JSON Error]', e);
+                }
+            } else if (line) {
+                console.log(`[ORB] ${line}`);
+            }
+        });
+    });
+
+    orbProcess.stderr.on('data', (data: Buffer) => {
+        console.error('❌ [ORB Error]', data.toString());
+    });
+
+    orbProcess.on('close', (code: number) => {
+        console.log(`⚠️ ORB process exited with code ${code}`);
+        setTimeout(startORB, 30000);
+    });
+}
+
+startORB();
 
 // 4. Load existing active trades from DB (if any)
 // No longer using in-memory array - all trades persisted in DB
