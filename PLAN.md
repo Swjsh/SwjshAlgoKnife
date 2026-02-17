@@ -1,4 +1,4 @@
-# SwjshAlgoKnife - Development Plan
+﻿# SwjshAlgoKnife - Development Plan
 
 ## Current State (Jan 27, 2026)
 - Next.js 16 app with SQLite (better-sqlite3), Firebase auth, TradingView webhooks
@@ -131,7 +131,7 @@ Too many features attempted at once, no incremental milestones. Things break in 
 2. ~~Position sizing wrong~~ → FX pip-based sizing (0.2 lots on $10K = correct)
 3. ~~Risk engine needs FX params~~ → Detects FX pairs, uses 50 pip default stop
 4. Strategy evaluation: webhook → executor is correct for TV-driven flow
-5. FX agent (Swjsh FX) picks up ORB 15m trades via stratMap
+5. FX agent (Sterling) picks up ORB 15m trades via stratMap
 
 ### Next priorities:
 1. **Merge to main branch** and deploy

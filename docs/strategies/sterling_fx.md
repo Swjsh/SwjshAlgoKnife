@@ -1,4 +1,4 @@
-# Swjsh FX Strategy: "Set & Forget" (FX Alex G Style)
+﻿# Sterling — FX Strategy: "Set & Forget" (FX Alex G Style)
 
 > [!NOTE]
 > **Core Philosophy**: A mechanical, rule-based approach designed to remove emotion. Identify the setup, set the limit order, set the stop/target, and walk away.
@@ -45,7 +45,7 @@ The success of the strategy depends on the quality of the Supply/Demand zone.
 - **Max Open Trades**: 1-2 correlated pairs max.
 - **News**: Avoid entries 30 mins before High Impact News (Red Folder).
 
-## 5. Swjsh Bot Logic Checklist
+## 5. Sterling Bot Logic Checklist
 To automate this, the Algo Knife must:
 1. [ ] Analyze Daily/4H candles to determine Trend components (HH, HL, LH, LL).
 2. [ ] Identify "Zone Candidates" (clusters of candles followed by large displacement).

@@ -6,7 +6,7 @@ import { useStrategy } from '@/context/StrategyContext';
 
 // Backup static list if context is empty
 const defaultAgentList = [
-    { id: 'fx', name: 'Swjsh FX', role: 'Forex Specialist', initial: 'FX', status: 'active' as const, avatar: '/avatars/fx.png', active_pairs: 4, performance: { win_rate: 65, total_pnl: 1250 } },
+    { id: 'fx', name: 'Sterling', role: 'Forex Specialist', initial: 'ST', status: 'active' as const, avatar: '/avatars/fx.png', active_pairs: 4, performance: { win_rate: 65, total_pnl: 1250 } },
     { id: 'crypto', name: 'Bitcoin Bob', role: 'Crypto Hunter', initial: 'BB', status: 'active' as const, avatar: '/avatars/crypto.png', active_pairs: 2, performance: { win_rate: 72, total_pnl: 3400 } },
     { id: 'spx', name: 'SPX Sniper', role: 'Indices Trader', initial: 'SS', status: 'active' as const, avatar: '/avatars/spx.png', active_pairs: 1, performance: { win_rate: 68, total_pnl: 2100 } },
     { id: 'futures', name: 'Pivot Pete', role: 'Futures Expert', initial: 'PP', status: 'active' as const, avatar: '/avatars/futures.png', active_pairs: 3, performance: { win_rate: 55, total_pnl: 850 } },

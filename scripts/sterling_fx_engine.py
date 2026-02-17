@@ -1,5 +1,5 @@
 """
-Swjsh FX Engine - "Set & Forget" Agent
+Sterling — FX Engine - "Set & Forget" Agent
 Scans for Supply & Demand zones using free yfinance data.
 Implements a simplified version of FX Alex Gianola's strategy.
 
@@ -109,7 +109,7 @@ def find_zones(df, atr_series):
     return zones
 
 def run_engine():
-    print(f"Starting Swjsh FX Engine at {datetime.now().strftime('%H:%M:%S')}...")
+    print(f"Starting Sterling — FX Engine at {datetime.now().strftime('%H:%M:%S')}...")
     log_message('fx', get_random_quip('fx'))
     
     scan_results = []
@@ -176,7 +176,7 @@ def run_engine():
         json.dump(agent_state, f, indent=2)
         
     log_message('fx', f"Scan cycle complete. Monitoring {len(scan_results)} zones.")
-    print(f"✅ Engine cycle complete. Status saved to {STATUS_FILE}")
+    print(f"[OK] Engine cycle complete. Status saved to {STATUS_FILE}")
 
 if __name__ == "__main__":
     run_engine()

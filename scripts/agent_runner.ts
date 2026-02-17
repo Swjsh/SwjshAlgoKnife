@@ -1,4 +1,4 @@
-
+﻿
 import fs from 'fs';
 import path from 'path';
 import { MarketData, PriceUpdate } from '../src/lib/engine/local_runner/MarketData';
@@ -93,7 +93,7 @@ const EXAMPLE_DB: DbSchema = {
         pending_orders: [],
         active_trades: [],
         closed_trades: [],
-        meta: { name: 'Swjsh FX', type: 'Forex' }
+        meta: { name: 'Sterling', type: 'Forex' }
     },
     crypto: {
         last_updated: new Date().toISOString(),
@@ -581,7 +581,7 @@ function saveDb() {
 // --- Unified Audit Loop (The Watcher) ---
 // Ensures ALL trades across ALL agents get graded, even Python agents
 function runAuditSync() {
-    const allAgents: (keyof DbSchema)[] = ['fx', 'crypto', 'futures', 'boba', 'spx'];
+    const allAgents: (keyof DbSchema)[] = ['fx', 'crypto', 'futures', 'boba', 'spx', 'orb'];
 
     allAgents.forEach(agentKey => {
         const agent = db[agentKey];

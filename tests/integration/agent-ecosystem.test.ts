@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+﻿import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { spawn, ChildProcess } from 'child_process';
@@ -232,7 +232,7 @@ describe('Agent Ecosystem Integration Tests', () => {
       const testReview = {
         id: 'test_review_1',
         timestamp: new Date().toISOString(),
-        target_agent: 'Swjsh FX',
+        target_agent: 'Sterling',
         grade: 'A' as const,
         observation: 'Test trade observation',
         critique: 'Test critique',
@@ -245,7 +245,7 @@ describe('Agent Ecosystem Integration Tests', () => {
 
       const db2 = readDb();
       expect(db2.professor.reviews?.length).toBe(initialReviewCount + 1);
-      expect(db2.professor.reviews?.[0].target_agent).toBe('Swjsh FX');
+      expect(db2.professor.reviews?.[0].target_agent).toBe('Sterling');
 
       // Cleanup
       db2.professor.reviews?.shift();
@@ -275,7 +275,7 @@ describe('Agent Ecosystem Integration Tests', () => {
     it('should maintain agent metadata', () => {
       const db = readDb();
 
-      expect(db.fx.meta.name).toBe('Swjsh FX');
+      expect(db.fx.meta.name).toBe('Sterling');
       expect(db.fx.meta.type).toBe('Forex');
 
       expect(db.crypto.meta.name).toBe('Bitcoin Bob');

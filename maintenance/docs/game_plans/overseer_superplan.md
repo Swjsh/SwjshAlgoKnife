@@ -1,4 +1,4 @@
-# The Overseer SuperPlan: Full System Survival Overhaul
+﻿# The Overseer SuperPlan: Full System Survival Overhaul
 
 **Version**: 2.0 (Comprehensive)
 **Date**: 2026-01-01
@@ -261,7 +261,7 @@ The Overseer is no longer just a philosophical document. It becomes an active ag
 
 | Date | Agent | Ticker | Expected PnL | Actual PnL | Gap | Cause |
 |------|-------|--------|--------------|------------|-----|-------|
-| 2026-01-01 | Swjsh FX | EURUSD | +$45 | +$32 | -$13 | Slippage + Commission |
+| 2026-01-01 | Sterling | EURUSD | +$45 | +$32 | -$13 | Slippage + Commission |
 ```
 
 **Automation**: `agent_runner.ts` should append to this file on every trade close.

@@ -11,7 +11,7 @@ import KillSwitchButton from "@/components/KillSwitch/KillSwitchButton";
 
 // Agent definitions with their default strategies
 const AGENTS = [
-    { id: 'fx', name: 'Swjsh FX', avatar: '/avatars/fx.png', color: '#3b82f6' },
+    { id: 'fx', name: 'Sterling', avatar: '/avatars/fx.png', color: '#3b82f6' },
     { id: 'crypto', name: 'Bitcoin Bob', avatar: '/avatars/crypto.png', color: '#f59e0b' },
     { id: 'spx', name: 'SPX Sniper', avatar: '/avatars/spx.png', color: '#ef4444' },
     { id: 'futures', name: 'Pivot Pete', avatar: '/avatars/futures.png', color: '#10b981' },

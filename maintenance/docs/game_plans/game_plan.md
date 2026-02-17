@@ -1,4 +1,4 @@
-# Game Plan: The Rise of the Machines
+﻿# Game Plan: The Rise of the Machines
 **Vision**: Shift "Swjsh Algo Knife" from a manual trading terminal to an **Agent Command Center**. The Trading Bots are the heroes; the User is the Commander.
 
 ## 1. Core Philosophy
@@ -10,7 +10,7 @@
 The current Dashboard is too manual-focused. We will transform it into a High-Level Status Screen.
 - **[REMOVE] OrderPanel**: Manual buy/sell/short buttons are distractions. Hide them or move to a "Debug/Override" modal.
 - **[NEW] Squad Status Ticker**: A prominent header showing:
-    - active Agents (e.g., "Pivot Pete: LONG ES", "Swjsh FX: SCANNING").
+    - active Agents (e.g., "Pivot Pete: LONG ES", "Sterling: SCANNING").
     - Total System PnL (Today).
     - Active Risks/Exposure.
 - **[MODIFY] Trading Chart**: 
