@@ -13,9 +13,9 @@
     "active_trades": [],
     "closed_trades": [],
     "meta": {
-      "name": "Swjsh FX",
-      "type": "Set & Forget Supply/Demand Swing Trader",
-      "description": "Multi-timeframe S&D zone trading on forex majors. Weekly→Daily→4H top-down analysis, limit orders at fresh zones, 1:3+ RR. Based on FXAlexG methodology.",
+      "name": "Sterling",
+      "type": "Forex",
+      "description": "Multi-timeframe S&D zone trading on forex majors. Weekly\u00e2\u2020\u2019Daily\u00e2\u2020\u20194H top-down analysis, limit orders at fresh zones, 1:3+ RR. Based on FXAlexG methodology.",
       "market": "forex",
       "assets": [
         "EUR/USD",
@@ -110,7 +110,8 @@
     "meta": {
       "name": "Boba",
       "type": "Options"
-    }
+    },
+    "active_trades": []
   },
   "futures": {
     "last_updated": "2026-02-15T04:22:53.633Z",
@@ -248,7 +249,7 @@
       ],
       "setups": {
         "standard_orb": "Breakout above/below 15m ORB high/low, enter on breakout or retest",
-        "inverse_orb": "Range >400pts → trade ORB as range, bias from HTF",
+        "inverse_orb": "Range >400pts \u00e2\u2020\u2019 trade ORB as range, bias from HTF",
         "es_nq_divergence": "When one index returns inside ORB, short/long the lagging index"
       },
       "discipline_rules": [
