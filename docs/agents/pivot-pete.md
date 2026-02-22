@@ -80,14 +80,21 @@ When trading Gold (GC/XAUUSD):
 
 ## Data Sources
 
-### Free (Current)
-- **yfinance**: ES=F, NQ=F, GC=F (15-20min delay)
-- **Limitation**: Delayed data, no live execution
+### Current (TS runners)
+- **Alpaca market data (stocks)** is used as an **ETF proxy** for index futures:
+  - `ES` → `SPY`
+  - `NQ` → `QQQ`
+  - `YM` → `DIA`
 
-### Future Upgrade Options
-- **Tradovate**: Free demo, real futures data
-- **NinjaTrader**: Free platform, real data with account
-- **TradingView Webhooks**: Requires Pro ($12.95/mo)
+This means the strategy is running on **ETF price action**, not true CME futures prints. It is good enough for development/backtests and paper-sim plumbing, but expect differences vs futures (session hours, gaps, microstructure).
+
+### Future Upgrade Options (true futures feed)
+- Add a futures data source (CME) and switch the data-provider layer:
+  - Tradovate / NinjaTrader / other futures feed
+  - TradingView webhooks (requires paid plan)
+
+### Legacy (Python)
+Some older Python scripts in `/scripts` reference **yfinance**. That path is **not used** by the TS Pivot Pete backtest/paper harness.
 
 ---
 
@@ -114,16 +121,22 @@ When trading Gold (GC/XAUUSD):
 
 ---
 
-## Running Pivot Pete
+## Running Pivot Pete (TS)
 
-```bash
+```powershell
 cd C:\Users\jackw\Desktop\SwjshAlgoKnife
 
-# Run the engine (paper trading)
-python scripts/pivot_pete_engine.py
+# Backtest (Alpaca if creds exist; synthetic fallback otherwise)
+npx tsx scripts/pivot-pete-backtest.ts --symbol ES --from 2026-01-01 --to 2026-02-01 --tf 5Min --source alpaca
 
-# Or with specific symbol
-python scripts/run_pivot_pete.py
+# Paper-sim loop (requires Alpaca creds; no live trading)
+npx tsx scripts/pivot-pete-paper.ts --symbol ES --iters 120 --pollSec 15
+```
+
+### Legacy (Python)
+```powershell
+# Older runner; not part of the TS Alpaca/ETF-proxy harness
+python scripts/pivot_pete_engine.py
 ```
 
 ---

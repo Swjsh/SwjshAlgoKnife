@@ -14,7 +14,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 
-import { mkdirSync, writeFileSync } from 'fs';
+import { mkdirSync, writeFileSync, appendFileSync } from 'fs';
 
 import { PivotStrategy } from '../src/lib/engine/strategies/pivot';
 import type { Candle, MarketCategory, Signal, StrategyConfig } from '../src/lib/engine/types';
@@ -120,6 +120,7 @@ async function loadCandles(args: Args): Promise<{ candles: Candle[]; sourceUsed:
   }
 
   try {
+    const sym = alpaca.resolveSymbol(args.symbol);
     const candles = await alpaca.getHistoricalBars(
       args.symbol,
       args.tf,
@@ -132,23 +133,14 @@ async function loadCandles(args: Args): Promise<{ candles: Candle[]; sourceUsed:
       return { candles: generateSyntheticCandles(args.symbol, args.from, args.to, args.tf), sourceUsed: 'synthetic (alpaca returned 0 bars)' };
     }
 
-    return { candles, sourceUsed: 'alpaca (ETF proxy via /stocks/bars)' };
+    return { candles, sourceUsed: `alpaca (${sym.note || sym.providerSymbol} via /v2/stocks/${sym.providerSymbol}/bars)` };
   } catch {
     return { candles: generateSyntheticCandles(args.symbol, args.from, args.to, args.tf), sourceUsed: 'synthetic (alpaca fetch error)' };
   }
 }
 
+// Strategy emits stopLoss/takeProfit; leave as-is.
 function withStops(signal: Signal): Signal {
-  // Simple fixed risk model for backtest scaffold (tunable later)
-  const stopPts = 15;
-  const tpPts = 30;
-
-  if (signal.action === 'BUY') {
-    return { ...signal, stopLoss: signal.price - stopPts, takeProfit: signal.price + tpPts };
-  }
-  if (signal.action === 'SELL') {
-    return { ...signal, stopLoss: signal.price + stopPts, takeProfit: signal.price - tpPts };
-  }
   return signal;
 }
 
@@ -161,12 +153,23 @@ async function main() {
   const backtestDataDir = path.join(process.cwd(), 'data', '_backtests', 'pivot_pete', runId);
   mkdirSync(backtestDataDir, { recursive: true });
 
+  const logsDir = path.join(process.cwd(), 'logs');
+  mkdirSync(logsDir, { recursive: true });
+  const logPath = path.join(logsDir, `pivot_pete_backtest_${runId}.log`);
+  const log = (line: string) => appendFileSync(logPath, `[${new Date().toISOString()}] ${line}\n`);
+  log(`runId=${runId} symbol=${args.symbol} from=${args.from} to=${args.to} tf=${args.tf} source=${args.source}`);
+
   const strategyConfig: StrategyConfig = {
-    id: 'pivot_rejection',
-    name: 'Multi-Timeframe Pivot Rejection',
+    id: 'pivot_pete',
+    name: 'Pivot Pete — Multi-Timeframe Pivot Rejection',
     isActive: true,
-    params: {},
-    category: 'FUTURES',
+    params: {
+      // Used by PivotStrategy when emitting signals
+      symbol: args.symbol,
+    },
+    // IMPORTANT: this runner uses ETF proxy data via Alpaca stocks feed (SPY/QQQ/DIA)
+    // unless/ until a true futures data source is added.
+    category: 'EQUITY',
   };
 
   const strategy = new PivotStrategy(strategyConfig);
@@ -225,6 +228,8 @@ async function main() {
   };
 
   writeFileSync(outPath, JSON.stringify(results, null, 2));
+  log(`candles=${candles.length} signals=${signals.length} trades=${performance.totalTrades} pnl=${performance.totalPnL}`);
+
   // eslint-disable-next-line no-console
   console.log(`\n✅ Pivot Pete backtest complete`);
   console.log(`   Data: ${sourceUsed}`);
