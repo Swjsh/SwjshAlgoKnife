@@ -16,11 +16,11 @@ dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 
 import { mkdirSync, writeFileSync, appendFileSync } from 'fs';
 
-import { PivotStrategy } from '../src/lib/engine/strategies/pivot';
-import type { Candle, MarketCategory, Signal, StrategyConfig } from '../src/lib/engine/types';
-import { PaperTradingEngine } from '../src/lib/engine/paper-trading';
-import { AlpacaDataProvider } from '../src/lib/data-providers/alpaca';
-import { hashStringToSeed, mulberry32 } from '../src/lib/utils/prng';
+import { PivotStrategy } from '../src/lib/engine/strategies/pivot.ts';
+import type { Candle, MarketCategory, Signal, StrategyConfig } from '../src/lib/engine/types.ts';
+import { PaperTradingEngine } from '../src/lib/engine/paper-trading.ts';
+import { AlpacaDataProvider } from '../src/lib/data-providers/alpaca.ts';
+import { hashStringToSeed, mulberry32 } from '../src/lib/utils/prng.ts';
 
 type Symbol = 'ES' | 'NQ' | 'YM';
 

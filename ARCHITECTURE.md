@@ -1,363 +1,212 @@
 # Architecture Overview
-This document serves as a critical, living template designed to equip agents with a rapid and comprehensive understanding of the Swjsh Algo-Knife codebase's architecture, enabling efficient navigation and effective contribution from day one. Update this document as the codebase evolves.
+This document is a living map of the Swjsh Algo‑Knife codebase. It should stay accurate to what’s in the repo **today** so new work can start fast and safely.
 
 ---
 
-## 1. Project Structure
-This section provides a high-level overview of the project's directory and file structure, categorized by architectural layer or major functional area.
+## 1. Project Structure (Current)
 
 ```
 SwjshAlgoKnife/
-├── src/                    # Main application source code
-│   ├── app/                # Next.js App Router pages and API routes
-│   │   ├── api/            # Backend API endpoints (webhooks, agents, signals)
-│   │   │   ├── agents/     # Agent management endpoints
-│   │   │   ├── journal/    # Trade journal API
-│   │   │   ├── signals/    # Signal processing
-│   │   │   └── webhook/    # TradingView webhook receiver
-│   │   ├── agents/         # Agent management pages
-│   │   ├── dashboard/      # Main dashboard view
-│   │   ├── journal/        # Trade journaling page
-│   │   ├── login/          # Authentication page
-│   │   ├── logs/           # System logs viewer
-│   │   ├── research/       # Research tools page
-│   │   ├── scanner/        # Market scanner page
-│   │   ├── settings/       # User settings page
-│   │   └── strategies/     # Strategy management page
-│   ├── components/         # Reusable React UI components
-│   │   ├── Agents/         # Agent-related components
-│   │   ├── Dashboard/      # Dashboard widgets (Charts, Signals, etc.)
-│   │   ├── Header/         # Navigation header
-│   │   ├── Journal/        # Journal entry components
-│   │   ├── Landing/        # Hero/landing page components
-│   │   ├── Layout/         # Layout wrappers (Sidebar, Header)
-│   │   ├── Navigation/     # Conditional navigation logic
-│   │   ├── SaaSLanding/    # SaaS-style landing page
-│   │   └── UI/             # Core UI primitives (GlassPanel, etc.)
-│   ├── context/            # React Context providers
-│   │   ├── AgentContext    # Agent state management
-│   │   ├── AuthContext     # Firebase authentication state
-│   │   └── StrategyContext # Active strategy state
-│   ├── lib/                # Core libraries and utilities
-│   │   ├── engine/         # Trading engine core
-│   │   │   ├── executor    # Trade execution logic
-│   │   │   ├── manager     # Agent lifecycle management
-│   │   │   ├── risk/       # Risk engine (limits, correlation, kill switch)
-│   │   │   ├── simulator   # Friction simulator (slippage, latency)
-│   │   │   ├── strategies/ # Strategy implementations
-│   │   │   └── local_runner/ # Node.js agent runner
-│   │   ├── scanner/        # Market scanning utilities
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── firebase.ts     # Firebase client/admin initialization
-│   │   ├── db.ts           # SQLite database connection (better-sqlite3)
-│   │   └── utils/          # General utility functions
-│   ├── middleware/         # Auth middleware for protected routes
-│   └── types/              # TypeScript type definitions
-├── public/                 # Static assets (images, icons)
-├── docs/                   # Project documentation
-│   ├── PRODUCT_SPEC.md     # Product specification
-│   ├── TESTING.md          # Testing guide
-│   ├── SECURITY_AUDIT.md   # Security considerations
-│   ├── agents/             # Agent-specific documentation
-│   └── strategies/         # Strategy documentation
-├── scripts/                # Automation and deployment scripts
-├── tests/                  # Unit and integration tests
-├── testsprite_tests/       # Automated UI/E2E tests
-├── data/                   # Local data files and JSON stores
-├── backups/                # Database and config backups
-├── maintenance/            # Maintenance scripts and utilities
-├── theories/               # Trading theory documentation
-├── journal.db              # SQLite trade journal database
-├── firebase.json           # Firebase configuration
-├── package.json            # Dependencies and scripts
-├── tsconfig.json           # TypeScript configuration
-├── tailwind.config.js      # TailwindCSS configuration
-├── vitest.config.ts        # Vitest test configuration
-└── ARCHITECTURE.md         # This document
+├── src/                     # Main application source
+│   ├── app/                 # Next.js App Router pages + API routes
+│   │   ├── api/             # Backend endpoints
+│   │   │   ├── agent-status # Agent status read/write endpoints
+│   │   │   ├── agents       # Agent CRUD + metadata
+│   │   │   ├── journal      # Trade journal API
+│   │   │   ├── killswitch   # Emergency stop/kill routes
+│   │   │   ├── signals      # Signal ingestion + history
+│   │   │   └── webhook      # TradingView webhook receiver
+│   │   ├── agent/           # Agent detail view
+│   │   ├── agents/          # Agent management UI
+│   │   ├── breakroom/       # UI playground / misc
+│   │   ├── dashboard/       # Main dashboard
+│   │   ├── journal/         # Trade journal UI
+│   │   ├── lab/             # Experiments / sandbox UI
+│   │   ├── login/           # Auth
+│   │   ├── logs/            # System logs UI
+│   │   ├── research/        # Research tools
+│   │   ├── scanner/         # Market scanner
+│   │   ├── settings/        # User settings
+│   │   └── strategies/      # Strategy management UI
+│   ├── agents/              # Agent runners (TS)
+│   │   └── futures-agent.ts # Pivot Pete runner (paper)
+│   ├── components/          # Reusable React components
+│   │   ├── Agents/          # Agent widgets
+│   │   ├── Dashboard/       # Dashboard widgets
+│   │   ├── Journal/         # Journal UI
+│   │   ├── Landing/         # Landing / marketing
+│   │   └── UI/              # UI primitives
+│   ├── context/             # React context
+│   ├── lib/                 # Core libraries
+│   │   ├── broker/          # Broker integrations (ex: Oanda)
+│   │   ├── data-providers/  # Market data sources (ex: Alpaca)
+│   │   ├── engine/          # Trading engine core
+│   │   │   ├── local_runner # Local runner / loops
+│   │   │   ├── risk/        # Risk helpers
+│   │   │   ├── strategies/  # Strategy implementations
+│   │   │   ├── executor.ts  # Trade execution + accounting
+│   │   │   ├── manager.ts   # Engine orchestration
+│   │   │   ├── paper-trading.ts # Paper trading engine
+│   │   │   ├── risk.ts      # Risk manager
+│   │   │   ├── simulator.ts # Market simulation helpers
+│   │   │   └── types.ts     # Engine types
+│   │   ├── firebase/        # Firebase helpers
+│   │   ├── hooks/           # Custom hooks
+│   │   ├── scanner/         # Scanning utilities
+│   │   └── utils/           # Misc helpers
+│   └── middleware/          # Auth middleware
+├── scripts/                 # Backtests, runners, utilities
+├── tests/                   # Unit/integration tests
+├── testsprite_tests/        # UI/E2E tests
+├── data/                    # Local status JSON + artifacts
+├── logs/                    # Local log files
+├── docs/                    # Product docs
+├── theories/                # Trading theory notes
+├── journal.db               # SQLite journal DB
+└── ARCHITECTURE.md          # This file
 ```
 
 ---
 
-## 2. High-Level System Diagram
+## 2. High‑Level System Diagram (Current)
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              EXTERNAL SOURCES                                │
-│    [TradingView]    [Yahoo Finance]    [Binance API]    [Finnhub API]       │
-└────────┬──────────────────┬──────────────────┬────────────────┬─────────────┘
-         │ Webhooks         │ FX Data          │ Crypto Data    │ Live Data
-         ▼                  ▼                  ▼                ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           NEXT.JS APPLICATION                                │
-│  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │                         API Routes (/api)                              │  │
-│  │   [webhook/tradingview] → [signals] → [agents] → [journal]            │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
-│                                    │                                         │
-│                                    ▼                                         │
-│  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │                      TRADING ENGINE (src/lib/engine)                   │  │
-│  │  ┌─────────┐  ┌─────────┐  ┌──────────┐  ┌───────────────┐            │  │
-│  │  │ Manager │──│Executor │──│   Risk   │──│RegimeDetector │            │  │
-│  │  │         │  │         │  │  Engine  │  │               │            │  │
-│  │  └─────────┘  └─────────┘  └──────────┘  └───────────────┘            │  │
-│  │       │            │                                                   │  │
-│  │       ▼            ▼                                                   │  │
-│  │  ┌──────────────────────────────────────────────────────────────────┐ │  │
-│  │  │         AUTONOMOUS AGENTS (The Squad)                            │ │  │
-│  │  │  [Pivot Pete] [Boba] [SPX Sniper] [Professor] [Auditor]         │ │  │
-│  │  └──────────────────────────────────────────────────────────────────┘ │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
-│                                    │                                         │
-│  ┌─────────────────────────────────┴─────────────────────────────────────┐  │
-│  │                         FRONTEND (React/Next.js)                       │  │
-│  │   [Landing] → [Login] → [Dashboard] → [Strategies] → [Journal]        │  │
-│  │                                                                        │  │
-│  │   Context Providers: [AuthContext] [StrategyContext] [AgentContext]   │  │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────────────┘
-         │                                          │
-         ▼                                          ▼
-┌─────────────────────┐                   ┌─────────────────────┐
-│   Firebase (Auth)   │                   │ SQLite (journal.db) │
-│   + Firestore       │                   │ Local Persistence   │
-└─────────────────────┘                   └─────────────────────┘
+┌────────────────────────────────────────────────────────────────┐
+│                         EXTERNAL SOURCES                       │
+│   [TradingView Webhooks]   [Alpaca Market Data]   [Oanda]       │
+└───────────┬──────────────────────┬────────────────────┬────────┘
+            │                      │                    │
+            ▼                      ▼                    ▼
+┌────────────────────────────────────────────────────────────────┐
+│                      NEXT.JS APPLICATION                        │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │                         API ROUTES                         │  │
+│  │  /api/webhook → /api/signals → /api/agents → /api/journal  │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                               │                                 │
+│                               ▼                                 │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │                 TRADING ENGINE (src/lib/engine)            │  │
+│  │  manager → executor → risk → paper‑trading → simulator     │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                               │                                 │
+│                               ▼                                 │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │                AGENTS / RUNNERS (src/agents)               │  │
+│  │                 futures-agent.ts (Pivot Pete)              │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                               │                                 │
+│                               ▼                                 │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │                   FRONTEND (React/Next.js)                 │  │
+│  │ Dashboard • Strategies • Agents • Journal • Logs           │  │
+│  └───────────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────────┘
+            │                                │
+            ▼                                ▼
+┌───────────────────────┐          ┌──────────────────────────┐
+│ SQLite (journal.db)   │          │ data/*.json + logs/*.log  │
+│ local persistence     │          │ local status + artifacts  │
+└───────────────────────┘          └──────────────────────────┘
 ```
 
 ---
 
 ## 3. Core Components
 
-### 3.1. Frontend
+### 3.1 Frontend
+**Name:** Swjsh Algo‑Knife Web App
 
-**Name:** Swjsh Algo-Knife Web App
+**Description:** Trading terminal UI for monitoring agents, strategy configs, and trade journaling.
 
-**Description:** A premium trading terminal interface featuring a SaaS-style design with glassmorphism effects, particle animations, and dark/light theming. Users authenticate, view market data, manage autonomous trading agents, and review trade journals.
-
-**Technologies:**
-- Next.js 16.1.1 (App Router)
-- React 19.2.3
-- TypeScript 5.x
-- Framer Motion (animations)
-- Vanilla CSS Modules (styling)
-- TailwindCSS 4.x (utility support)
-- Lucide React (icons)
-- Lightweight Charts (trading charts)
-
-**Deployment:** Vercel (planned), with Oracle Cloud Free Tier as backend option
+**Tech:** Next.js (App Router), React, TypeScript, CSS Modules, Tailwind utilities.
 
 ---
 
-### 3.2. Backend Services
+### 3.2 Backend (Next.js API Routes)
+Handles TradingView webhooks, signals, agent state, and journal data.
 
-#### 3.2.1. Next.js API Routes
-
-**Name:** Internal API Layer
-
-**Description:** Handles webhook ingestion from TradingView, manages agent state, processes signals, and serves journal data. All routes are under `/api/`.
-
-**Technologies:** Next.js API Routes (Node.js runtime)
-
-**Key Endpoints:**
-- `POST /api/webhook/tradingview` - Receives trading signals
-- `GET/POST /api/agents` - Agent CRUD operations
-- `GET/POST /api/journal` - Trade journal entries
-- `GET /api/signals` - Signal data retrieval
-- `GET /api/agent-status` - Agent health monitoring
-
-**Deployment:** Vercel Serverless Functions
+**Key endpoints:**
+- `POST /api/webhook/tradingview`
+- `GET/POST /api/signals`
+- `GET/POST /api/agents`
+- `GET/POST /api/journal`
+- `GET/POST /api/agent-status`
+- `POST /api/killswitch`
 
 ---
 
-#### 3.2.2. Trading Engine
+### 3.3 Trading Engine (`src/lib/engine`)
+**Purpose:** Strategy execution, paper trading, and risk validation.
 
-**Name:** Algo-Knife Trading Engine
+**Key files:**
+- `manager.ts` — Orchestrates strategies + loops
+- `executor.ts` — Executes trades + updates account state
+- `paper-trading.ts` — Paper trading engine + stats
+- `risk.ts` — Risk validation helpers
+- `simulator.ts` — Market simulation support
+- `types.ts` — Candle, Signal, Trade, etc.
 
-**Description:** Core execution engine that manages autonomous trading agents, validates signals against risk parameters, and simulates market friction.
-
-**Technologies:** TypeScript, Node.js
-
-**Key Modules:**
-- `manager.ts` - `EngineManager` class. Manages strategy lifecycle, simulation loop (development), and signal event bus.
-- `executor.ts` - `TradeExecutor` class. Handles trade entry/exit, P/L calculation, SQLite recording, and **Firebase Cloud Sync**.
-- `risk.ts` - `RiskManager`. Calculates position sizing and validates trades against account limits.
-- `simulator.ts` - `MarketSimulator`. Generates ticks for local testing.
-
-**Implemented Strategies (in `manager.ts`):**
-1. **ORB 15m** - Opening Range Breakout (Futures)
-2. **NeverStoppedOut ORB** - Advanced ORB with wide range threshold (Futures)
-3. **S&R Rejection** - Support & Resistance zone trading (Crypto/Forex)
-4. **VWAP Reversion** - Mean reversion to Volume Weighted Average Price (Crypto)
-5. **BB Squeeze** - Bollinger Band volatility breakout (Crypto/Forex)
-6. **Grid Trading** - Automated grid execution (Crypto/Forex)
-7. **Three Ducks** - Moving average trend following (Forex)
+**Strategies (`src/lib/engine/strategies`):**
+- `pivot.ts` (Pivot Pete)
+- `orb.ts`, `neverStoppedOut.ts`
+- `suppRes.ts`, `vwapReversion.ts`, `bbBreakout.ts`
+- `gridTrading.ts`, `threeDucks.ts`, `setAndForget.ts`
 
 ---
 
-#### 3.2.3. Autonomous Agent Squad
-
-**Name:** The Squad
-
-**Description:** A collection of specialized trading agents with distinct responsibilities.
-
-| Agent | Role |
-|-------|------|
-| **Pivot Pete** | Forex price action & supply/demand specialist |
-| **Boba** | Institutional flow & liquidity analyzer |
-| **SPX Sniper** | 0DTE options high-frequency execution |
-| **The Professor** | Post-trade analysis & grading (A-F) |
-| **The Auditor** | Verification agent for data integrity |
+### 3.4 Agents (`src/agents`)
+- `futures-agent.ts` — Pivot Pete runner (paper trading loop)
 
 ---
 
 ## 4. Data Stores
 
-### 4.1. SQLite (Local)
+### 4.1 SQLite (local)
+- `journal.db` — trade journal + settings
 
-**Name:** Trade Journal Database
-
-**Type:** SQLite (via `better-sqlite3`)
-
-**Purpose:** Stores trade history, signals, journal entries, and settings for local persistence.
-
-**Key Tables:**
-- `trades` - Trade records (symbol, direction, PnL, status)
-- `signals` - Incoming signal log
-- `journal_entries` - Daily journal with PnL, mood, notes
-- `settings` - Key-value configuration store
-
-**File:** `journal.db` (project root)
+### 4.2 Local JSON + Logs
+- `data/*.json` — agent status + backtest artifacts
+- `logs/*.log` — runtime/backtest logs
 
 ---
 
-### 4.2. Firebase Firestore
+## 5. External Integrations (Current)
 
-**Name:** Cloud Configuration Store
-
-**Type:** Firebase Firestore + Realtime Database
-
-**Purpose:** User authentication, agent configurations, and **real-time trade syncing**.
-- **Auth:** Handles user identity via Google/Email.
-- **Realtime Database:** The `TradeExecutor` optionally syncs open/closed trades to `/trades/{id}` for remote monitoring if `NEXT_PUBLIC_FIREBASE_API_KEY` is present.
+| Service | Purpose | Integration |
+|---|---|---|
+| **TradingView** | Signal ingestion | Webhook (`/api/webhook/tradingview`) |
+| **Alpaca** | Market data (ETF proxy for futures) | `src/lib/data-providers/alpaca.ts` |
+| **Oanda** | Broker integration (FX) | `src/lib/broker/oanda.ts` |
 
 ---
 
-## 5. External Integrations / APIs
-
-| Service | Purpose | Integration Method |
-|---------|---------|-------------------|
-| **Firebase Auth** | User authentication (Google, Email/PW) | Firebase SDK |
-| **TradingView** | Trading signal reception | Webhook (POST) |
-| **Yahoo Finance** | Forex market data | REST API |
-| **Binance API** | Cryptocurrency market data | REST API |
-| **Finnhub** | Real-time stock/index data | REST API + WebSocket |
+## 6. Scripts & Backtests
+- `scripts/pivot-pete-backtest.ts` — TS backtest runner (Alpaca or synthetic)
+- Other runners/utilities live under `scripts/`
 
 ---
 
-## 6. Deployment & Infrastructure
-
-**Cloud Provider:** Vercel (primary), Oracle Cloud Free Tier (planned backend)
-
-**Key Services Used:**
-- Vercel Serverless Functions (API Routes)
-- Firebase Authentication
-- Firebase Realtime Database / Firestore
-- SQLite (local development)
-
-**CI/CD Pipeline:** Vercel Git Integration (auto-deploy on push)
-
-**Monitoring & Logging:**
-- Vercel Analytics
-- Console logging (development)
-- Custom `/logs` page in dashboard
+## 7. Deployment & Ops
+- Local development (primary)
+- Vercel is listed as target for Next.js UI/API
 
 ---
 
-## 7. Security Considerations
-
-**Authentication:**
-- Firebase Authentication (OAuth2 via Google, Email/Password)
-- JWT tokens for session management
-
-**Authorization:**
-- Route-level middleware (`src/middleware/authMiddleware.ts`)
-- Protected routes require valid Firebase session
-
-**Data Encryption:**
-- TLS in transit (HTTPS enforced)
-- Firebase handles encryption at rest
-
-**Key Security Practices:**
-- Environment variables for all secrets (`.env.local`)
-- No client-side exposure of admin credentials
-- Webhook signature validation (planned)
+## 8. Security Notes
+- Secrets stored in `.env.local`
+- Webhook auth/signature validation is a TODO (not enforced everywhere)
 
 ---
 
-## 8. Development & Testing Environment
-
-**Local Setup Instructions:**
-```bash
-# Clone the repository
-git clone <repository-url>
-cd SwjshAlgoKnife
-
-# Install dependencies
-npm install
-
-# Configure environment
-cp .env.example .env.local
-# Edit .env.local with your Firebase credentials
-
-# Run development server
-npm run dev
-```
-
-**Testing Frameworks:**
-- Vitest (unit testing)
-- Testing Library (React component testing)
-- TestSprite (automated E2E testing)
-
-**Code Quality Tools:**
-- TypeScript (strict mode)
-- ESLint (via Next.js defaults)
-
----
-
-## 9. Future Considerations / Roadmap
-
-- [ ] Migrate backend to Oracle Cloud Free Tier for 24/7 agent execution
-- [ ] Implement WebSocket connections for real-time data streaming
-- [ ] Add broker API integration (Alpaca, Interactive Brokers)
-- [ ] Multi-user portfolio management and permissions
-- [ ] Mobile-responsive PWA optimization
-- [ ] Enhanced RegimeDetector with ML classification
+## 9. Roadmap Notes (Practical)
+- Replace ETF proxy with true futures data feed when available
+- Tighten backtest realism (slippage, commissions)
+- Standardize agent status schema + health checks
 
 ---
 
 ## 10. Project Identification
-
-**Project Name:** Swjsh Algo-Knife (AK)
-
-**Repository URL:** (Local Development)
-
-**Primary Contact/Team:** Jack W.
-
-**Date of Last Update:** 2026-01-01
-
----
-
-## 11. Glossary / Acronyms
-
-| Term | Definition |
-|------|------------|
-| **AK** | Algo-Knife - The product codename |
-| **0DTE** | Zero Days To Expiration (same-day options) |
-| **FX** | Foreign Exchange (currency trading) |
-| **PnL** | Profit and Loss |
-| **SPX** | S&P 500 Index |
-| **The Squad** | Collective name for autonomous trading agents |
-| **RiskEngine** | Module enforcing trade limits and risk rules |
-| **RegimeDetector** | Market state classifier (Trending/Ranging/Volatile) |
-| **KillSwitch** | Emergency halt mechanism for agents |
-| **GlassPanel** | UI component with glassmorphism styling |
+**Project:** Swjsh Algo‑Knife (AK)
+**Primary Contact:** Jack W.
+**Last Update:** 2026‑02‑22
