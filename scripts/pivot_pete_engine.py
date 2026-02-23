@@ -80,12 +80,13 @@ class DataProvider:
         raise ValueError(f"Unsupported provider: {self.provider}")
 
     def _fetch_oanda(self, symbol: str, interval: str) -> pd.DataFrame:
-        api_key = os.getenv("OANDA_API_KEY")
+        api_key = os.getenv("OANDA_API_KEY") or os.getenv("OANDA_API_TOKEN")
         account_id = os.getenv("OANDA_ACCOUNT_ID")
-        base_url = os.getenv("OANDA_BASE_URL", "https://api-fxpractice.oanda.com")
+        env = (os.getenv("OANDA_ENVIRONMENT") or "practice").lower()
+        base_url = os.getenv("OANDA_BASE_URL") or ("https://api-fxpractice.oanda.com" if env == "practice" else "https://api-fxtrade.oanda.com")
 
         if not api_key or not account_id:
-            raise RuntimeError("Missing OANDA_API_KEY or OANDA_ACCOUNT_ID")
+            raise RuntimeError("Missing OANDA_API_KEY/OANDA_API_TOKEN or OANDA_ACCOUNT_ID")
 
         instrument = OANDA_SYMBOL_MAP.get(symbol)
         if not instrument:
