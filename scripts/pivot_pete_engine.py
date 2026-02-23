@@ -24,10 +24,13 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Dict, List, Tuple, Optional
 
+from dotenv import load_dotenv
 import requests
 import pandas as pd
 import numpy as np
 import pytz
+
+load_dotenv(os.path.join(os.getcwd(), '.env.local'))
 
 # ============================================================================
 # CONFIGURATION
@@ -132,7 +135,7 @@ class DataProvider:
     def _fetch_alpaca(self, symbol: str, interval: str) -> pd.DataFrame:
         api_key = os.getenv("APCA_API_KEY_ID")
         secret_key = os.getenv("APCA_API_SECRET_KEY")
-        base_url = os.getenv("APCA_API_BASE_URL", "https://paper-api.alpaca.markets")
+        base_url = os.getenv("APCA_DATA_URL", "https://data.alpaca.markets")
 
         if not api_key or not secret_key:
             raise RuntimeError("Missing APCA_API_KEY_ID or APCA_API_SECRET_KEY")
@@ -143,7 +146,10 @@ class DataProvider:
 
         timeframe = {"5m": "5Min", "1h": "1Hour", "1d": "1Day"}[interval]
         url = f"{base_url}/v2/stocks/{provider_symbol}/bars"
-        params = {"timeframe": timeframe, "limit": 500}
+        end = datetime.utcnow()
+        start = end - timedelta(days=5 if interval != '1d' else 90)
+        feed = os.getenv("APCA_DATA_FEED", "iex")
+        params = {"timeframe": timeframe, "limit": 500, "start": start.isoformat() + 'Z', "end": end.isoformat() + 'Z', "feed": feed}
         headers = {
             "APCA-API-KEY-ID": api_key,
             "APCA-API-SECRET-KEY": secret_key,
@@ -590,11 +596,11 @@ class PivotPeteEngine:
         )
 
         print(f"\n{'='*50}")
-        print(f"⚡ {direction} {self.spec['name']} @ ${entry:.2f}")
-        print(f"   📍 Pivot: {pivot.level_type} (${pivot.price:.2f})")
-        print(f"   🛑 Stop: ${stop:.2f} | 🎯 TP: ${tp:.2f}")
-        print(f"   📊 Size: {size} contract(s)")
-        print(f"   📈 Higher TF Bias: {self.higher_tf_bias}")
+        print(f"TRADE {direction} {self.spec['name']} @ ${entry:.2f}")
+        print(f"   Pivot: {pivot.level_type} (${pivot.price:.2f})")
+        print(f"   Stop: ${stop:.2f} | TP: ${tp:.2f}")
+        print(f"   Size: {size} contract(s)")
+        print(f"   Higher TF Bias: {self.higher_tf_bias}")
         print(f"{'='*50}\n")
 
     def check_exit(self, current_price: float) -> bool:
@@ -638,16 +644,16 @@ class PivotPeteEngine:
         trade.pnl = points * point_value * trade.size
         self.risk_manager.record_trade(trade)
 
-        emoji = "✅" if trade.pnl > 0 else "❌"
+        outcome = "WIN" if trade.pnl > 0 else "LOSS"
         print(f"\n{'='*50}")
-        print(f"{emoji} CLOSED {trade.direction} @ ${exit_price:.2f}")
+        print(f"{outcome} CLOSED {trade.direction} @ ${exit_price:.2f}")
         print(f"   Entry: ${trade.entry_price:.2f} → Exit: ${exit_price:.2f}")
         print(f"   P&L: ${trade.pnl:.2f} | Reason: {reason}")
         print(f"   Daily P&L: ${self.risk_manager.daily_pnl:.2f}")
 
         stats = self.risk_manager.get_stats()
         if stats['consecutive_losses'] > 0:
-            print(f"   ⚠️  Consecutive Losses: {stats['consecutive_losses']}/{self.risk_manager.max_consecutive_losses}")
+            print(f"   Consecutive Losses: {stats['consecutive_losses']}/{self.risk_manager.max_consecutive_losses}")
         print(f"{'='*50}\n")
 
         self.active_trade = None
@@ -722,28 +728,32 @@ def main():
             symbol = "GC" if arg == "GOLD" else arg
 
     engine = PivotPeteEngine(symbol)
-    print(f"📊 Tracking: {engine.spec['name']} ({symbol})")
-    print(f"💰 Starting Capital: ${engine.risk_manager.current_capital:,.2f}")
-    print(f"🧠 Data Provider: {DATA_PROVIDER}\n")
+    print(f"Tracking: {engine.spec['name']} ({symbol})")
+    print(f"Starting Capital: ${engine.risk_manager.current_capital:,.2f}")
+    print(f"Data Provider: {DATA_PROVIDER}\n")
 
     iteration = 0
+    force_scan = os.getenv("PIVOT_PETE_FORCE_SCAN", "0") == "1"
+
     while True:
         try:
             now_et = datetime.now(ET)
-            if not is_market_hours(now_et):
-                print(f"⏰ Outside market hours ({now_et.strftime('%H:%M:%S')} ET). Sleeping 5m...")
+            if not is_market_hours(now_et) and not force_scan:
+                print(f"Outside market hours ({now_et.strftime('%H:%M:%S')} ET). Sleeping 5m...")
                 time.sleep(300)
                 continue
 
             iteration += 1
-            print(f"\n⏰ [{now_et.strftime('%H:%M:%S')}] Scan #{iteration}")
+            print(f"\n[{now_et.strftime('%H:%M:%S')}] Scan #{iteration}")
 
             df_5m = engine.fetch_data("5m")
             df_1h = engine.fetch_data("1h")
             df_daily = engine.fetch_data("1d")
 
             if df_5m.empty:
-                print("⚠️  No data received, retrying...")
+                if force_scan:
+                    raise RuntimeError("No data received during force scan")
+                print("No data received, retrying...")
                 time.sleep(60)
                 continue
 
@@ -752,15 +762,15 @@ def main():
             current = df_5m['Close'].iloc[-1]
             volume_ratio = engine.volume_analyzer.get_volume_spike_ratio(df_5m)
 
-            print(f"   💹 Price: ${current:.2f} | Vol: {volume_ratio:.1f}x avg")
-            print(f"   📍 Pivots: {len(engine.pivot_levels)} | Bias: {engine.higher_tf_bias}")
+            print(f"   Price: ${current:.2f} | Vol: {volume_ratio:.1f}x avg")
+            print(f"   Pivots: {len(engine.pivot_levels)} | Bias: {engine.higher_tf_bias}")
 
             can_trade, reason = engine.risk_manager.can_trade()
             if not can_trade:
                 print(f"   {reason}")
 
             if engine.active_trade:
-                print(f"   📈 Open: {engine.active_trade.direction} @ ${engine.active_trade.entry_price:.2f}")
+                print(f"   Open: {engine.active_trade.direction} @ ${engine.active_trade.entry_price:.2f}")
                 engine.check_exit(current)
             elif can_trade:
                 signal = engine.check_entry_signal(current, df_5m)
@@ -768,11 +778,15 @@ def main():
                     engine.execute_trade(signal)
 
             stats = engine.risk_manager.get_stats()
-            print(f"   💰 Capital: ${stats['capital']:,.2f} | Daily: ${stats['daily_pnl']:+,.2f} | Trades: {stats['trades_today']}")
+            print(f"   Capital: ${stats['capital']:,.2f} | Daily: ${stats['daily_pnl']:+,.2f} | Trades: {stats['trades_today']}")
 
             write_status(engine, current, volume_ratio, iteration)
 
-            print(f"\n   ⏳ Next scan in 5 minutes...")
+            if force_scan:
+                print("\nForce scan complete. Exiting.")
+                break
+
+            print(f"\n   Next scan in 5 minutes...")
             time.sleep(300)
 
         except KeyboardInterrupt:
@@ -785,7 +799,7 @@ def main():
             break
 
         except Exception as e:
-            print(f"❌ Error: {e}")
+            print(f"Error: {e}")
             time.sleep(60)
 
 

@@ -8,14 +8,14 @@ if (!(Test-Path $pidFile)) {
   exit 0
 }
 
-$pid = Get-Content $pidFile -ErrorAction SilentlyContinue
-if ($pid) {
-  $proc = Get-Process -Id $pid -ErrorAction SilentlyContinue
+$pidValue = Get-Content $pidFile -ErrorAction SilentlyContinue
+if ($pidValue) {
+  $proc = Get-Process -Id $pidValue -ErrorAction SilentlyContinue
   if ($proc) {
-    Stop-Process -Id $pid -Force
-    Write-Output "Stopped Pivot Pete (PID $pid)"
+    Stop-Process -Id $pidValue -Force
+    Write-Output "Stopped Pivot Pete (PID $pidValue)"
   } else {
-    Write-Output "PID $pid not running"
+    Write-Output "PID $pidValue not running"
   }
 }
 
