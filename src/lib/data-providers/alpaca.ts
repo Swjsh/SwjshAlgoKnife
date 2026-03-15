@@ -56,8 +56,8 @@ export class AlpacaDataProvider {
     return { requested, providerSymbol: requested };
   }
 
-  private headers() {
-    if (!this.cfg.apiKey || !this.cfg.secretKey) return {};
+  private headers(): Record<string, string> | undefined {
+    if (!this.cfg.apiKey || !this.cfg.secretKey) return undefined;
     return {
       'APCA-API-KEY-ID': this.cfg.apiKey,
       'APCA-API-SECRET-KEY': this.cfg.secretKey,

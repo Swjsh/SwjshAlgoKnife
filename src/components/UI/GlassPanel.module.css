@@ -115,3 +115,28 @@
     border-color: #66bb6a;
     /* Green accent */
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   CLINICAL LIGHT MODE - Overrides
+   ═══════════════════════════════════════════════════════════════ */
+:global([data-theme='light']) .panel {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+:global([data-theme='light']) .panel:hover {
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+:global([data-theme='light']) .header {
+    background: rgba(0, 0, 0, 0.02);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+:global([data-theme='light']) .panelInteractive:hover {
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.1);
+    border-color: rgba(124, 58, 237, 0.25);
+}

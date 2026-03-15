@@ -20,13 +20,13 @@ export default function LoginPage() {
     // Redirect if already logged in
     React.useEffect(() => {
         if (user) {
-            router.push('/dashboard');
+            router.push('/command-center');
         }
     }, [user, router]);
 
     const handleGuestAccess = () => {
         loginAsGuest();
-        router.push('/dashboard');
+        router.push('/command-center');
     };
 
     const handleGoogleLogin = async () => {

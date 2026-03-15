@@ -8,6 +8,7 @@ import sys
 import json
 from datetime import datetime
 from pivot_pete_engine import PivotPeteEngine
+from agent_utils import call_preflight, send_feedback, should_take_trade, get_size_multiplier, log_message
 import time
 
 def main():
@@ -38,11 +39,35 @@ def main():
                 
                 # Check for trades
                 if engine.active_trade:
-                    engine.check_exit(current_price)
+                    exit_result = engine.check_exit(current_price)
+                    # Send feedback on trade close
+                    if exit_result and hasattr(engine, '_last_closed_trade'):
+                        closed = engine._last_closed_trade
+                        send_feedback(
+                            agent_id='pivot_pete',
+                            symbol='ES',
+                            direction=closed.get('direction', 'LONG'),
+                            outcome='WIN' if closed.get('pnl', 0) > 0 else 'LOSS',
+                            pnl=closed.get('pnl', 0),
+                            duration_minutes=closed.get('duration_minutes', 0),
+                            strategy='PivotPete',
+                            intel_score_at_entry=closed.get('intel_score', None),
+                            intel_decision_at_entry=closed.get('intel_decision', None),
+                        )
                 elif engine.risk_manager.can_trade()[0]:
                     signal = engine.check_entry_signal(current_price, df_5m)
                     if signal:
-                        engine.execute_trade(signal)
+                        # ── Intel Preflight ──
+                        direction = 'LONG' if signal.get('type') == 'DEMAND' else 'SHORT'
+                        preflight = call_preflight('pivot_pete', 'ES', direction, 'PivotPete')
+                        if should_take_trade(preflight):
+                            # Store intel context for feedback on close
+                            signal['_intel_score'] = preflight.get('intelScore', 0)
+                            signal['_intel_decision'] = preflight.get('decision', 'GO')
+                            signal['_size_mult'] = get_size_multiplier(preflight)
+                            engine.execute_trade(signal)
+                        else:
+                            print(f"[INTEL] Pivot Pete SKIPPED trade: {preflight.get('reasons', [])}", flush=True)
                 
                 # Get status
                 status = engine.get_status()

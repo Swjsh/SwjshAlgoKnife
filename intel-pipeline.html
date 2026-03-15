@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwjshAK — Intelligence Pipeline</title>
+<style>
+  :root {
+    --bg:        #0d1117;
+    --bg2:       #161b22;
+    --bg3:       #1c2333;
+    --border:    #30363d;
+    --cyan:      #06b6d4;
+    --purple:    #a855f7;
+    --green:     #10b981;
+    --orange:    #f97316;
+    --red:       #ef4444;
+    --yellow:    #f59e0b;
+    --blue:      #1da1f2;
+    --pink:      #ec4899;
+    --teal:      #14b8a6;
+    --text:      #e6edf3;
+    --muted:     #8b949e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 32px;
+    min-width: 1200px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 36px;
+  }
+
+  /* ── Layout ── */
+  .pipeline {
+    display: flex;
+    gap: 0;
+    align-items: flex-start;
+    position: relative;
+  }
+
+  /* columns */
+  .col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+  }
+  .col-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  /* arrow connector between columns */
+  .arrow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    gap: 6px;
+    min-width: 36px;
+    padding-top: 48px;
+  }
+  .arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .arrow-line {
+    width: 2px;
+    height: 22px;
+    background: linear-gradient(to bottom, transparent, var(--border), transparent);
+  }
+  .arrow-head {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid var(--border);
+  }
+
+  /* Big horizontal flow arrows */
+  .h-arrow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding-top: 100px;
+    flex-shrink: 0;
+  }
+  .h-arrow-line {
+    width: 28px;
+    height: 2px;
+    background: var(--border);
+  }
+  .h-arrow-line.cyan { background: var(--cyan); }
+  .h-arrow-line.purple { background: var(--purple); }
+  .h-arrow-line.orange { background: var(--orange); }
+  .h-arrow-line.green { background: var(--green); }
+  .h-arrow-head {
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 7px solid var(--border);
+  }
+  .h-arrow-head.cyan { border-left-color: var(--cyan); }
+  .h-arrow-head.purple { border-left-color: var(--purple); }
+  .h-arrow-head.orange { border-left-color: var(--orange); }
+  .h-arrow-head.green { border-left-color: var(--green); }
+
+  /* cards */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    position: relative;
+    transition: border-color 0.15s;
+  }
+  .card:hover { border-color: var(--cyan); }
+
+  .card-title {
+    font-weight: 700;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .card-body {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .card-body code {
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 10px;
+    background: var(--bg3);
+    padding: 1px 4px;
+    border-radius: 3px;
+    color: var(--cyan);
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .badge-free    { background: rgba(16,185,129,0.18); color: var(--green); border: 1px solid rgba(16,185,129,0.35); }
+  .badge-premium { background: rgba(168,85,247,0.18); color: var(--purple); border: 1px solid rgba(168,85,247,0.35); }
+  .badge-new     { background: rgba(6,182,212,0.18); color: var(--cyan); border: 1px solid rgba(6,182,212,0.35); }
+  .badge-api     { background: rgba(249,115,22,0.18); color: var(--orange); border: 1px solid rgba(249,115,22,0.35); }
+  .badge-warn    { background: rgba(239,68,68,0.18); color: var(--red); border: 1px solid rgba(239,68,68,0.35); }
+
+  /* Source cards — colored left border */
+  .source-card { border-left-width: 3px; }
+
+  /* ── Bus Card ── */
+  .bus-card {
+    background: linear-gradient(135deg, rgba(6,182,212,0.08), rgba(168,85,247,0.08));
+    border: 1px solid var(--cyan);
+    border-radius: 10px;
+    padding: 14px 16px;
+    min-width: 200px;
+  }
+  .bus-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--cyan);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .bus-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 10.5px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .bus-feature::before { content: '▸'; color: var(--cyan); flex-shrink: 0; }
+
+  /* ── Improvement cards ── */
+  .improvements {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 40px;
+  }
+  .improve-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    border-top-width: 3px;
+  }
+  .improve-card h3 {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .improve-card ul {
+    padding-left: 14px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.9;
+  }
+  .improve-card ul li::marker { color: var(--cyan); }
+  .priority {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    margin-left: auto;
+  }
+  .p-high { background: rgba(239,68,68,0.18); color: var(--red); }
+  .p-med  { background: rgba(249,115,22,0.18); color: var(--orange); }
+  .p-low  { background: rgba(16,185,129,0.18); color: var(--green); }
+
+  /* legend */
+  .legend {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+
+  /* flow label */
+  .flow-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 32px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* feedback loop curved arrow */
+  .feedback-row {
+    display: flex;
+    align-items: center;
+    margin-top: 16px;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(168,85,247,0.06);
+    border: 1px dashed rgba(168,85,247,0.3);
+    border-radius: 8px;
+  }
+  .feedback-row .label {
+    font-size: 10px;
+    color: var(--purple);
+    font-weight: 600;
+  }
+  .fb-item {
+    font-size: 10px;
+    color: var(--muted);
+    padding: 2px 6px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+  .fb-arrow { color: var(--purple); font-size: 12px; }
+
+  .col-w1 { width: 160px; }
+  .col-w2 { width: 200px; }
+  .col-w3 { width: 180px; }
+</style>
+</head>
+<body>
+
+<h1>🧠 Intelligence Pipeline — SwjshAK</h1>
+<p class="subtitle">Full architecture review · March 2026 · 11 sources · 3 agents · 7 strategies</p>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Free source (zero cost)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> Premium (self-host / API key)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div> Core bus / adapter layer</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> API endpoints</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Needs attention</div>
+</div>
+
+<!-- ═══════════ MAIN PIPELINE ═══════════ -->
+<div class="pipeline">
+
+  <!-- ── COLUMN 1: DATA SOURCES ── -->
+  <div class="col col-w2">
+    <div class="col-label">① Data Sources</div>
+
+    <div class="card source-card" style="border-left-color:var(--purple)">
+      <div class="card-title">📊 Order Flow <span class="badge badge-premium">Premium</span></div>
+      <div class="card-body">Not started. Needs Bookmap/Volumetric data feed.</div>
+    </div>
+
+    <div class="card source-card" style="border-left-color:var(--purple)">
+      <div class="card-title">📰 Sentiment <span class="badge badge-premium">Premium</span></div>
+      <div class="card-body">Not started. LunarCrush / news API needed.</div>
+    </div>
+
+    <div class="card source-card" style="border-left-color:var(--purple)">
+      <div class="card-title">⛓️ On-Chain <span class="badge badge-premium">Premium</span></div>
+      <div class="card-body">Not started. Glassnode / Nansen needed.</div>
+    </div>
+
+    <div class="card source-card" style="border-left-color:var(--purple)">
+      <div class="card-title">🐋 Whale Flow <span class="badge badge-premium">Premium</span></div>
+      <div class="card-body">Not started. Whale Alert API needed.</div>
+    </div>
+
+    <div class="card source-card" style="border-left-color:var(--green)">
+      <div class="card-title">😨 Fear &amp; Greed <span class="badge badge-free">Free</span></div>
+      <div class="card-body">✅ Live. <code>alternative.me/fng</code><br>Polls every 5m, delta detect (±3 pts).</div>
+    </div>
+
+    <div class="card source-card" style="border-left-color:var(--pink)">
+      <div class="card-title">💰 Funding / OI <span class="badge badge-free">Free</span></div>
+      <div class="card-body">✅ Live. <code>fapi.binance.com</code><br>BTC+ETH, every 3m. Rate flip detection.</div>
+    </div>
+
+    <div class="card source-card" style="border-left-color:var(--teal)">
+      <div class="card-title">📈 Market Data <span class="badge badge-free">Free</span></div>
+      <div class="card-body">✅ Live. <code>api.coingecko.com</code><br>Price/vol/MCap + BTC dominance, every 2m.</div>
+    </div>
+
+    <div class="card source-card" style="border-left-color:var(--orange)">
+      <div class="card-title">📅 Econ Calendar <span class="badge badge-free">Free</span></div>
+      <div class="card-body">✅ Live. Static heuristics — NFP, CPI, FOMC windows, session overlaps.</div>
+    </div>
+
+    <div class="card source-card" style="border-left-color:var(--blue)">
+      <div class="card-title">🐦 Social Feed <span class="badge badge-free">Free</span></div>
+      <div class="card-body">✅ Live. RSSHub/Nitter fallback chain.<br>@Trump, @Elon, @unusual_whales, @FastStockNews, @DeItaone.<br>45+ keyword rules, every 2m. ECB/BOE forex rules added.</div>
+    </div>
+
+    <div class="card source-card" style="border-left-color:var(--green)">
+      <div class="card-title">📋 Reddit WSB <span class="badge badge-free">Free</span> <span class="badge badge-new">NEW</span></div>
+      <div class="card-body">✅ Live. <code>reddit.com/r/wallstreetbets/.rss</code><br>Direct feed, no proxy. Retail sentiment + short squeeze coverage, every 5m.</div>
+    </div>
+
+    <div class="card source-card" style="border-left-color:var(--yellow)">
+      <div class="card-title">🏛️ SEC EDGAR 8-K <span class="badge badge-free">Free</span> <span class="badge badge-new">NEW</span></div>
+      <div class="card-body">✅ Live. <code>sec.gov/cgi-bin/browse-edgar</code><br>Real-time 8-K filings. Catches Coinbase, MicroStrategy, crypto treasury announcements, every 5m.</div>
+    </div>
+  </div>
+
+  <!-- arrow 1→2 -->
+  <div class="h-arrow">
+    <div class="h-arrow-line cyan"></div>
+    <div class="h-arrow-head cyan"></div>
+  </div>
+
+  <!-- ── COLUMN 2: INTELLIGENCE BUS ── -->
+  <div class="col" style="width:210px">
+    <div class="col-label">② Intelligence Bus</div>
+
+    <div class="bus-card">
+      <div class="bus-title">🚌 IntelligenceBus</div>
+      <div class="bus-feature">Singleton EventEmitter — survives requests</div>
+      <div class="bus-feature">Dedup cache per source (3–10 min windows)</div>
+      <div class="bus-feature">SQLite persist → <code>intel_signals</code></div>
+      <div class="bus-feature">TTL expiry, auto-cleanup every 5m</div>
+      <div class="bus-feature">SSE emit for real-time dashboard</div>
+      <div class="bus-feature">Heartbeat → <code>settings</code> table</div>
+    </div>
+
+    <div class="card" style="border-color:var(--cyan);margin-top:4px">
+      <div class="card-title">⚡ <code>bus.score()</code></div>
+      <div class="card-body">
+        Weighted sum across all sources.<br>
+        Maps to size multiplier:<br>
+        <code>&gt;0.3</code> → 1.0× (GO)<br>
+        <code>-0.1–0.3</code> → 0.5× (MIXED)<br>
+        <code>-0.5–-0.1</code> → 0.25× (CAUTION)<br>
+        <code>&lt;-0.5</code> → 0 (VETO)
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Weight Distribution</div>
+      <div class="card-body">
+        <span style="color:var(--green);font-size:10px;font-weight:700">FREE_SOURCES_ONLY=true (active)</span><br>
+        FEAR_GREED <b>25%</b> · FUNDING <b>22%</b><br>
+        MARKET <b>20%</b> · SOCIAL <b>20%</b><br>
+        ECON <b>13%</b> · Premium <b>0%</b><br>
+        <span style="color:var(--muted);font-size:10px">Full-mode defaults preserved in .env</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- arrow 2→3 -->
+  <div class="h-arrow">
+    <div class="h-arrow-line purple"></div>
+    <div class="h-arrow-head purple"></div>
+  </div>
+
+  <!-- ── COLUMN 3: INTEL ADAPTER ── -->
+  <div class="col col-w3">
+    <div class="col-label">③ Adapter Layer</div>
+
+    <div class="card" style="border-color:var(--purple)">
+      <div class="card-title">🔌 IntelAdapter</div>
+      <div class="card-body">
+        30s cached context per symbol.<br>
+        Detects regime from signal consensus.<br><br>
+        <b>Regimes:</b><br>
+        TRENDING_BULL / BEAR<br>
+        HIGH_VOL · RANGING · LOW_VOL
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎛️ StrategyAdaptations</div>
+      <div class="card-body">
+        Per-regime parameter adjustments:<br>
+        <code>squeezeThresholdAdj</code><br>
+        <code>vwapThresholdAdj</code><br>
+        <code>wideRangeThresholdAdj</code><br>
+        <code>cooldownAdj</code> · <code>sensitivityAdj</code><br>
+        <code>preferTrend</code> · <code>tightenStops</code>
+      </div>
+    </div>
+
+    <div class="card" style="border-color:var(--orange)">
+      <div class="card-title">🚦 Preflight API <span class="badge badge-api">POST</span></div>
+      <div class="card-body">
+        <code>/api/intel/preflight</code><br>
+        Agents call before every trade.<br>
+        Returns: GO / REDUCED / NO_GO<br>
+        Logs to <code>intel_preflight_log</code>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📡 API Surface</div>
+      <div class="card-body">
+        <code>/api/intel</code> — active signals<br>
+        <code>/api/intel/score</code> — weighted score<br>
+        <code>/api/intel/stream</code> — SSE stream<br>
+        <code>/api/intel/history</code> — historical<br>
+        <code>/api/intel/free-feeds</code> — status<br>
+        <code>/api/intel/feedback</code> — outcomes
+      </div>
+    </div>
+  </div>
+
+  <!-- arrow 3→4 -->
+  <div class="h-arrow">
+    <div class="h-arrow-line orange"></div>
+    <div class="h-arrow-head orange"></div>
+  </div>
+
+  <!-- ── COLUMN 4: CONSUMERS ── -->
+  <div class="col col-w2">
+    <div class="col-label">④ Consumers</div>
+
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Strategies (7)</div>
+
+    <div class="card">
+      <div class="card-title">📐 TS Strategies</div>
+      <div class="card-body">
+        NeverStoppedOut ✅ intel-adapted<br>
+        BB Breakout ✅ intel-adapted<br>
+        VWAP Reversion ✅ intel-adapted<br>
+        Supp/Resistance ✅ intel-adapted<br>
+        Three Ducks ✅ intel-adapted<br>
+        ORB ✅ intel-adapted<br>
+        Grid ⬜ no intel yet
+      </div>
+    </div>
+
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin:8px 0 4px">Python Agents (3)</div>
+
+    <div class="card" style="border-color:var(--yellow)">
+      <div class="card-title">🤖 Pivot Pete <small style="color:var(--muted)">(Futures)</small></div>
+      <div class="card-body">✅ Calls preflight before every trade.<br>Sends feedback on close.</div>
+    </div>
+
+    <div class="card" style="border-color:var(--pink)">
+      <div class="card-title">🧋 Boba <small style="color:var(--muted)">(Options)</small></div>
+      <div class="card-body">✅ Preflight integrated.<br>Sends feedback on close.</div>
+    </div>
+
+    <div class="card" style="border-color:var(--cyan)">
+      <div class="card-title">🎯 SPX Sniper <small style="color:var(--muted)">(SPX Options)</small></div>
+      <div class="card-body">✅ Preflight integrated.<br>Sends feedback on close.</div>
+    </div>
+  </div>
+
+  <!-- arrow 4→5 -->
+  <div class="h-arrow">
+    <div class="h-arrow-line green"></div>
+    <div class="h-arrow-head green"></div>
+  </div>
+
+  <!-- ── COLUMN 5: REVIEW SYSTEM ── -->
+  <div class="col col-w2">
+    <div class="col-label">⑤ Review System</div>
+
+    <div class="card" style="border-color:var(--green)">
+      <div class="card-title">🎓 TheProfessor</div>
+      <div class="card-body">
+        Grades every closed trade A–F.<br>
+        Intel attribution in every review:<br>
+        • ALIGNED / OPPOSED / NEUTRAL<br>
+        • Grade boost: won vs intel warning<br>
+        • Grade penalty: lost after intel warn<br>
+        • Size multiplier feedback in critique
+      </div>
+    </div>
+
+    <div class="card" style="border-color:var(--yellow)">
+      <div class="card-title">🔍 TheAuditor</div>
+      <div class="card-body">
+        Fact-checks Professor's reviews.<br>
+        Intel audit block in every report:<br>
+        • Was intel correct?<br>
+        • Recommend weight adjustments<br>
+        • False positive / false negative ID
+      </div>
+    </div>
+
+    <div class="card" style="border-color:var(--purple)">
+      <div class="card-title">📊 Feedback Loop</div>
+      <div class="card-body">
+        <code>POST /api/intel/feedback</code><br>
+        Logs outcome + intel score at entry.<br>
+        <code>computeIntelAccuracy()</code> stats:<br>
+        GO win rate vs REDUCED win rate
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💾 DB Tables</div>
+      <div class="card-body">
+        <code>intel_signals</code> — all signals<br>
+        <code>intel_preflight_log</code> — decisions<br>
+        <code>agent_feedback_log</code> — outcomes
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── FEEDBACK LOOP ── -->
+<div class="feedback-row">
+  <span class="label">♻️ Feedback Loop:</span>
+  <span class="fb-item">Trade Closes</span>
+  <span class="fb-arrow">→</span>
+  <span class="fb-item">Agent sends <code>POST /api/intel/feedback</code></span>
+  <span class="fb-arrow">→</span>
+  <span class="fb-item">TheProfessor grades with intel attribution</span>
+  <span class="fb-arrow">→</span>
+  <span class="fb-item">TheAuditor audits intel accuracy</span>
+  <span class="fb-arrow">→</span>
+  <span class="fb-item"><code>computeIntelAccuracy()</code> stats</span>
+  <span class="fb-arrow">→ (manual)</span>
+  <span class="fb-item">Adjust INTEL_WEIGHT_* env vars</span>
+</div>
+
+<!-- ═══════════ IMPROVEMENTS ═══════════ -->
+<div class="section-title">🔧 Suggested Improvements</div>
+
+<div class="improvements">
+
+  <div class="improve-card" style="border-top-color:var(--green)">
+    <h3>✅ Implemented — Weights &amp; Regime <span class="priority p-high">Done</span></h3>
+    <ul>
+      <li><b>Weight rebalance:</b> Added <code>FREE_SOURCES_ONLY=true</code> env var. When set, premium weights → 0 and free sources absorb full 100% (F&amp;G 25%, Funding 22%, Market 20%, Social 20%, Econ 13%). One line in <code>.env</code>.</li>
+      <li><b>Regime deduplication:</b> <code>detectRegime()</code> extracted to <code>src/lib/intel/regime.ts</code>. Both <code>adapter.ts</code> and <code>preflight/route.ts</code> now import from there — thresholds unified at 0.55.</li>
+    </ul>
+  </div>
+
+  <div class="improve-card" style="border-top-color:var(--green)">
+    <h3>✅ Implemented — Auditor &amp; Sources <span class="priority p-high">Done</span></h3>
+    <ul>
+      <li><b>TheAuditor deterministic:</b> Replaced <code>Math.random()</code> with logic driven by <code>event_context.highImpactDuringTrade</code> and <code>intel_attribution.alignment</code>. News critiquest overturned only when the calendar shows no high-impact event. F-grade disputed only when intel was ALIGNED but still lost.</li>
+      <li><b>Reddit WSB:</b> <code>reddit.com/r/wallstreetbets/new/.rss</code> — direct feed, no proxy, polls every 5m. Retail sentiment + short squeeze coverage.</li>
+      <li><b>SEC EDGAR 8-K:</b> <code>sec.gov/cgi-bin/browse-edgar?output=atom</code> — real-time 8-K filings, every 5m. Catches MicroStrategy, Coinbase, corporate crypto treasury announcements.</li>
+      <li><b>Per-symbol keywords:</b> ECB, Lagarde, Eurozone → <code>EURUSD</code>. BOE, Bailey, Brexit, Sterling, UK CPI → <code>GBPUSD</code>. Added as symbol-scoped rules in <code>KEYWORD_RULES</code> alongside existing crypto rules.</li>
+    </ul>
+  </div>
+
+  <div class="improve-card" style="border-top-color:var(--orange)">
+    <h3>🟠 Architecture — Still Open <span class="priority p-med">Medium</span></h3>
+    <ul>
+      <li><b>Grid strategy:</b> Only strategy with no intel integration — add direction veto at minimum.</li>
+      <li><b>Symbol hardcoding:</b> IntelAdapter created with <code>'BTCUSD'</code> hardcoded in <code>manager.ts</code>. Should create adapters per strategy's actual symbol.</li>
+      <li><b>No RSS fallback log:</b> Social feed silently drops account if all proxies fail — add a visible health indicator per account.</li>
+      <li><b>Confidence cap:</b> Adapter tops out at <code>Math.min(1, signalCount / 6)</code>. With 7 free sources now live, consider tuning denominator from 6 → 5.</li>
+    </ul>
+  </div>
+
+  <div class="improve-card" style="border-top-color:var(--yellow)">
+    <h3>🟡 Quick Wins — Still Open <span class="priority p-low">Low</span></h3>
+    <ul>
+      <li><b>Auto weight rebalancing:</b> Script that reads <code>computeIntelAccuracy()</code> and nudges <code>INTEL_WEIGHT_*</code> in .env toward better-performing sources.</li>
+      <li><b>StockTwits public API:</b> Free trending tickers endpoint — no key, would add equities retail sentiment.</li>
+      <li><b>CoinGecko trending:</b> Free <code>/api/v3/search/trending</code> — which coins are being searched, strong momentum proxy.</li>
+      <li><b>Signal age indicator:</b> Show how stale each signal is in UI (e.g. "12m ago") — important when sources poll infrequently.</li>
+      <li><b>Intel dashboard card:</b> Add Social Feed as visible card on <code>/intel</code> page — last tweet summary + proxy health per account.</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- ── STATUS SUMMARY ── -->
+<div class="section-title">📋 Status Summary</div>
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:40px">
+  <div class="card" style="text-align:center">
+    <div style="font-size:28px;font-weight:800;color:var(--green)">7</div>
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">Free Sources<br>Running</div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div style="font-size:28px;font-weight:800;color:var(--purple)">4</div>
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">Premium Sources<br>Offline</div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div style="font-size:28px;font-weight:800;color:var(--cyan)">6/7</div>
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">Strategies<br>Intel-Adapted</div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div style="font-size:28px;font-weight:800;color:var(--yellow)">3/3</div>
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">Python Agents<br>Preflight Active</div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div style="font-size:28px;font-weight:800;color:var(--green)">100%</div>
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">Effective Weight<br>(FREE_SOURCES_ONLY)</div>
+  </div>
+</div>
+
+</body>
+</html>

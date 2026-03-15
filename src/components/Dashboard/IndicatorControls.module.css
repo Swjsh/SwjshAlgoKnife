@@ -63,3 +63,8 @@
     background: rgba(122, 138, 98, 0.1);
     color: var(--sage-green);
 }
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .container {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}

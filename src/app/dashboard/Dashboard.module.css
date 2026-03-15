@@ -467,3 +467,101 @@
         max-width: none;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+   ═══════════════════════════════════════════════════════════════ */
+:global([data-theme='light']) .container {
+    background: var(--bg-main);
+}
+
+:global([data-theme='light']) .loader {
+    color: var(--text-muted);
+}
+
+:global([data-theme='light']) .header {
+    border-bottom-color: var(--border-base);
+}
+
+:global([data-theme='light']) .title {
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .stat {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}
+
+:global([data-theme='light']) .stat svg {
+    color: var(--text-secondary);
+}
+
+:global([data-theme='light']) .statValue {
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .statLabel {
+    color: var(--text-muted);
+}
+
+:global([data-theme='light']) .sectionTitle {
+    color: var(--text-secondary);
+}
+
+:global([data-theme='light']) .agentCard {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}
+
+:global([data-theme='light']) .agentCard:hover {
+    background: var(--bg-subtle);
+    border-color: var(--border-bright);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+}
+
+:global([data-theme='light']) .agentName {
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .agentType {
+    color: var(--text-muted);
+}
+
+:global([data-theme='light']) .perfLabel {
+    color: var(--text-muted);
+}
+
+:global([data-theme='light']) .perfValue {
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .perfStats {
+    border-top-color: var(--border-subtle);
+}
+
+:global([data-theme='light']) .onlineIndicator {
+    border-color: var(--bg-surface);
+}
+
+:global([data-theme='light']) .supportCard {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}
+
+:global([data-theme='light']) .supportCard:hover {
+    background: var(--bg-subtle);
+    border-color: var(--border-bright);
+}
+
+:global([data-theme='light']) .supportInfo h4 {
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .supportInfo span {
+    color: var(--text-muted);
+}
+
+:global([data-theme='light']) .clickHint {
+    background: linear-gradient(transparent, rgba(241, 245, 249, 0.9));
+    color: var(--text-muted);
+}

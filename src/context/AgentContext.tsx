@@ -70,7 +70,8 @@ export function AgentProvider({ children }: { children: ReactNode }) {
             const res = await fetch('/api/agents');
             if (!res.ok) throw new Error('Failed to fetch agent data');
             const data = await res.json();
-            setAgents(data);
+            // API returns { agents: {...}, system: {...} }, extract the agents object
+            setAgents(data.agents || data);
             setLastUpdate(new Date());
             setError(null);
         } catch (err: any) {

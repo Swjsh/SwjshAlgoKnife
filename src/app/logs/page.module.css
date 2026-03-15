@@ -348,3 +348,12 @@
         padding: 10px 8px;
     }
 }
+
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .td {
+    border-bottom-color: var(--border-subtle);
+}
+
+:global([data-theme='light']) .row:hover .td {
+    background: rgba(0, 0, 0, 0.02);
+}

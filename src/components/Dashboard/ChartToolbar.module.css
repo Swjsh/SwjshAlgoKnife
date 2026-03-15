@@ -119,3 +119,8 @@
     background: #fdfaf5;
     color: var(--text-primary);
 }
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .toolbar {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}

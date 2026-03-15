@@ -19,15 +19,37 @@
     z-index: 1;
 }
 
+/* Logo overlay — direct child of heroContainer (no isolated stacking context here)
+   mix-blend-mode: screen makes the contrast-blackened grey bg vanish into the page */
+.logoOverlay {
+    position: absolute;
+    top: 10%;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: min(700px, 90vw);
+    z-index: 5;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    /* No transform: centering via margin so Framer Motion's y-animation
+       doesn't overwrite the translateX(-50%) we'd otherwise need */
+}
+
 .content {
-    position: relative;
+    position: absolute;
+    top: 46%;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
     z-index: 10;
     text-align: center;
-    padding: 2rem;
+    padding: 0 2rem;
+    width: 100%;
+    max-width: 700px;
 }
 
 .titleWrapper {
-    margin-bottom: 3.5rem;
+    margin-bottom: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -53,20 +75,30 @@
     z-index: 10;
 }
 
+/* Transparent PNG: bg already removed. screen blend on the wrapper boosts vibrancy.
+   Only drop-shadows needed here for the glow effect. */
 .glassLogo {
     width: 100%;
     height: auto;
     object-fit: contain;
-    /* CSS CRUSH STRATEGY: 
-       1. reduce brightness to darken the gray
-       2. increase contrast to push darks to black and lights to pop
-       3. screen blend mode makes the resulting black transparent
-    */
-    filter: brightness(0.4) contrast(2.2) drop-shadow(0 0 20px rgba(168, 85, 247, 0.6));
-    mix-blend-mode: screen;
+    filter:
+        drop-shadow(0 0 30px rgba(168, 85, 247, 0.8))
+        drop-shadow(0 0 60px rgba(139, 92, 246, 0.5));
+    animation: logoGlow 5s ease-in-out infinite;
+}
 
-    /* Floating animation */
-    animation: crystalPulse 5s ease-in-out infinite;
+@keyframes logoGlow {
+    0%, 100% {
+        filter:
+            drop-shadow(0 0 30px rgba(168, 85, 247, 0.8))
+            drop-shadow(0 0 60px rgba(139, 92, 246, 0.5));
+    }
+    50% {
+        filter:
+            drop-shadow(0 0 55px rgba(168, 85, 247, 1))
+            drop-shadow(0 0 110px rgba(217, 70, 239, 0.8))
+            drop-shadow(0 0 160px rgba(139, 92, 246, 0.6));
+    }
 }
 
 .mainLogo {

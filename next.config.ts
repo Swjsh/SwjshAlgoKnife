@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Configure headers for Firebase Auth compatibility
+  // Configure headers for Firebase Auth compatibility and security
   async headers() {
     return [
       {
@@ -15,20 +15,27 @@ const nextConfig: NextConfig = {
             key: 'Cross-Origin-Embedder-Policy',
             value: 'unsafe-none',
           },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
         ],
       },
     ];
   },
-  // Redirect /dashboard to /strategies
-  async redirects() {
-    return [
-      {
-        source: '/dashboard',
-        destination: '/strategies',
-        permanent: false,
-      },
-    ];
-  },
+
 };
 
 export default nextConfig;

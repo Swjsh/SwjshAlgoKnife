@@ -718,3 +718,58 @@
         min-width: 140px;
     }
 }
+
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .backBtn:hover {
+    background: var(--bg-subtle);
+}
+
+:global([data-theme='light']) .quickStat {
+    background: var(--bg-subtle);
+}
+
+:global([data-theme='light']) .tab:hover {
+    background: var(--bg-subtle);
+}
+
+:global([data-theme='light']) .tabActive {
+    background: rgba(124, 58, 237, 0.08);
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .bubbleRight {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-base);
+}
+
+:global([data-theme='light']) .tradeItem {
+    background: var(--bg-subtle);
+}
+
+:global([data-theme='light']) .tradeSide {
+    background: var(--bg-main);
+}
+
+:global([data-theme='light']) .recentTrade {
+    background: var(--bg-subtle);
+}
+
+:global([data-theme='light']) .zoneItem {
+    background: var(--bg-subtle);
+}
+
+:global([data-theme='light']) .reviewItem,
+:global([data-theme='light']) .auditItem {
+    background: var(--bg-subtle);
+}
+
+:global([data-theme='light']) .quickPromptBtn {
+    background: rgba(124, 58, 237, 0.08);
+    border-color: rgba(124, 58, 237, 0.25);
+    color: var(--brand-primary);
+}
+
+:global([data-theme='light']) .quickPromptBtn:hover {
+    background: rgba(124, 58, 237, 0.15);
+    border-color: var(--brand-primary);
+}

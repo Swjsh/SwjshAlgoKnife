@@ -150,3 +150,7 @@
     color: #66bb6a;
     /* Green accent */
 }
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .panelOverride {
+    background: var(--bg-surface) !important;
+}

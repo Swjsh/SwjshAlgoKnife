@@ -1,12 +1,9 @@
 {
-  "last_updated": "2025-12-31T17:47:18.873117",
-  "status": "ACTIVE",
-  "active_pairs": 2,
-  "pending_orders": [],
-  "total_zones_found": 0,
-  "performance": {
-    "win_rate": 0,
-    "total_pnl": 0,
-    "trades": 0
-  }
+  "agent": "Pivot Pete",
+  "mode": "PAPER",
+  "provider": "ALPACA",
+  "symbol": "ES",
+  "generated_at": "2026-02-23T03:36:20.710316Z",
+  "last_price": 684.27,
+  "bars": 5
 }

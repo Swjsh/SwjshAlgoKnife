@@ -263,3 +263,8 @@
     flex-direction: column;
     align-items: center;
 }
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .labContainer {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}

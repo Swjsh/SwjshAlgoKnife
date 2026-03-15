@@ -6,7 +6,8 @@ import { BollingerBandStrategy } from './strategies/bbBreakout';
 import { ThreeDucksStrategy } from './strategies/threeDucks';
 import { GridTradingStrategy } from './strategies/gridTrading';
 import { NeverStoppedOutStrategy } from './strategies/neverStoppedOut';
-import { BaseStrategy, Signal } from './types';
+import { BaseStrategy, Signal, IntelStrategyContext } from './types';
+import { IntelAdapter } from '../intel/adapter';
 
 export class EngineManager {
     private strategies: BaseStrategy[] = [];
@@ -92,6 +93,9 @@ export class EngineManager {
         console.log("📊 [Market] Feed: BTC/USD (Simulated Live Ticks)");
         console.log("🤖 [Agents] Satoshi Sprinter, Bitcoin Bob, Altcoin Al awaiting signals...");
 
+        // Intel adapter for the primary trading symbol
+        const intelAdapter = IntelAdapter.forSymbol('BTCUSD');
+
         // Simulation Tick Loop
         // In a real scenario, this would be replaced by a WebSocket connection to Binance/Coinbase
         setInterval(() => {
@@ -106,6 +110,37 @@ export class EngineManager {
                 close: tick.price,
                 volume: 50 + Math.random() * 200
             };
+
+            // ── Inject Intel Context into all strategies ──────────────
+            // This runs once per tick (cached for 30s in IntelAdapter)
+            try {
+                const ctx = intelAdapter.getContext();
+                const adaptations = intelAdapter.getAdaptations();
+
+                const intelCtx: IntelStrategyContext = {
+                    regime: ctx.regime,
+                    htfBias: adaptations.htfBias,
+                    adaptations: {
+                        squeezeThresholdAdj: adaptations.squeezeThresholdAdj,
+                        vwapThresholdAdj: adaptations.vwapThresholdAdj,
+                        sensitivityAdj: adaptations.sensitivityAdj,
+                        wideRangeThresholdAdj: adaptations.wideRangeThresholdAdj,
+                        cooldownAdj: adaptations.cooldownAdj,
+                        preferTrend: adaptations.preferTrend,
+                        tightenStops: adaptations.tightenStops,
+                    },
+                    confidence: adaptations.confidence,
+                    longMultiplier: ctx.longScore.sizeMultiplier,
+                    shortMultiplier: ctx.shortScore.sizeMultiplier,
+                };
+
+                for (const strat of this.strategies) {
+                    strat.setIntelContext(intelCtx);
+                }
+            } catch (err) {
+                // Intel injection should never crash the strategy loop
+                // Strategies fall back to default params when intelContext is null
+            }
 
             // Strategy Loop
             for (const strat of this.strategies) {

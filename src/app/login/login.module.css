@@ -295,3 +295,8 @@
 .guestBtnIcon {
     opacity: 0.7;
 }
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .container,
+:global([data-theme='light']) .page {
+    background: var(--bg-workspace, radial-gradient(circle at top right, #f1f5f9 0%, #e2e8f0 100%));
+}

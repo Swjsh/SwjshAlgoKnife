@@ -4,16 +4,22 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { KillSwitch } from './KillSwitch';
+import intelBus from '../../intel/bus';
+import type { IntelScore } from '../../intel/types';
+import { getSymbolRecommendation, getCalendarState } from '../../intel/econ/calendar';
 import fs from 'fs';
 import path from 'path';
+import { AGENTS_DB_PATH } from '../../dataPaths';
 
-const DB_PATH = path.join(process.cwd(), 'src', 'app', 'api', 'agents', 'agents_db.json');
+const DB_PATH = AGENTS_DB_PATH;
 
 export interface RiskConfig {
-    maxDailyLossPct: number;      // e.g., 2% = 0.02
-    maxRiskPerTradePct: number;   // e.g., 1% = 0.01
-    maxConcurrentTrades: number;  // e.g., 3
-    maxCorrelatedExposure: number; // e.g., 2
+    maxDailyLossPct: number;        // e.g., 2% = 0.02
+    maxRiskPerTradePct: number;     // e.g., 1% = 0.01
+    maxConcurrentTrades: number;    // e.g., 3
+    maxCorrelatedExposure: number;  // e.g., 2
+    intelGatingEnabled: boolean;    // Enable intel score gating (default: true)
+    econCalendarGatingEnabled: boolean; // Enable economic event blackout gates (default: true)
 }
 
 export interface Trade {
@@ -22,6 +28,13 @@ export interface Trade {
     stop: number;
     side: 'LONG' | 'SHORT';
     agentId: string;
+}
+
+export interface RiskDecision {
+    allowed: boolean;
+    reason: string;
+    intelScore?: IntelScore;
+    sizeMultiplier: number;       // 1.0 = full size, 0.5 = half, 0 = blocked
 }
 
 // Correlation groups - pairs that move together
@@ -33,10 +46,12 @@ const CORRELATION_GROUPS: string[][] = [
 
 // Default config - conservative
 const DEFAULT_CONFIG: RiskConfig = {
-    maxDailyLossPct: 0.02,       // 2% max daily drawdown
-    maxRiskPerTradePct: 0.01,    // 1% risk per trade
-    maxConcurrentTrades: 3,      // Max 3 open trades
-    maxCorrelatedExposure: 2,    // Max 2 trades in same correlation group
+    maxDailyLossPct: 0.02,           // 2% max daily drawdown
+    maxRiskPerTradePct: 0.01,        // 1% risk per trade
+    maxConcurrentTrades: 3,          // Max 3 open trades
+    maxCorrelatedExposure: 2,        // Max 2 trades in same correlation group
+    intelGatingEnabled: true,        // Intel score affects position sizing
+    econCalendarGatingEnabled: true, // Economic calendar enforces hard blackouts
 };
 
 export class RiskEngine {
@@ -50,31 +65,98 @@ export class RiskEngine {
         agentId: string,
         proposedTrade: Trade,
         balance: number = 10000
-    ): { allowed: boolean; reason: string } {
+    ): RiskDecision {
         // 1. Kill Switch Check
         if (KillSwitch.isTriggered(agentId)) {
-            return { allowed: false, reason: 'Kill Switch ACTIVE - Agent halted' };
+            return { allowed: false, reason: 'Kill Switch ACTIVE - Agent halted', sizeMultiplier: 0 };
         }
 
         // 2. Daily Loss Check
         const dailyPnL = this.getDailyPnL(agentId);
         const dailyLossPct = dailyPnL / balance;
         if (dailyLossPct <= -this.config.maxDailyLossPct) {
-            return { allowed: false, reason: `Daily loss limit hit (${(dailyLossPct * 100).toFixed(1)}%)` };
+            return { allowed: false, reason: `Daily loss limit hit (${(dailyLossPct * 100).toFixed(1)}%)`, sizeMultiplier: 0 };
         }
 
         // 3. Concurrent Trades Check
         const activeTrades = this.getActiveTrades(agentId);
         if (activeTrades.length >= this.config.maxConcurrentTrades) {
-            return { allowed: false, reason: `Max concurrent trades reached (${activeTrades.length}/${this.config.maxConcurrentTrades})` };
+            return { allowed: false, reason: `Max concurrent trades reached (${activeTrades.length}/${this.config.maxConcurrentTrades})`, sizeMultiplier: 0 };
         }
 
         // 4. Correlation Check
         if (!this.checkCorrelation(activeTrades, proposedTrade.ticker)) {
-            return { allowed: false, reason: `Correlated exposure limit exceeded for ${proposedTrade.ticker}` };
+            return { allowed: false, reason: `Correlated exposure limit exceeded for ${proposedTrade.ticker}`, sizeMultiplier: 0 };
         }
 
-        return { allowed: true, reason: 'All checks passed' };
+        // ─────────────────────────────────────────────────────────────────
+        // 5. ECONOMIC CALENDAR GATE — Hard blackouts around major events
+        //    "Powell's about to speak. You really wanna hold that position?"
+        // ─────────────────────────────────────────────────────────────────
+        let calSizeMultiplier = 1.0;
+        let calNote = '';
+
+        if (this.config.econCalendarGatingEnabled) {
+            try {
+                const calRec = getSymbolRecommendation(proposedTrade.ticker);
+
+                switch (calRec.recommendation) {
+                    case 'NO_TRADE':
+                        // Hard block — event is live, critical, or within post-event volatile window
+                        console.log(`📅 [RiskEngine] EVENT BLACKOUT ${proposedTrade.ticker}: ${calRec.reason}`);
+                        return {
+                            allowed: false,
+                            reason: `📅 EVENT BLACKOUT — ${calRec.reason}`,
+                            sizeMultiplier: 0,
+                        };
+
+                    case 'HOLD_NEW':
+                        // Hard block — high-impact event imminent, no new entries
+                        console.log(`📅 [RiskEngine] HOLD NEW ENTRIES ${proposedTrade.ticker}: ${calRec.reason}`);
+                        return {
+                            allowed: false,
+                            reason: `📅 HOLD NEW ENTRIES — ${calRec.reason}`,
+                            sizeMultiplier: 0,
+                        };
+
+                    case 'REDUCE_SIZE':
+                        // Allowed but cut position in half — event is approaching
+                        calSizeMultiplier = 0.5;
+                        calNote = ` [CAL: 50% size — ${calRec.reason}]`;
+                        console.log(`📅 [RiskEngine] Reducing size 50% for ${proposedTrade.ticker}: ${calRec.reason}`);
+                        break;
+
+                    case 'CAUTION':
+                        // Allowed but trim slightly — event on the horizon
+                        calSizeMultiplier = 0.75;
+                        calNote = ` [CAL: 75% size — ${calRec.reason}]`;
+                        console.log(`📅 [RiskEngine] Caution sizing 75% for ${proposedTrade.ticker}: ${calRec.reason}`);
+                        break;
+
+                    default:
+                        // NORMAL — no event restrictions
+                        break;
+                }
+            } catch {
+                // Calendar engine may not be initialized yet — skip gracefully
+            }
+        }
+
+        // 6. Intel Score Gate
+        if (this.config.intelGatingEnabled) {
+            const intel = intelBus.score(proposedTrade.ticker, proposedTrade.side);
+            if (intel.sizeMultiplier === 0) {
+                console.log(`🧠 [RiskEngine] Intel VETOED ${proposedTrade.side} ${proposedTrade.ticker}: ${intel.reason}`);
+                return { allowed: false, reason: intel.reason, intelScore: intel, sizeMultiplier: 0 };
+            }
+            // Final size = intel multiplier × calendar multiplier (both can reduce independently)
+            const finalMultiplier = intel.sizeMultiplier * calSizeMultiplier;
+            const reason = `All checks passed — ${intel.reason}${calNote}`;
+            console.log(`🧠 [RiskEngine] Intel: ${intel.reason} × Cal: ${calSizeMultiplier} = ${finalMultiplier.toFixed(2)} size`);
+            return { allowed: true, reason, intelScore: intel, sizeMultiplier: finalMultiplier };
+        }
+
+        return { allowed: true, reason: `All checks passed${calNote}`, sizeMultiplier: calSizeMultiplier };
     }
 
     static calculatePositionSize(

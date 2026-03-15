@@ -1,6 +1,9 @@
 export interface RiskParams {
     accountBalance: number;
     riskPerTradePercent: number; // e.g., 1 for 1%
+    // Multi-tenant context (optional for backward compatibility)
+    userId?: string;
+    botId?: string;
 }
 
 export class RiskManager {

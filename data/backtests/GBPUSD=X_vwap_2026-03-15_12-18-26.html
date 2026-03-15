@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backtest Report - GBPUSD=X vwap</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        h1 {
+            color: #06b6d4;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .metric-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(6, 182, 212, 0.4);
+        }
+        .metric-label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .metric-value {
+            color: #06b6d4;
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+        .metric-value.positive { color: #10b981; }
+        .metric-value.negative { color: #ef4444; }
+        .section {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .section-title {
+            color: #06b6d4;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: rgba(6, 182, 212, 0.1);
+            color: #06b6d4;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        tr:hover {
+            background: rgba(6, 182, 212, 0.05);
+        }
+        .trade-win { color: #10b981; }
+        .trade-loss { color: #ef4444; }
+        .footer {
+            text-align: center;
+            color: #64748b;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        .chart {
+            width: 100%;
+            height: 400px;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>GBPUSD=X - vwap</h1>
+            <div class="subtitle">
+                2026-01-24 → 2026-03-14 | 15m |
+                Balance: $50,000.00 | Risk: 1.0%
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">VWAP Mean Reversion</div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Total Trades</div>
+                    <div class="metric-value">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Win Rate</div>
+                    <div class="metric-value">0.0%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Total P&L</div>
+                    <div class="metric-value negative">$0.00</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Return</div>
+                    <div class="metric-value negative">0.00%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Profit Factor</div>
+                    <div class="metric-value">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Max Drawdown</div>
+                    <div class="metric-value negative">0.00%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Sharpe Ratio</div>
+                    <div class="metric-value">0.00</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Avg R:R</div>
+                    <div class="metric-value">0.00</div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            Generated by SwjshAK Universal Backtester | 2026-03-15 12:18:26
+        </div>
+    </div>
+</body>
+</html>

@@ -67,12 +67,340 @@
 
 .nav {
     flex: 1;
-    padding: 24px 16px;
+    padding: 16px 12px 8px;
     display: flex;
     flex-direction: column;
+    gap: 4px;
+    /* No overflow clipping — flyout panels escape the sidebar */
+    overflow: visible;
+}
+
+/* Thin divider between dashboard link and grouped nav */
+.navDivider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.06);
+    margin: 8px 4px 8px;
+}
+
+:global([data-theme='light']) .navDivider,
+:global([data-theme='nature']) .navDivider {
+    background: rgba(0, 0, 0, 0.07);
+}
+
+/* ─── Dashboard top-level link ───────────────────────────────── */
+.navLink {
+    display: flex;
+    align-items: center;
     gap: 12px;
-    /* Spacing between items */
-    overflow-y: auto;
+    padding: 10px 14px;
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.18s ease;
+    border: 1px solid transparent;
+}
+
+.navLink:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.navLinkActive {
+    background: linear-gradient(90deg, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0.05) 100%);
+    border-color: rgba(168, 85, 247, 0.3);
+    color: #fff;
+}
+
+.navLinkActive .navIcon {
+    color: #d8b4fe;
+    filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.5));
+}
+
+.navIcon {
+    color: rgba(255, 255, 255, 0.45);
+    transition: all 0.18s ease;
+    flex-shrink: 0;
+}
+
+.navLabel {
+    font-size: 0.83rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+/* ─── Group wrapper + flyout ─────────────────────────────────── */
+.groupWrapper {
+    position: relative;
+}
+
+/* The sidebar group button */
+.groupBtn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.83rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    text-align: left;
+}
+
+.groupBtn:hover,
+.groupBtnOpen {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.07);
+}
+
+.groupBtnActive {
+    background: linear-gradient(90deg, rgba(168, 85, 247, 0.1) 0%, rgba(168, 85, 247, 0.03) 100%);
+    border-color: rgba(var(--group-color, 168, 85, 247), 0.25);
+    color: #fff;
+}
+
+.groupIcon {
+    color: rgba(255, 255, 255, 0.45);
+    transition: color 0.18s ease;
+    flex-shrink: 0;
+}
+
+.groupLabel {
+    flex: 1;
+}
+
+.groupChevron {
+    opacity: 0.35;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.groupChevronOpen {
+    transform: rotate(90deg);
+    opacity: 0.7;
+}
+
+/* ─── Flyout panel ───────────────────────────────────────────── */
+.flyout {
+    position: absolute;
+    top: 0;
+    left: calc(100% + 10px);
+    width: 220px;
+    background: #0e0e14;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 6px;
+    z-index: 200;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+:global([data-theme='light']) .flyout {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+:global([data-theme='nature']) .flyout {
+    background: #fefefe;
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.flyoutHeader {
+    padding: 8px 12px 6px;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    margin-bottom: 4px;
+}
+
+:global([data-theme='light']) .flyoutHeader,
+:global([data-theme='nature']) .flyoutHeader {
+    color: rgba(0, 0, 0, 0.3);
+    border-bottom-color: rgba(0, 0, 0, 0.07);
+}
+
+.flyoutItem {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 9px 10px;
+    border-radius: 9px;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.6);
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+}
+
+.flyoutItem:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.flyoutItemActive {
+    background: rgba(168, 85, 247, 0.08);
+    color: #fff;
+    border-color: rgba(168, 85, 247, 0.15);
+}
+
+:global([data-theme='light']) .flyoutItem,
+:global([data-theme='nature']) .flyoutItem {
+    color: #475569;
+}
+
+:global([data-theme='light']) .flyoutItem:hover,
+:global([data-theme='nature']) .flyoutItem:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: #0f172a;
+}
+
+:global([data-theme='light']) .flyoutItemActive,
+:global([data-theme='nature']) .flyoutItemActive {
+    background: rgba(124, 58, 237, 0.07);
+    color: #3b0764;
+    border-color: rgba(124, 58, 237, 0.15);
+}
+
+.flyoutItemIconBox {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+
+:global([data-theme='light']) .flyoutItemIconBox,
+:global([data-theme='nature']) .flyoutItemIconBox {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.flyoutItemText {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1;
+    min-width: 0;
+}
+
+.flyoutItemLabel {
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.flyoutItemDesc {
+    font-size: 0.68rem;
+    opacity: 0.5;
+    line-height: 1.2;
+    font-weight: 400;
+}
+
+.flyoutItemDot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-left: 2px;
+}
+
+/* Broker Status */
+.brokerStatus {
+    margin: 0 16px 16px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+}
+
+.brokerConnected {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brokerDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.brokerIcon {
+    font-size: 18px;
+}
+
+.brokerInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.brokerName {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 0.05em;
+}
+
+.brokerEnv {
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+.brokerEnv.paper {
+    background: rgba(6, 182, 212, 0.15);
+    color: #06b6d4;
+}
+
+.brokerEnv.live {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.brokerWarning {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 8px;
+    color: #f59e0b;
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.brokerWarning:hover {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: rgba(245, 158, 11, 0.4);
 }
 
 .deploySection {
@@ -107,163 +435,68 @@
     transform: translateY(-1px);
 }
 
-/* Simple Nav Link */
-.navLink {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 18px;
-    border-radius: 12px;
-    color: rgba(255, 255, 255, 0.6);
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
-}
-
-.navLink:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.navLink.active {
-    background: linear-gradient(90deg, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0.05) 100%);
-    border-color: rgba(168, 85, 247, 0.3);
-    color: #fff;
-}
-
-.navLink.active .navIcon {
-    color: #d8b4fe;
-}
-
-/* Old Nav Item Styling (keeping for reference) */
-.navItem {
-    position: relative;
-    padding: 1px;
-    /* Reserve space for border */
-    border-radius: 12px;
-    overflow: hidden;
-    cursor: pointer;
-    background: transparent;
-    transition: all 0.2s ease;
-}
-
-/* The Spinning Gradient (Hidden by default, visible on hover/active) */
-.borderGradient {
-    position: absolute;
-    width: 250%;
-    /* Large enough to cover rotation */
-    height: 500%;
-    /* Aspect ratio fix for rotation */
-    top: -200%;
-    left: -75%;
-    background: conic-gradient(from 0deg, transparent 0, #a855f7 90deg, #e84393 180deg, transparent 270deg);
-    animation: rotate 4s linear infinite;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: 0;
-    pointer-events: none;
-}
-
-@keyframes rotate {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-.navItem:hover .borderGradient,
-.navItem.active .borderGradient {
-    opacity: 1;
-}
-
-/* The Solid Background (Insets to create border) */
-.innerBg {
-    position: absolute;
-    inset: 1px;
-    /* 1px Border thickness */
-    background: #0a0a0c;
-    /* Dark BG to match new theme */
-    border-radius: 11px;
-    /* Slightly smaller than parent */
-    z-index: 1;
-    transition: background 0.3s ease;
-    pointer-events: none;
-}
-
-/* The Content Layer */
-.navContent {
-    position: relative;
-    z-index: 2;
-    /* Sit above BG */
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 12px 15px;
-    width: 100%;
-    height: 100%;
-    border-radius: 11px;
-}
-
-.navItem:hover .innerBg {
-    background: #13131a;
-    /* Lighter on hover */
-}
-
-/* Active State */
-.active .innerBg {
-    background: linear-gradient(90deg, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0.02) 100%);
-}
-
-.active .navIcon {
-    color: #d8b4fe;
-    filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.5));
-}
-
-.active .navLabel {
-    color: #fff;
-    text-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
-}
-
-/* Icons & Labels */
-.navIcon {
-    color: rgba(255, 255, 255, 0.5);
-    transition: all 0.3s ease;
-}
-
-.navItem:hover .navIcon {
-    color: #d8b4fe;
-    /* Purple on hover */
-    filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6));
-}
-
-.navLabel {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    transition: all 0.3s ease;
-}
-
-.navItem:hover .navLabel {
-    color: #d8b4fe;
-    /* Purple on hover */
-    text-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
-}
-
-/* Shimmer (Old effect, keeping just in case or hiding if interferes) */
-.shimmer {
-    display: none;
-}
+/* (Old navLink/navItem/navLabel blocks removed — see new definitions above) */
 
 /* Footer Section */
 .footer {
     padding: 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.userProfile {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    font-size: 1rem;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.userInfo h4 {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.userInfo p {
+    margin: 0;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.signOutBtn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 10px;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.signOutBtn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
 }
 
 .userCard {
@@ -313,12 +546,13 @@
     color: rgba(255, 255, 255, 0.4);
 }
 
-/* Light Mode Overrides */
+/* ═══════════════════════════════════════════════════════════════
+   NATURE (COFFEE) MODE OVERRIDES
+   ═══════════════════════════════════════════════════════════════ */
 :global([data-theme='nature']) .sidebar {
     background: #ffffff;
     border-right-color: rgba(0, 0, 0, 0.08);
     background-image: none;
-    /* Remove dark grid in light mode */
 }
 
 :global([data-theme='nature']) .header,
@@ -327,59 +561,146 @@
     background: rgba(255, 255, 255, 0.8);
 }
 
-:global([data-theme='nature']) .navItem {
-    background: transparent;
-}
-
-:global([data-theme='nature']) .innerBg {
-    background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-:global([data-theme='nature']) .navItem:hover .innerBg {
-    background: #f1f5f9;
-}
-
-:global([data-theme='nature']) .active .innerBg {
-    background: #f8fafc;
-    border-color: rgba(168, 85, 247, 0.2);
-}
-
-:global([data-theme='nature']) .navIcon {
-    color: #94a3b8;
-}
-
-:global([data-theme='nature']) .active .navIcon {
-    color: #7e22ce;
-}
-
 :global([data-theme='nature']) .nameSwjsh {
     color: #1e293b;
     text-shadow: none;
+}
+
+:global([data-theme='nature']) .navLink {
+    color: #64748b;
+}
+:global([data-theme='nature']) .navLink:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: #0f172a;
+}
+:global([data-theme='nature']) .navLinkActive {
+    background: rgba(138, 152, 114, 0.1);
+    border-color: rgba(138, 152, 114, 0.3);
+    color: #2d3a1f;
+}
+
+:global([data-theme='nature']) .groupBtn {
+    color: #64748b;
+}
+:global([data-theme='nature']) .groupBtn:hover,
+:global([data-theme='nature']) .groupBtnOpen {
+    background: rgba(0, 0, 0, 0.04);
+    color: #0f172a;
+}
+:global([data-theme='nature']) .groupBtnActive {
+    background: rgba(138, 152, 114, 0.08);
+    color: #2d3a1f;
 }
 
 :global([data-theme='nature']) .userCard {
     background: rgba(0, 0, 0, 0.03);
     border-color: rgba(0, 0, 0, 0.05);
 }
+:global([data-theme='nature']) .userName { color: #1e293b; }
+:global([data-theme='nature']) .userRole  { color: #64748b; }
 
-:global([data-theme='nature']) .userName {
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+   ═══════════════════════════════════════════════════════════════ */
+:global([data-theme='light']) .sidebar {
+    background: #ffffff;
+    border-right-color: rgba(0, 0, 0, 0.08);
+    background-image: none;
+}
+
+:global([data-theme='light']) .header,
+:global([data-theme='light']) .footer {
+    border-color: rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+:global([data-theme='light']) .nameSwjsh {
     color: #1e293b;
+    text-shadow: none;
 }
 
-:global([data-theme='nature']) .userRole {
+/* nav links */
+:global([data-theme='light']) .navLink {
+    color: #64748b;
+}
+:global([data-theme='light']) .navLink:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: #0f172a;
+}
+:global([data-theme='light']) .navLinkActive {
+    background: linear-gradient(90deg, rgba(124, 58, 237, 0.1) 0%, rgba(124, 58, 237, 0.03) 100%);
+    border-color: rgba(124, 58, 237, 0.25);
+    color: #5b21b6;
+}
+
+/* group buttons */
+:global([data-theme='light']) .groupBtn {
+    color: #64748b;
+}
+:global([data-theme='light']) .groupBtn:hover,
+:global([data-theme='light']) .groupBtnOpen {
+    background: rgba(0, 0, 0, 0.04);
+    color: #0f172a;
+    border-color: rgba(0, 0, 0, 0.06);
+}
+:global([data-theme='light']) .groupBtnActive {
+    background: linear-gradient(90deg, rgba(124, 58, 237, 0.07) 0%, rgba(124, 58, 237, 0.02) 100%);
+    color: #3b0764;
+}
+
+:global([data-theme='light']) .userCard {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+:global([data-theme='light']) .userCard:hover {
+    background: rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+:global([data-theme='light']) .userName { color: #1e293b; }
+:global([data-theme='light']) .userRole  { color: #64748b; }
+
+:global([data-theme='light']) .brokerStatus {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+:global([data-theme='light']) .brokerName { color: rgba(15, 23, 42, 0.8); }
+
+:global([data-theme='light']) .signOutBtn {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.08);
+    color: #64748b;
+}
+:global([data-theme='light']) .signOutBtn:hover {
+    background: rgba(220, 38, 38, 0.08);
+    border-color: rgba(220, 38, 38, 0.25);
+    color: #dc2626;
+}
+
+:global([data-theme='light']) .deployBtn {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(219, 39, 119, 0.08));
+    border-color: rgba(124, 58, 237, 0.25);
+    color: #7c3aed;
+    text-shadow: none;
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);
+}
+:global([data-theme='light']) .deployBtn:hover {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(219, 39, 119, 0.12));
+    border-color: #7c3aed;
+    color: #5b21b6;
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.2);
+}
+
+:global([data-theme='light']) .navLink {
     color: #64748b;
 }
 
-:global([data-theme='nature']) .navLabel {
-    color: #64748b;
-}
-
-:global([data-theme='nature']) .navItem:hover .navLabel {
+:global([data-theme='light']) .navLink:hover {
+    background: rgba(0, 0, 0, 0.04);
     color: #0f172a;
 }
 
-:global([data-theme='nature']) .active .navLabel {
-    color: #7e22ce;
-    text-shadow: none;
+:global([data-theme='light']) .navLink.active {
+    background: linear-gradient(90deg, rgba(124, 58, 237, 0.1) 0%, rgba(124, 58, 237, 0.03) 100%);
+    border-color: rgba(124, 58, 237, 0.25);
+    color: #5b21b6;
 }

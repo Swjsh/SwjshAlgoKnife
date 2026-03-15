@@ -17,9 +17,16 @@ const DEFAULT_CONFIG: RegimeConfig = {
     trendThreshold: 0.6,
 };
 
+export interface WhaleFlowInput {
+    netFlowUsd: number;
+    transferCount: number;
+    timestamp: number;
+}
+
 export class RegimeDetector {
     private static config: RegimeConfig = DEFAULT_CONFIG;
     private static priceHistory: Map<string, number[]> = new Map();
+    private static whaleFlows: Map<string, WhaleFlowInput[]> = new Map();
 
     static setConfig(config: Partial<RegimeConfig>) {
         this.config = { ...this.config, ...config };
@@ -131,6 +138,39 @@ export class RegimeDetector {
         // 1 = all moves in same direction (strong trend)
         // 0 = moves cancel out (no trend)
         return netMove / totalMove;
+    }
+
+    /**
+     * Ingest whale flow data to augment regime classification.
+     * Large net exchange inflows during a trend may signal reversal → VOLATILE.
+     * Called by WhaleFlowService on each snapshot computation.
+     */
+    static ingestWhaleFlow(ticker: string, netFlowUsd: number, transferCount: number): void {
+        const flows = this.whaleFlows.get(ticker) || [];
+        flows.push({ netFlowUsd, transferCount, timestamp: Date.now() });
+
+        // Keep last 20 data points
+        if (flows.length > 20) flows.shift();
+        this.whaleFlows.set(ticker, flows);
+    }
+
+    /**
+     * Get whale flow bias for a ticker.
+     * Returns a modifier that can shift regime classification:
+     *   > 0 means net exchange inflows (bearish / potential distribution)
+     *   < 0 means net exchange outflows (bullish / accumulation)
+     *   Magnitude 0-1 indicates strength.
+     */
+    static getWhaleFlowBias(ticker: string): number {
+        const flows = this.whaleFlows.get(ticker);
+        if (!flows || flows.length === 0) return 0;
+
+        // Average net flow over recent snapshots
+        const recentFlows = flows.slice(-5);
+        const avgFlow = recentFlows.reduce((sum, f) => sum + f.netFlowUsd, 0) / recentFlows.length;
+
+        // Normalize to -1 to 1 range (±$50M as max)
+        return Math.max(-1, Math.min(1, avgFlow / 50_000_000));
     }
 
     /**

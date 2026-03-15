@@ -21,6 +21,10 @@ interface UserPreferences {
     agents_view: string;
     accountBalance?: number;
     riskPerTrade?: number;
+    maxDailyLoss?: number;
+    maxOpenPositions?: number;
+    tradingHoursStart?: string;
+    tradingHoursEnd?: string;
     onboardingComplete?: boolean;
     agentSetupComplete?: boolean;
     firstAgentConfig?: any;

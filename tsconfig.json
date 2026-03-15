@@ -39,6 +39,9 @@
   "exclude": [
     "node_modules",
     "backups",
+    "scripts/**/*",
+    "src/agents/**/*",
+    "agents/**/*",
     "**/*.test.ts",
     "**/*.test.tsx"
   ]

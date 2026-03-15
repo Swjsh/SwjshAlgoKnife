@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { ArrowLeft, Settings, History, Activity, TrendingUp, Target, Clock, BarChart3 } from 'lucide-react';
 import { useAgent, useAgentContext } from '@/context/AgentContext';
 import { useStrategy } from '@/context/StrategyContext';
-import ThemeToggle from '@/components/UI/ThemeToggle';
 import AgentChartView from '@/components/Dashboard/AgentChartView';
 import styles from './page.module.css';
 
@@ -17,7 +16,7 @@ export default function AgentCockpit() {
     const router = useRouter();
     const agentId = params.id as string;
     const agent = useAgent(agentId);
-    const { theme, toggleTheme } = useStrategy();
+    const { theme } = useStrategy();
     const [activeTab, setActiveTab] = useState<TabType>('chart');
     const [chatMessages, setChatMessages] = useState<any[]>([]);
 
@@ -134,9 +133,7 @@ export default function AgentCockpit() {
                     <ArrowLeft size={20} />
                     <span>Command Center</span>
                 </Link>
-                <div className={styles.headerRight}>
-                    <ThemeToggle theme={theme} onToggle={toggleTheme} />
-                </div>
+                <div className={styles.headerRight} />
             </header>
 
             {/* Main Layout - 3 Column */}

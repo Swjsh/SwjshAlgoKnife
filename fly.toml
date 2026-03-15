@@ -1,0 +1,66 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# SwjshAK — Fly.io deployment config
+#
+# Deploy:  fly deploy
+# Logs:    fly logs
+# SSH:     fly ssh console
+# Secrets: fly secrets set KEY=VALUE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+app = "swjsh-ak"
+primary_region = "iad"   # US East (cheapest, change to "lhr" for EU)
+
+[build]
+  dockerfile = "Dockerfile"
+
+# ── Persistent volume ─────────────────────────────────────────────────────────
+# Create this ONCE before first deploy:
+#   fly volumes create swjsh_data --region iad --size 1
+# SQLite + Python agent state files live here and survive redeploys.
+[[mounts]]
+  source = "swjsh_data"
+  destination = "/app/data"
+
+# ── HTTP service (Next.js on port 3000) ──────────────────────────────────────
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false    # Never sleep — bots need to receive webhooks 24/7
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 100
+    soft_limit = 75
+
+# ── Machine sizing ────────────────────────────────────────────────────────────
+# shared-cpu-1x / 512mb  ≈ $3.83/month — handles Node.js + 2 Python bots
+# shared-cpu-1x / 256mb  ≈ $1.94/month — tighter but workable if memory is low
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+# ── Environment variables ─────────────────────────────────────────────────────
+# Non-secret config. Secrets (API keys) go in: fly secrets set KEY=VALUE
+[env]
+  NODE_ENV = "production"
+  PORT = "3000"
+  DATA_DIR = "/app/data"
+  DATABASE_PATH = "/app/data/journal.db"
+  AGENTS_DB_PATH = "/app/data/agents_db.json"
+  ACCOUNT_BALANCE = "100000"
+  RISK_PER_TRADE = "1"
+  OANDA_ENVIRONMENT = "practice"
+  CRYPTO_EXCHANGE = "coinbase"
+
+# ── Health check ──────────────────────────────────────────────────────────────
+[[services]]
+  protocol = "tcp"
+  internal_port = 3000
+
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout = "10s"
+    grace_period = "30s"

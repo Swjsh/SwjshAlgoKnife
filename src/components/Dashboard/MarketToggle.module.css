@@ -173,3 +173,8 @@
     color: #5a7c47;
     font-weight: 700;
 }
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .wrapper {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}

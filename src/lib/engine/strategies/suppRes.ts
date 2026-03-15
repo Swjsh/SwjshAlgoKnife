@@ -20,13 +20,16 @@ export class SupportResistanceStrategy extends BaseStrategy {
         // In a real scenario, we'd use a fractal or volume-profile based detection
         this.updatePivots(candle);
 
-        const sensitivity = this.config.params.sensitivity || 0.1; // Percent proximity
+        // Intel adapts: ranging tightens zones (more signals), trending widens them
+        const baseSensitivity = this.config.params.sensitivity || 0.1;
+        const sensitivity = Math.max(0.02, this.adaptParam(baseSensitivity, this.intelContext?.adaptations.sensitivityAdj ?? 0));
 
         for (const pivot of this.pivotPoints) {
             const diff = Math.abs(candle.close - pivot.level) / pivot.level * 100;
 
             if (diff <= sensitivity) {
                 if (pivot.type === 'SUPP' && this.lastAction !== 'BUY') {
+                    if (this.isDirectionVetoed('LONG')) continue; // Intel veto
                     this.lastAction = 'BUY';
                     return {
                         timestamp: candle.timestamp,
@@ -34,11 +37,12 @@ export class SupportResistanceStrategy extends BaseStrategy {
                         action: 'BUY',
                         price: candle.close,
                         strategy: this.name,
-                        notes: `Support Rejection at ${pivot.level.toFixed(2)}`
+                        notes: `Support Rejection at ${pivot.level.toFixed(2)} (sens: ${sensitivity.toFixed(3)})`
                     };
                 }
 
                 if (pivot.type === 'RES' && this.lastAction !== 'SELL') {
+                    if (this.isDirectionVetoed('SHORT')) continue; // Intel veto
                     this.lastAction = 'SELL';
                     return {
                         timestamp: candle.timestamp,
@@ -46,7 +50,7 @@ export class SupportResistanceStrategy extends BaseStrategy {
                         action: 'SELL',
                         price: candle.close,
                         strategy: this.name,
-                        notes: `Resistance Rejection at ${pivot.level.toFixed(2)}`
+                        notes: `Resistance Rejection at ${pivot.level.toFixed(2)} (sens: ${sensitivity.toFixed(3)})`
                     };
                 }
             }

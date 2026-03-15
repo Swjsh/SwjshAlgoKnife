@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useRef } from 'r
 // import { EngineManager } from '@/lib/engine/manager';  // Disabled for stability
 import { Signal } from '@/lib/engine/types';
 
-export type Theme = 'standard' | 'nature';
+export type Theme = 'standard';
 
 interface StrategyContextType {
     lastSignal: Signal | null;
@@ -25,20 +25,8 @@ export function StrategyProvider({ children }: { children: React.ReactNode }) {
     const [agents, setAgents] = useState<any | null>(null);
     const engineRef = useRef<any>(null);
 
-    // Initial theme sync
-    useEffect(() => {
-        const savedTheme = document.body.getAttribute('data-theme') as Theme;
-        if (savedTheme) setTheme(savedTheme);
-    }, []);
-
-    // Theme persistence
-    useEffect(() => {
-        document.body.setAttribute('data-theme', theme);
-    }, [theme]);
-
-    const toggleTheme = () => {
-        setTheme(prev => prev === 'standard' ? 'nature' : 'standard');
-    };
+    // Always dark mode — no theme switching
+    const toggleTheme = () => { /* no-op */ };
 
     // Agent Data Fetching - with better error handling
     useEffect(() => {

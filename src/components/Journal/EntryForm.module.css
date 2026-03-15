@@ -198,3 +198,8 @@
     background: var(--sage-green-light);
     box-shadow: 0 4px 12px rgba(122, 138, 98, 0.3);
 }
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .overlay {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}

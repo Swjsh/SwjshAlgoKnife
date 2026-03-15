@@ -28,6 +28,7 @@ from dotenv import load_dotenv
 import requests
 import pandas as pd
 import numpy as np
+from agent_utils import log_message, get_random_quip, save_agent_state, load_agent_state, save_risk_state, load_risk_state
 import pytz
 
 load_dotenv(os.path.join(os.getcwd(), '.env.local'))
@@ -35,6 +36,9 @@ load_dotenv(os.path.join(os.getcwd(), '.env.local'))
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
+
+WEBHOOK_URL       = "http://localhost:3000/api/webhook/tradingview"
+WEBHOOK_SECRET    = os.getenv("WEBHOOK_SECRET", "swjshak-tv-webhook-2026")
 
 ET = pytz.timezone("America/New_York")
 
@@ -206,6 +210,55 @@ class Trade:
     exit_time: Optional[datetime] = None
     pnl: Optional[float] = None
     exit_reason: Optional[str] = None
+
+# ============================================================================
+# WEBHOOK / STATUS
+# ============================================================================
+
+# Pivot Pete trades ES via OANDA CFD proxy (US500_USD) through the executor chain.
+# The executor detects non-FX, non-crypto symbols and routes to Alpaca Paper (SPY).
+# Symbol sent as "ES" which the executor handles.
+SYMBOL_MAP = {"ES": "ES", "NQ": "NQ", "GC": "XAUUSD", "SI": "XAGUSD"}
+
+def fire_signal(symbol: str, action: str, price: float,
+                stop_loss: float = None, take_profit: float = None,
+                reason: str = "") -> bool:
+    sig_symbol = SYMBOL_MAP.get(symbol, symbol)
+    payload = {
+        "symbol":      sig_symbol,
+        "action":      action,
+        "price":       price,
+        "strategy":    "PivotPete_Rejection",
+        "stopLoss":    stop_loss,
+        "takeProfit":  take_profit,
+        "notes":       reason or f"Pete: {action} {sig_symbol} @ {price}",
+    }
+    headers = {
+        "Content-Type":     "application/json",
+        "X-Webhook-Secret": WEBHOOK_SECRET,
+    }
+    try:
+        resp = requests.post(WEBHOOK_URL, json=payload, headers=headers, timeout=10)
+        if resp.status_code == 200:
+            print(f"[Pete] \u2705 Signal sent: {action} {sig_symbol} @ ${price:.2f}")
+            log_message('futures', f"\U0001f514 {action} {sig_symbol} @ ${price:.2f} | {reason}", type='trade')
+            return True
+        else:
+            print(f"[Pete] \u274c Webhook failed {resp.status_code}: {resp.text[:200]}")
+            return False
+    except Exception as e:
+        print(f"[Pete] \u274c Webhook error: {e}")
+        return False
+
+
+def broadcast_status(engine, scan_count: int, current_price: float):
+    stats = engine.risk_manager.get_stats()
+    msg = f"Pivots: {len(engine.pivot_levels)} | Bias: {engine.higher_tf_bias} | Price: ${current_price:.2f}"
+    print(
+        f"AGENT_STATUS_UPDATE:{json.dumps({'agentId': 'pivot_pete', 'status': 'ACTIVE', 'message': msg, 'timestamp': datetime.now().isoformat()})}",
+        flush=True
+    )
+
 
 # ============================================================================
 # PIVOT DETECTION
@@ -595,6 +648,27 @@ class PivotPeteEngine:
             pivot_level=pivot.level_type
         )
 
+        # Fire webhook → executor chain → Alpaca Paper
+        action = 'BUY' if direction == 'LONG' else 'SELL'
+        fire_signal(
+            symbol=self.symbol,
+            action=action,
+            price=entry,
+            stop_loss=stop,
+            take_profit=tp,
+            reason=f"Pivot rejection @ {pivot.level_type} (${pivot.price:.2f}) | Bias: {self.higher_tf_bias}",
+        )
+
+        # Persist active trade state
+        save_agent_state('pivot_pete', {
+            'active_trade': {
+                'symbol': self.symbol, 'entry_price': entry,
+                'entry_time': datetime.now().isoformat(), 'direction': direction,
+                'stop_loss': stop, 'take_profit': tp, 'size': size,
+                'pivot_level': pivot.level_type,
+            }
+        })
+
         print(f"\n{'='*50}")
         print(f"TRADE {direction} {self.spec['name']} @ ${entry:.2f}")
         print(f"   Pivot: {pivot.level_type} (${pivot.price:.2f})")
@@ -644,7 +718,17 @@ class PivotPeteEngine:
         trade.pnl = points * point_value * trade.size
         self.risk_manager.record_trade(trade)
 
+        # Fire EXIT webhook so executor closes the broker position
+        fire_signal(
+            symbol=self.symbol,
+            action='EXIT',
+            price=exit_price,
+            reason=f"{reason} | PnL: ${trade.pnl:+.2f}",
+        )
+
         outcome = "WIN" if trade.pnl > 0 else "LOSS"
+        emoji = "\U0001f3af" if trade.pnl > 0 else "\U0001f6d1"
+        log_message('futures', f"{emoji} {outcome}: {self.symbol} ${trade.pnl:+.2f} | {reason}", type='trade')
         print(f"\n{'='*50}")
         print(f"{outcome} CLOSED {trade.direction} @ ${exit_price:.2f}")
         print(f"   Entry: ${trade.entry_price:.2f} → Exit: ${exit_price:.2f}")
@@ -657,6 +741,10 @@ class PivotPeteEngine:
         print(f"{'='*50}\n")
 
         self.active_trade = None
+
+        # Persist risk state after every trade close
+        save_risk_state('pivot_pete', self.risk_manager.get_stats())
+        save_agent_state('pivot_pete', {'active_trade': None})
 
     def get_status(self) -> Dict:
         stats = self.risk_manager.get_stats()
@@ -728,9 +816,38 @@ def main():
             symbol = "GC" if arg == "GOLD" else arg
 
     engine = PivotPeteEngine(symbol)
+
+    # ── Restore persisted risk state ─────────────────────────────────────────
+    risk_saved = load_risk_state('pivot_pete')
+    if risk_saved:
+        engine.risk_manager.daily_pnl = risk_saved.get('daily_pnl', 0)
+        engine.risk_manager.consecutive_losses = risk_saved.get('consecutive_losses', 0)
+        engine.risk_manager.current_capital = risk_saved.get('capital', engine.risk_manager.starting_capital)
+        trades_count = risk_saved.get('trades_today', 0)
+        # Populate trades_today list with placeholders so count check works
+        engine.risk_manager.trades_today = [None] * trades_count
+        if risk_saved.get('locked', False):
+            engine.risk_manager.trading_locked = True
+            engine.risk_manager.lock_reason = risk_saved.get('lock_reason', 'Restored from saved state')
+
+    # ── Restore active trade state ───────────────────────────────────────────
+    saved = load_agent_state('pivot_pete')
+    if saved.get('active_trade'):
+        t = saved['active_trade']
+        engine.active_trade = Trade(
+            symbol=t['symbol'], entry_price=t['entry_price'],
+            entry_time=datetime.fromisoformat(t['entry_time']) if isinstance(t['entry_time'], str) else t['entry_time'],
+            direction=t['direction'], stop_loss=t['stop_loss'],
+            take_profit=t['take_profit'], size=t.get('size', 1),
+            status='OPEN', pivot_level=t.get('pivot_level', 'restored'),
+        )
+        print(f"[Pete] Restored active trade: {t['direction']} @ ${t['entry_price']:.2f}")
+
     print(f"Tracking: {engine.spec['name']} ({symbol})")
     print(f"Starting Capital: ${engine.risk_manager.current_capital:,.2f}")
     print(f"Data Provider: {DATA_PROVIDER}\n")
+    log_message('futures', get_random_quip('futures'))
+    log_message('futures', f"\U0001f680 Pivot Pete online — tracking {engine.spec['name']} ({symbol})")
 
     iteration = 0
     force_scan = os.getenv("PIVOT_PETE_FORCE_SCAN", "0") == "1"
@@ -781,6 +898,7 @@ def main():
             print(f"   Capital: ${stats['capital']:,.2f} | Daily: ${stats['daily_pnl']:+,.2f} | Trades: {stats['trades_today']}")
 
             write_status(engine, current, volume_ratio, iteration)
+            broadcast_status(engine, iteration, current)
 
             if force_scan:
                 print("\nForce scan complete. Exiting.")

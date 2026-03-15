@@ -1,8 +1,9 @@
 // import Database from 'better-sqlite3'; // Converted to require for build safety
 import path from 'path';
+import { DATABASE_PATH } from './dataPaths';
 
-// Initialize DB
-const dbPath = path.join(process.cwd(), 'journal.db');
+// Initialize DB — uses DATABASE_PATH env var so production can point to a persistent volume
+const dbPath = DATABASE_PATH;
 let db: any;
 
 try {
@@ -77,12 +78,104 @@ export function initDB() {
     );
   `;
 
+  // ── Intelligence Bus Table ────────────────────────────────────
+  const createIntelSignalsTable = `
+    CREATE TABLE IF NOT EXISTS intel_signals (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      source TEXT NOT NULL,
+      symbol TEXT NOT NULL,
+      signal_type TEXT NOT NULL,
+      confidence REAL DEFAULT 0.5,
+      summary TEXT,
+      payload TEXT,
+      expires_at DATETIME
+    );
+  `;
+
+  const createIntelIndex = `
+    CREATE INDEX IF NOT EXISTS idx_intel_active
+    ON intel_signals(symbol, expires_at);
+  `;
+
+  // ── Intel Preflight Log — records every go/no-go decision ─────
+  const createPreflightLogTable = `
+    CREATE TABLE IF NOT EXISTS intel_preflight_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      agent_id TEXT NOT NULL,
+      symbol TEXT NOT NULL,
+      direction TEXT NOT NULL,
+      strategy TEXT,
+      decision TEXT NOT NULL CHECK(decision IN ('GO', 'NO_GO', 'REDUCED')),
+      intel_score REAL,
+      size_multiplier REAL,
+      reason TEXT,
+      signals_snapshot TEXT,
+      regime TEXT,
+      latency_ms INTEGER DEFAULT 0
+    );
+  `;
+
+  // ── Agent Feedback Log — agents report trade outcomes back to intel ──
+  const createFeedbackLogTable = `
+    CREATE TABLE IF NOT EXISTS agent_feedback_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      agent_id TEXT NOT NULL,
+      trade_id INTEGER,
+      symbol TEXT NOT NULL,
+      direction TEXT NOT NULL,
+      strategy TEXT,
+      outcome TEXT NOT NULL CHECK(outcome IN ('WIN', 'LOSS', 'BE', 'TIMEOUT', 'MANUAL_CLOSE')),
+      pnl REAL,
+      duration_minutes REAL,
+      intel_score_at_entry REAL,
+      intel_decision_at_entry TEXT,
+      notes TEXT
+    );
+  `;
+
+  const createPreflightIndex = `
+    CREATE INDEX IF NOT EXISTS idx_preflight_agent_ts
+    ON intel_preflight_log(agent_id, timestamp);
+  `;
+
+  const createFeedbackIndex = `
+    CREATE INDEX IF NOT EXISTS idx_feedback_agent_ts
+    ON agent_feedback_log(agent_id, timestamp);
+  `;
+
   db.transaction(() => {
     db.exec(createTradesTable);
     db.exec(createSignalsTable);
     db.exec(createJournalTable);
     db.exec(createSettingsTable);
+    db.exec(createIntelSignalsTable);
+    db.exec(createIntelIndex);
+    db.exec(createPreflightLogTable);
+    db.exec(createFeedbackLogTable);
+    db.exec(createPreflightIndex);
+    db.exec(createFeedbackIndex);
   })();
+
+  // ── Migration: add intel_snapshot column if it doesn't exist yet ──
+  try {
+    db.exec(`ALTER TABLE trades ADD COLUMN intel_snapshot TEXT DEFAULT NULL`);
+  } catch {
+    // Column already exists — safe to ignore
+  }
+
+  // Initialize account management tables
+  try {
+    const { initAccountTables, initializeAccountSystem } = require('./accounts');
+    initAccountTables();
+    initializeAccountSystem(100000); // $100k starting capital
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Account tables init skipped (circular dependency or build env)');
+    }
+  }
 
   if (process.env.NODE_ENV === 'development') {
     console.log("Database initialized");

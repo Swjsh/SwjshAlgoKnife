@@ -128,3 +128,11 @@
     background: rgba(122, 138, 98, 0.15);
     color: var(--sage-green);
 }
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .signalItem {
+    background: var(--bg-subtle);
+}
+
+:global([data-theme='light']) .signalItem:hover {
+    background: var(--bg-surface);
+}

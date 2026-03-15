@@ -4,20 +4,23 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useStrategy } from "@/context/StrategyContext";
-import ThemeToggle from "@/components/UI/ThemeToggle";
 import GlassPanel from "@/components/UI/GlassPanel";
 import { Save, Check } from "lucide-react";
 import styles from "./page.module.css";
 import clsx from "clsx";
 
 export default function SettingsPage() {
-    const { theme, toggleTheme } = useStrategy();
+    const { theme } = useStrategy();
     const { user, loading, userPreferences, updatePreferences } = useAuth();
     const router = useRouter();
 
     // Form state
     const [accountBalance, setAccountBalance] = useState(10000);
     const [riskPerTrade, setRiskPerTrade] = useState(1);
+    const [maxDailyLoss, setMaxDailyLoss] = useState(500);
+    const [maxOpenPositions, setMaxOpenPositions] = useState(3);
+    const [tradingHoursStart, setTradingHoursStart] = useState('09:30');
+    const [tradingHoursEnd, setTradingHoursEnd] = useState('16:00');
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -26,6 +29,10 @@ export default function SettingsPage() {
         if (userPreferences) {
             if (userPreferences.accountBalance) setAccountBalance(userPreferences.accountBalance);
             if (userPreferences.riskPerTrade) setRiskPerTrade(userPreferences.riskPerTrade);
+            if (userPreferences.maxDailyLoss) setMaxDailyLoss(userPreferences.maxDailyLoss);
+            if (userPreferences.maxOpenPositions) setMaxOpenPositions(userPreferences.maxOpenPositions);
+            if (userPreferences.tradingHoursStart) setTradingHoursStart(userPreferences.tradingHoursStart);
+            if (userPreferences.tradingHoursEnd) setTradingHoursEnd(userPreferences.tradingHoursEnd);
         }
     }, [userPreferences]);
 
@@ -43,6 +50,10 @@ export default function SettingsPage() {
         await updatePreferences({
             accountBalance,
             riskPerTrade,
+            maxDailyLoss,
+            maxOpenPositions,
+            tradingHoursStart,
+            tradingHoursEnd,
             theme: theme
         });
 
@@ -79,17 +90,6 @@ export default function SettingsPage() {
 
             <div className={styles.sectionsGrid}>
                 {/* Appearance */}
-                <GlassPanel className={styles.section}>
-                    <h2 className={styles.sectionTitle}>Appearance</h2>
-                    <div className={styles.settingRow}>
-                        <div className={styles.settingInfo}>
-                            <h3>Theme</h3>
-                            <p>Switch between dark cyber mode and nature cafe mode</p>
-                        </div>
-                        <ThemeToggle theme={theme} onToggle={toggleTheme} />
-                    </div>
-                </GlassPanel>
-
                 {/* Risk Management */}
                 <GlassPanel className={styles.section}>
                     <h2 className={styles.sectionTitle}>Risk Management</h2>
@@ -126,6 +126,61 @@ export default function SettingsPage() {
                                 step="0.1"
                             />
                             <span className={styles.inputSuffix}>%</span>
+                        </div>
+                    </div>
+                    <div className={styles.settingRow}>
+                        <div className={styles.settingInfo}>
+                            <h3>Max Daily Loss</h3>
+                            <p>Stop all bots when daily loss exceeds this amount</p>
+                        </div>
+                        <div className={styles.inputGroup}>
+                            <span className={styles.inputPrefix}>$</span>
+                            <input
+                                type="number"
+                                className={styles.input}
+                                value={maxDailyLoss}
+                                onChange={(e) => setMaxDailyLoss(Number(e.target.value))}
+                                placeholder="500"
+                                min="50"
+                            />
+                        </div>
+                    </div>
+                    <div className={styles.settingRow}>
+                        <div className={styles.settingInfo}>
+                            <h3>Max Open Positions</h3>
+                            <p>Maximum concurrent positions across all bots</p>
+                        </div>
+                        <div className={styles.inputGroup}>
+                            <input
+                                type="number"
+                                className={styles.input}
+                                value={maxOpenPositions}
+                                onChange={(e) => setMaxOpenPositions(Number(e.target.value))}
+                                placeholder="3"
+                                min="1"
+                                max="20"
+                            />
+                        </div>
+                    </div>
+                    <div className={styles.settingRow}>
+                        <div className={styles.settingInfo}>
+                            <h3>Trading Hours</h3>
+                            <p>Restrict bot trading to specific hours (local time)</p>
+                        </div>
+                        <div className={styles.inputGroup} style={{ gap: '8px' }}>
+                            <input
+                                type="time"
+                                className={styles.input}
+                                value={tradingHoursStart}
+                                onChange={(e) => setTradingHoursStart(e.target.value)}
+                            />
+                            <span style={{ color: 'rgba(255,255,255,0.5)' }}>to</span>
+                            <input
+                                type="time"
+                                className={styles.input}
+                                value={tradingHoursEnd}
+                                onChange={(e) => setTradingHoursEnd(e.target.value)}
+                            />
                         </div>
                     </div>
                 </GlassPanel>

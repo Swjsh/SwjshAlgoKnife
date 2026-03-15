@@ -29,7 +29,10 @@ export class BollingerBandStrategy extends BaseStrategy {
         const lowerBand = sma - (stdDev * 2);
         const bandwidth = (upperBand - lowerBand) / sma;
 
-        const squeezeThreshold = this.config.params.squeezeThreshold || 0.05;
+        // Intel adapts: ranging/low-vol tightens threshold (more sensitive),
+        // high-vol widens it (fewer false signals)
+        const baseThreshold = this.config.params.squeezeThreshold || 0.05;
+        const squeezeThreshold = this.adaptParam(baseThreshold, this.intelContext?.adaptations.squeezeThresholdAdj ?? 0);
 
         if (bandwidth < squeezeThreshold) {
             this.isSqueezed = true;
@@ -37,6 +40,7 @@ export class BollingerBandStrategy extends BaseStrategy {
 
         if (this.isSqueezed) {
             if (candle.close > upperBand) {
+                if (this.isDirectionVetoed('LONG')) { this.isSqueezed = false; return null; }
                 this.isSqueezed = false;
                 return {
                     timestamp: candle.timestamp,
@@ -44,10 +48,11 @@ export class BollingerBandStrategy extends BaseStrategy {
                     action: 'BUY',
                     price: candle.close,
                     strategy: this.name,
-                    notes: `Post-Squeeze Bullish Breakout!`
+                    notes: `Post-Squeeze Bullish Breakout! (sqz: ${squeezeThreshold.toFixed(3)})`
                 };
             }
             if (candle.close < lowerBand) {
+                if (this.isDirectionVetoed('SHORT')) { this.isSqueezed = false; return null; }
                 this.isSqueezed = false;
                 return {
                     timestamp: candle.timestamp,
@@ -55,7 +60,7 @@ export class BollingerBandStrategy extends BaseStrategy {
                     action: 'SELL',
                     price: candle.close,
                     strategy: this.name,
-                    notes: `Post-Squeeze Bearish Breakout!`
+                    notes: `Post-Squeeze Bearish Breakout! (sqz: ${squeezeThreshold.toFixed(3)})`
                 };
             }
         }

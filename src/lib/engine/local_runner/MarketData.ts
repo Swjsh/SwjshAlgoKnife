@@ -30,9 +30,14 @@ export class MarketData extends EventEmitter {
 
     start() {
         this.isRunning = true;
-        // DISABLED: Crypto (Bitcoin Bob) - Focus on FX for tonight
-        // this.connectBinance();
-        console.log('🚫 [MarketData] Crypto DISABLED. Focus: FX Only.');
+        // Crypto feed: enabled by default.
+        // Set DISABLE_CRYPTO_FEED=true to skip Binance (e.g. during FX-only sessions).
+        const cryptoDisabled = process.env.DISABLE_CRYPTO_FEED === 'true';
+        if (cryptoDisabled) {
+            console.log('🚫 [MarketData] Crypto feed DISABLED via DISABLE_CRYPTO_FEED env var.');
+        } else {
+            this.connectBinance();
+        }
         this.connectFinnhub();
     }
 

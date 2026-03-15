@@ -16,14 +16,18 @@ interface AnalyticsHeaderProps {
 }
 
 export default function AnalyticsHeader({ trades }: AnalyticsHeaderProps) {
-    const totalTrades = trades.length;
-    const wins = trades.filter(t => t.status === 'WIN').length;
+    // Only count trades that have actually been completed (not raw signals or open positions)
+    const CLOSED_STATUSES = ['WIN', 'LOSS', 'CLOSED', 'BE', 'CANCELLED'];
+    const closedTrades = trades.filter(t => CLOSED_STATUSES.includes(t.status?.toUpperCase?.() ?? t.status));
+
+    const totalTrades = closedTrades.length;
+    const wins = closedTrades.filter(t => t.status === 'WIN').length;
     const winRate = totalTrades > 0 ? (wins / totalTrades * 100).toFixed(1) : "0.0";
 
     const totalPnL = trades.reduce((acc, t) => acc + (t.pnl || 0), 0);
 
-    const grossProfit = trades.filter(t => (t.pnl || 0) > 0).reduce((acc, t) => acc + (t.pnl || 0), 0);
-    const grossLoss = Math.abs(trades.filter(t => (t.pnl || 0) < 0).reduce((acc, t) => acc + (t.pnl || 0), 0));
+    const grossProfit = closedTrades.filter(t => (t.pnl || 0) > 0).reduce((acc, t) => acc + (t.pnl || 0), 0);
+    const grossLoss = Math.abs(closedTrades.filter(t => (t.pnl || 0) < 0).reduce((acc, t) => acc + (t.pnl || 0), 0));
     const profitFactor = grossLoss > 0 ? (grossProfit / grossLoss).toFixed(2) : (grossProfit > 0 ? "∞" : "0.00");
 
     return (
@@ -65,7 +69,7 @@ export default function AnalyticsHeader({ trades }: AnalyticsHeaderProps) {
                         <BarChart3 size={16} /> Total Trades
                     </div>
                     <div className={styles.value}>{totalTrades}</div>
-                    <div className={styles.sublabel}>Executed Signals</div>
+                    <div className={styles.sublabel}>Closed Trades</div>
                 </div>
             </GlassPanel>
         </div>

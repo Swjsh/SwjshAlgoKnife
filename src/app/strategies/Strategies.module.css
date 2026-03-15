@@ -1,413 +1,483 @@
+/* ═══════════════════════════════════════════════════
+   STRATEGY ARSENAL  —  Strategies.module.css
+   ═══════════════════════════════════════════════════ */
+
 .container {
     min-height: calc(100vh - 4rem);
-    padding: 1.5rem;
-    font-family: 'Inter', sans-serif;
-    background: radial-gradient(circle at top left, #2e1065 0%, #0f172a 100%);
+    padding: 24px 28px;
+    background: hsl(222 47% 11%);
     color: #fff;
+    font-family: inherit;
 }
 
-/* === Header === */
+/* ── Header ─────────────────────────────────────── */
 .header {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 0;
 }
 
-.headerContent {
+.headerTop {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 2rem;
-}
-
-.headerText {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 0;
+    margin-bottom: 20px;
 }
 
 .title {
-    font-size: 2rem;
-    font-weight: 700;
-    margin: 0 0 0.5rem 0;
-    background: linear-gradient(135deg, #fff 0%, #a855f7 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: -0.02em;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    margin: 0 0 4px;
+    color: #fff;
 }
 
 .subtitle {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.95rem;
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
     margin: 0;
 }
 
 .headerActions {
     display: flex;
-    gap: 0.75rem;
+    gap: 8px;
     align-items: center;
     flex-shrink: 0;
 }
 
-/* === Category Pills === */
-.categoryPills {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.categoryPill {
-    padding: 0.5rem 1rem;
-    border-radius: 99px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.categoryPill:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-}
-
-.categoryPillActive {
-    background: rgba(168, 85, 247, 0.2);
-    border-color: #a855f7;
-    color: #fff;
-    box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
-}
-
-/* === Grid Layout === */
-.strategyGrid {
-    display: flex;
-    flex-direction: column;
-    gap: 3rem;
-}
-
-.categorySection {
-    margin-bottom: 1rem;
-}
-
-.categorySectionHeader {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.categoryDot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 0.75rem;
-}
-
-.categorySectionTitle {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #fff;
-    margin-right: 0.75rem;
-}
-
-.categorySectionCount {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 0.1rem 0.5rem;
-    border-radius: 99px;
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.strategyCards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 1.5rem;
-}
-
-/* === Strategy Card === */
-.strategyCard {
-    background: rgba(20, 20, 30, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 1.5rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(10px);
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.strategyCard:hover {
-    transform: translateY(-2px);
-    border-color: rgba(168, 85, 247, 0.3);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-    background: rgba(20, 20, 30, 0.8);
-}
-
-.cardHeader {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-}
-
-.cardIcon {
-    font-size: 1.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    width: 48px;
-    height: 48px;
+.signOutBtn {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.signOutBtn:hover {
+    background: rgba(239,68,68,0.15);
+    color: #ef4444;
+    border-color: rgba(239,68,68,0.3);
+}
+
+/* ── Tab bar ─────────────────────────────────────── */
+.tabBar {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border-radius: 8px 8px 0 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    color: rgba(255,255,255,0.38);
+    transition: all 0.15s;
+    position: relative;
+    bottom: -1px;
+}
+
+.tab:hover {
+    color: rgba(255,255,255,0.75);
+    background: rgba(255,255,255,0.04);
+}
+
+.tabAllActive {
+    color: #fff;
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.1);
+    border-bottom-color: hsl(222 47% 11%);
+}
+
+.tabActive {
+    color: var(--cat-color, #10b981);
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.08);
+    border-bottom-color: hsl(222 47% 11%);
+}
+.tabActive::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--cat-color, #10b981);
+    border-radius: 2px 2px 0 0;
+}
+
+.tabCount {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.45);
+    transition: all 0.15s;
+}
+
+/* ── Category context strip ──────────────────────── */
+.catStrip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--cat-bg, rgba(16,185,129,0.08));
+    border: 1px solid rgba(255,255,255,0.06);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    margin-bottom: 20px;
+}
+
+.catStripLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.catStripIcon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cat-bg);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--cat-color);
+}
+
+.catStripTitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cat-color);
+    letter-spacing: 0.04em;
+}
+
+.catStripDesc {
+    font-size: 10px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 2px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.catStripStats {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.catStat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.catStatVal {
+    font-size: 22px;
+    font-weight: 800;
+    font-family: monospace;
+    color: rgba(255,255,255,0.8);
+    line-height: 1;
+}
+
+.catStatLabel {
+    font-size: 9px;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.catStatDivider {
+    width: 1px;
+    height: 30px;
+    background: rgba(255,255,255,0.1);
+}
+
+/* ── Cards grid ──────────────────────────────────── */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+}
+
+/* ── Individual card ─────────────────────────────── */
+.card {
+    display: flex;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    overflow: hidden;
+    transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255,255,255,0.12);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    background: rgba(255,255,255,0.05);
+}
+
+.cardAccent {
+    width: 3px;
     flex-shrink: 0;
+    opacity: 0.85;
+}
+
+.cardBody {
+    flex: 1;
+    padding: 18px 18px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    min-width: 0;
+}
+
+/* ── Top: emoji + title + badge ──────────────────── */
+.cardTop {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.cardEmoji {
+    font-size: 22px;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 1px;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4));
 }
 
 .cardInfo {
     flex: 1;
+    min-width: 0;
+}
+
+.cardTitleRow {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 5px;
 }
 
 .cardTitle {
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 700;
     color: #fff;
-    margin-bottom: 0.25rem;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.catBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 7px 2px 5px;
+    border-radius: 6px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    border: 1px solid;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 1px;
 }
 
 .cardDesc {
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.5);
-    line-height: 1.4;
+    font-size: 12px;
+    color: rgba(255,255,255,0.42);
+    line-height: 1.5;
+    margin: 0;
 }
 
-/* === Body / Agent Toggles === */
-.cardBody {
-    margin-top: auto;
+/* ── Params row ──────────────────────────────────── */
+.params {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
 }
 
-.agentListLabel {
-    font-size: 0.75rem;
+.param {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+}
+
+.paramKey {
+    font-size: 9px;
+    color: rgba(255,255,255,0.28);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: rgba(255, 255, 255, 0.4);
-    margin-bottom: 0.75rem;
+    letter-spacing: 0.08em;
     font-weight: 600;
 }
 
-.agentToggles {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
+.paramVal {
+    font-size: 11px;
+    color: rgba(255,255,255,0.72);
+    font-family: monospace;
+    font-weight: 600;
 }
 
-.agentToggle {
+/* ── Separator ───────────────────────────────────── */
+.sep {
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+    margin: 0 -18px;
+}
+
+/* ── Agent assignment section ────────────────────── */
+.agentSection {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.agentHeader {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.4rem 0.5rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    justify-content: space-between;
+}
+
+.agentLabel {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+    font-weight: 700;
+}
+
+.agentCountBadge {
+    font-size: 12px;
+    font-weight: 700;
+    font-family: monospace;
+    color: rgba(255,255,255,0.38);
+}
+
+.agentList {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.agentBtn {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    padding: 6px 8px;
     border-radius: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s;
     text-align: left;
+    min-width: 0;
 }
 
-.agentToggle:hover {
-    background: rgba(255, 255, 255, 0.08);
+.agentBtnOff:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.1);
 }
 
-.agentToggleActive {
-    background: rgba(168, 85, 247, 0.15);
-    border-color: rgba(168, 85, 247, 0.3);
-}
-
-.agentAvatarWrapper {
+.agentAvatarWrap {
     position: relative;
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     flex-shrink: 0;
 }
 
-.agentAvatarImg {
+.agentAvatar {
     width: 100%;
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
+    display: block;
 }
 
-.activeCheck {
+.agentDot {
     position: absolute;
-    bottom: -2px;
-    right: -2px;
-    background: #10b981;
-    color: #000;
-    width: 12px;
-    height: 12px;
+    bottom: -1px;
+    right: -1px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #1e1e2e;
+    border: 1.5px solid hsl(222 47% 11%);
+    transition: background 0.2s;
 }
 
-.agentToggleName {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.7);
+.agentName {
+    font-size: 12px;
+    color: rgba(255,255,255,0.32);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.agentToggleActive .agentToggleName {
-    color: #fff;
     font-weight: 500;
+    transition: color 0.15s;
+    flex: 1;
+    min-width: 0;
 }
 
-
-/* ═══════════════════════════════════════════════════════════════
-   CAFÉ PRECISION - Dark Wood Overrides
-   ═══════════════════════════════════════════════════════════════ */
-:global(body[data-theme="nature"]) .container {
-    /* Dark wood floor background */
-    background: linear-gradient(135deg, #3e2723 0%, #291e17 100%);
-    color: #faebd7;
+.agentNameOn {
+    color: rgba(255,255,255,0.9);
+    font-weight: 600;
 }
 
-:global(body[data-theme="nature"]) .title {
-    background: linear-gradient(135deg, #faebd7, #d7ccc8);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-:global(body[data-theme="nature"]) .subtitle {
-    color: #bcaaa4;
-}
-
-:global(body[data-theme="nature"]) .categoryPill {
-    background: rgba(60, 40, 30, 0.5);
-    border-color: #5d4037;
-    color: #d7ccc8;
-}
-
-:global(body[data-theme="nature"]) .categoryPillActive {
-    background: rgba(102, 187, 106, 0.2);
-    border-color: #66bb6a;
-    color: #fff;
-}
-
-:global(body[data-theme="nature"]) .categorySectionHeader {
-    border-color: #5d4037;
-}
-
-:global(body[data-theme="nature"]) .categorySectionTitle {
-    color: #faebd7;
-}
-
-:global(body[data-theme="nature"]) .categorySectionCount {
-    background: #4e342e;
-    color: #d7ccc8;
-}
-
-:global(body[data-theme="nature"]) .strategyCard {
-    background: rgba(60, 40, 30, 0.6);
-    border-color: #5d4037;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-:global(body[data-theme="nature"]) .strategyCardExpanded {
-    border-color: #66bb6a;
-    background: rgba(60, 40, 30, 0.8);
-}
-
-:global(body[data-theme="nature"]) .cardIcon {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-:global(body[data-theme="nature"]) .cardTitle {
-    color: #faebd7;
-}
-
-:global(body[data-theme="nature"]) .cardDesc {
-    color: #bcaaa4;
-}
-
-:global(body[data-theme="nature"]) .cardMeta {
-    color: #8d6e63;
-}
-
-:global(body[data-theme="nature"]) .agentCount {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-:global(body[data-theme="nature"]) .agentToggleMini {
-    background: rgba(40, 25, 15, 0.5);
-    border-color: #5d4037;
-}
-
-:global(body[data-theme="nature"]) .agentToggleMiniActive {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-:global(body[data-theme="nature"]) .cardExpanded {
-    border-color: #5d4037;
-}
-
-:global(body[data-theme="nature"]) .toggleSectionTitle {
-    color: #8d6e63;
-}
-
-:global(body[data-theme="nature"]) .agentToggleName {
-    color: #d7ccc8;
-}
-
-:global(body[data-theme="nature"]) .agentToggle {
-    background: rgba(40, 25, 15, 0.3);
-    border-color: #5d4037;
-}
-
-:global(body[data-theme="nature"]) .agentToggleActive {
-    background: rgba(102, 187, 106, 0.1);
-}
-
-:global(body[data-theme="nature"]) .activeCheck {
-    border-color: #291e17;
-}
-
-:global(body[data-theme="nature"]) .paramsSection {
-    background: rgba(40, 25, 15, 0.3);
-    border-color: #5d4037;
-}
-
-:global(body[data-theme="nature"]) .paramLabel {
-    color: #8d6e63;
-}
-
-:global(body[data-theme="nature"]) .paramInput {
-    background: rgba(0, 0, 0, 0.2);
-    border-color: #5d4037;
-    color: #faebd7;
-}
-
-:global(body[data-theme="nature"]) .paramInput:focus {
-    border-color: #66bb6a;
-}
-
-/* Responsive */
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-    .strategyCards {
-        grid-template-columns: 1fr;
-    }
+    .container { padding: 16px; }
+    .grid { grid-template-columns: 1fr; }
+    .tabBar { overflow-x: auto; }
+}
 
-    .agentToggles {
-        grid-template-columns: repeat(2, 1fr);
-    }
+/* ═══════════════════════════════════════════════════
+   NATURE THEME
+   ═══════════════════════════════════════════════════ */
+:global(body[data-theme="nature"]) .container {
+    background: linear-gradient(135deg, #3e2723 0%, #291e17 100%);
+}
+:global(body[data-theme="nature"]) .title { color: #faebd7; }
+:global(body[data-theme="nature"]) .subtitle { color: #bcaaa4; }
+:global(body[data-theme="nature"]) .tabBar { border-color: #5d4037; }
+:global(body[data-theme="nature"]) .tab { color: #bcaaa4; }
+:global(body[data-theme="nature"]) .card {
+    background: rgba(60,40,30,0.6);
+    border-color: #5d4037;
+}
+:global(body[data-theme="nature"]) .card:hover {
+    background: rgba(60,40,30,0.8);
+    border-color: #66bb6a;
+}
+:global(body[data-theme="nature"]) .cardTitle { color: #faebd7; }
+:global(body[data-theme="nature"]) .cardDesc { color: #bcaaa4; }
+:global(body[data-theme="nature"]) .param { background: rgba(40,25,15,0.4); border-color: #5d4037; }
+:global(body[data-theme="nature"]) .sep { background: #5d4037; }
+:global(body[data-theme="nature"]) .agentBtn { background: rgba(40,25,15,0.3); border-color: #5d4037; }
+:global(body[data-theme="nature"]) .agentName { color: #d7ccc8; }
+:global(body[data-theme="nature"]) .agentDot { border-color: #291e17; }
+
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .container {
+    background: var(--bg-main);
 }
