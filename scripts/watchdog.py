@@ -27,9 +27,10 @@ import logging
 
 # ── Config ──────────────────────────────────────────────────────────────────
 APP_DIR = Path(os.environ.get("APP_DIR", "/home/jackw/SwjshAlgoKnife"))
-DB_PATH = APP_DIR / "journal.db"
-AGENTS_DB_PATH = APP_DIR / "src" / "app" / "api" / "agents" / "agents_db.json"
-DATA_DIR = APP_DIR / "data"
+DB_PATH = Path(os.environ.get("DATABASE_PATH", str(APP_DIR / "journal.db")))
+AGENTS_DB_PATH = Path(os.environ.get("AGENTS_DB_PATH", str(APP_DIR / "data" / "agents_db.json")))
+DATA_DIR = Path(os.environ.get("DATA_DIR", str(APP_DIR / "data")))
+BRAIN_DIR = APP_DIR / "data" / "brain"
 PIPELINE_DIR = Path(os.environ.get("PIPELINE_DIR", os.path.expanduser("~/.openclaw/pipeline")))
 
 OPENCLAW_GATEWAY = os.environ.get("OPENCLAW_GATEWAY", "http://127.0.0.1:3001")
@@ -139,10 +140,16 @@ def wake_chief(reason: str, context: str):
         post_discord(f"**Watchdog needs Chief but gateway offline.**\n\n{reason}\n\n{context}", level="critical")
         return
     try:
+        brain_dir = str(APP_DIR / "data" / "brain")
         payload = json.dumps({
             "agentId": "chief",
             "text": f"WATCHDOG ALERT: {reason}\n\nContext:\n{context}\n\n"
-                    f"Evaluate and take action. Post your decision to Discord #chief-main.",
+                    f"SELF-HEALING PROTOCOL:\n"
+                    f"1. Read {brain_dir}/self-healing.md — check if this is a known issue with an auto-fix\n"
+                    f"2. If known fix exists → apply it, log result to self-healing.md Remediation Log\n"
+                    f"3. If unknown → log to self-healing.md New Issues Queue, post to Discord, escalate to Jack\n"
+                    f"4. Log your decision to {brain_dir}/decisions-log.md\n"
+                    f"5. Post your action (or escalation) to Discord #chief-main.",
             "mode": "now"
         }).encode("utf-8")
         req = urllib.request.Request(f"{OPENCLAW_GATEWAY}/system/event", data=payload,

@@ -1,0 +1,12 @@
+# Chief Decision Log
+
+> Every autonomous decision Chief makes is recorded here.
+> Format: [timestamp] DECISION: what | REASON: why | ACTION: what was done | OUTCOME: result (updated later)
+
+---
+
+[2026-03-15T16:00:00Z] DECISION: Build full-stack self-learning + self-healing | REASON: Learning was only at Chief level — agents didn't evolve from their own trade outcomes, Professor grades didn't flow back, system couldn't auto-remediate failures | ACTION: Created 6 per-agent memory files (agents/*.md) with tunable parameters + Professor feedback queues + behavioral patterns + mutation history. Created professor.md with self-calibrating rubric (grade-to-outcome correlation tracking). Created self-healing.md playbook with 8 known issues + auto-fixes + remediation log. Rewired Professor EOD cron to write grades to agent memory files. Rewired all agent crons to read their memory before acting. Updated watchdog wake_chief to include self-healing protocol. | OUTCOME: 3 learning loops active — (1) Professor→Agent daily feedback, (2) Pattern→Evolution weekly mutations, (3) Watchdog→Chief→Playbook on-demand self-healing. 13 brain files total. Every component learns.
+
+[2026-03-15T15:30:00Z] DECISION: Build self-learning brain layer | REASON: Brain was static files — needed to detect patterns, accumulate stats, and evolve strategies autonomously | ACTION: Created learning-log.md (pattern detection), performance-memory.md (cumulative stats + evolution triggers), upgraded EOD cron to write patterns + stats, created Evolution Engine weekly cron (promotes patterns → mutates strategies), updated decision loop to enforce learned patterns | OUTCOME: Brain now self-learning. Daily: detect. Weekly: evolve. Continuously: enforce.
+
+[2026-03-15T15:00:00Z] DECISION: Wire full autonomous loop for GCP | REASON: System components existed separately — needed single deployable architecture with feedback loop | ACTION: Created data/brain/ (6 files), sync-brain.sh, openclaw-gcp.json (Linux paths), cron-jobs-gcp.json (13 cron jobs including 30-min decision loop), workspace-gcp/ (SOUL+TOOLS+MEMORY), updated supervisord.conf (4 processes: nextjs+runner+watchdog+openclaw), fixed watchdog.py env var paths | OUTCOME: Complete Brain→Chief→Agents→Watchdog loop ready for GCP deployment
