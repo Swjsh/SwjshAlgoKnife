@@ -1,151 +1,298 @@
-# System Architecture — How Everything Connects
+# System Architecture
 
-> Chief reads this when diagnosing issues or understanding data flow.
-> Updated when infrastructure changes.
+---
+tags: #architecture #core
+status: 📘 Reference
+---
+
+## Overview
+
+SwjshAK is a **hybrid TypeScript + Python** algorithmic trading platform with autonomous agents, real-time monitoring, and multi-market execution.
+
+**Design Philosophy**: "Cyber-Industrial" dark mode aesthetic with glassmorphism
 
 ---
 
-## Stack
+## Tech Stack
 
-- **Frontend:** Next.js 15 App Router (port 3000)
-- **Database:** SQLite (better-sqlite3) — journal.db
-- **Agents:** Hybrid TypeScript + Python (managed by agent_runner.ts)
-- **AI Orchestrator:** OpenClaw Gateway (port 3001) — Chief (Sonnet 4.6) + 8 sub-agents
-- **Monitoring:** Watchdog (Python daemon, zero LLM cost)
-- **Messaging:** Discord (3 channels via OpenClaw bot)
-- **Brokers:** OANDA Practice (FX), Alpaca Paper (equities/crypto)
-- **Design:** Cyber-Industrial dark mode, electric cyan (#06b6d4), neon purple (#a855f7)
+### Frontend
+- **Framework**: Next.js 15 (App Router)
+- **Styling**: Vanilla CSS Modules with HSL variables
+- **Charts**: `lightweight-charts` (TradingView open-source)
+- **State**: React Context (no Redux/Zustand)
+
+### Backend
+- **Runtime**: Node.js + TypeScript
+- **Database**: SQLite with `better-sqlite3`
+- **Agents**: Hybrid TS/Python processes
+- **Orchestration**: PM2 (local) or supervisord (Docker)
+
+### External Services
+- **Market Data**: Alpaca, OANDA, Polygon, yfinance
+- **Brokers**: OANDA (Forex), Alpaca (Stocks/Options/Crypto)
+- **Signals**: TradingView webhooks
 
 ---
 
-## Process Architecture (GCP)
+## System Layers
 
-```
-supervisord
-├── nextjs (priority=1)     — Dashboard + API routes + Control API (port 3000)
-├── runner (priority=10)    — Agent Runner: spawns all Python agents as child processes
-├── watchdog (priority=15)  — Python monitoring daemon, 18 checks, wakes Chief on critical
-└── openclaw (priority=20)  — Chief + 8 agents + Discord + 13 cron jobs (port 3001)
+```mermaid
+graph TB
+    subgraph Frontend
+        A[Next.js Dashboard] --> B[React Components]
+        B --> C[CSS Modules]
+    end
+
+    subgraph Backend
+        D[API Routes] --> E[SQLite DB]
+        D --> F[Agent Manager]
+        F --> G[Agent Runner]
+    end
+
+    subgraph Agents
+        G --> H[Pivot Pete - Python]
+        G --> I[Boba Trades - Python]
+        G --> J[Bitcoin Bob - Python]
+        G --> K[SPX Sniper - Python]
+    end
+
+    subgraph External
+        L[TradingView] -->|webhooks| D
+        M[Alpaca API] --> H
+        N[OANDA API] --> H
+    end
+
+    A -->|HTTP| D
+    H -->|stdout| G
+    I -->|stdout| G
+    J -->|stdout| G
+    K -->|stdout| G
+    G -->|updates| O[agents_db.json]
 ```
 
-All auto-restart. OpenClaw starts last because it depends on the other 3.
+---
+
+## Core Components
+
+### 1. Frontend Dashboard
+**Location**: `src/app/`, `src/components/`
+
+**Key Pages**:
+- `/dashboard` - Main trading interface
+- `/agents` - Real-time agent monitoring
+- `/agents/[id]` - Individual agent terminal
+- `/journal` - Trade logging and analytics
+- `/strategies` - Strategy management
+
+**Communication**:
+- Polls `/api/agents` for status updates
+- WebSocket-like experience via React Context + polling
+
+---
+
+### 2. Agent Runner
+**Location**: `scripts/agent_runner.ts`
+
+**Responsibilities**:
+- Spawns all Python agents as child processes
+- Monitors agent health (restarts after 30s if crashed)
+- Parses `AGENT_STATUS_UPDATE:{json}` from agent stdout
+- Updates `src/app/api/agents/agents_db.json` with agent state
+- Provides single entry point for system startup
+
+**Critical**: Never run Python agents directly - causes duplicate instances
+
+---
+
+### 3. Python Agents
+**Location**: `scripts/*_engine.py`
+
+**Current Agents**:
+- [[Pivot Pete]] (`pivot_pete_engine.py`) - Futures
+- [[Boba Trades]] (`boba_trades_engine.py`) - Options
+- [[Bitcoin Bob]] (`bitcoin_bob_engine.py`) - Crypto
+- [[SPX Sniper]] (`spx_sniper_engine.py`) - Options
+- [[Sterling FX]] (`sterling_fx_engine.py`) - Forex
+
+**Communication Protocol**:
+```python
+# Agent outputs to stdout
+print(f"AGENT_STATUS_UPDATE:{json.dumps({
+    'agent_id': 'pivot-pete',
+    'status': 'active',
+    'current_position': {...},
+    'daily_pnl': 250.00
+})}")
+```
+
+Agent Runner parses these and updates shared state.
+
+---
+
+### 4. Strategy Engine
+**Location**: `src/lib/engine/`
+
+**TypeScript Core**:
+- `manager.ts` - Strategy registry
+- `types.ts` - BaseStrategy interface
+- `executor.ts` - Trade execution
+- `risk.ts` - Position sizing
+
+**Strategies** (`src/lib/engine/strategies/`):
+- [[ORB]] - Opening Range Breakout
+- [[VWAP Reversion]]
+- [[Support Resistance]]
+- [[Bollinger Breakout]]
+- [[Three Ducks]]
+- [[Never Stopped Out]]
+
+See: [[Strategies Overview]]
+
+---
+
+### 5. Database
+**Location**: `src/lib/db.ts`
+
+**Schema** ([[Database Schema]]):
+- `trades` - Entry/exit records with PnL
+- `signals` - Incoming webhook alerts
+- `journal_entries` - Daily notes and mood logs
+- `settings` - Key-value config store
+
+**Auto-initialized** on first run via `initDB()`
+
+---
+
+### 6. API Routes
+**Location**: `src/app/api/`
+
+| Endpoint | Purpose |
+|----------|---------|
+| `/api/webhook/tradingview` | Receive TradingView alerts |
+| `/api/signals` | Manual signal submission |
+| `/api/journal` | CRUD for trades/journal |
+| `/api/agents` | Agent status and chat |
+| `/api/control` | [[LLM Control API]] |
+| `/api/killswitch` | Emergency halt |
+
+See: [[API Reference]]
 
 ---
 
 ## Data Flow
 
+### Signal Processing
 ```
-Market Signals (3 sources):
-  1. TradingView Alert → POST /api/webhook/tradingview (requires X-Webhook-Secret)
-  2. Python agent scans → yfinance/broker API → agent status files
-  3. Manual signal → POST /api/signals
-
-Signal Processing:
-  Signal → TradeExecutor.processSignal()
-    → FX symbol? → OANDA placeMarketOrder()
-    → Equity/crypto? → Alpaca submitOrder()
-    → Write to journal.db trades table (PENDING → OPEN)
-    → Discord notification via webhook
-
-Trade Lifecycle:
-  PENDING → OPEN → WIN/LOSS
-    → On close: TheProfessor.gradeTrade() → grade to agents_db.json
-    → TheAuditor.auditReview() → verify with yfinance data
-    → Professor writes feedback to agent memory file
-    → Chief reads grades at EOD, updates brain
-
-Agent Status Updates:
-  Python agents → stdout: AGENT_STATUS_UPDATE:{json}
-    → agent_runner.ts parses → writes to agents_db.json
-    → Dashboard reads agents_db.json → real-time UI
-    → Watchdog reads agents_db.json → health monitoring
+1. TradingView Alert
+   ↓
+2. POST /api/webhook/tradingview (requires WEBHOOK_SECRET)
+   ↓
+3. Store in SQLite signals table
+   ↓
+4. Agent picks up signal
+   ↓
+5. Strategy evaluates (StrategyLoop.processTick())
+   ↓
+6. Execute via TradeExecutor
+   ↓
+7. Record in trades table
+   ↓
+8. Update agents_db.json state
+   ↓
+9. Frontend polls /api/agents
+   ↓
+10. Dashboard displays trade
 ```
 
----
-
-## Port Map
-
-| Port | Service | Access |
-|------|---------|--------|
-| 3000 | Next.js Dashboard + API | localhost (internal) |
-| 3001 | OpenClaw Gateway | localhost (loopback only) |
-
----
-
-## Database Schema (journal.db)
-
-```sql
-trades(
-  id INTEGER PRIMARY KEY,
-  symbol TEXT, direction TEXT,           -- LONG/SHORT
-  entry_price REAL, exit_price REAL, stop_loss REAL,
-  pnl REAL, strategy TEXT,
-  status TEXT,                           -- PENDING/OPEN/WIN/LOSS
-  entry_date TEXT, exit_date TEXT,       -- ISO 8601
-  notes TEXT
-)
-
-signals(
-  id INTEGER PRIMARY KEY,
-  symbol TEXT, action TEXT,              -- BUY/SELL
-  price REAL, strategy TEXT,
-  timestamp TEXT, processed INTEGER      -- 0/1
-)
-
-journal_entries(id, date, mood, notes, tags)
-settings(key TEXT PRIMARY KEY, value TEXT)
+### Agent Lifecycle
+```
+1. START_SWJSH.ps1 launches Agent Runner
+   ↓
+2. Agent Runner spawns Python processes
+   ↓
+3. Python agent connects to data source (Alpaca, OANDA)
+   ↓
+4. Agent emits AGENT_STATUS_UPDATE to stdout
+   ↓
+5. Agent Runner parses and updates agents_db.json
+   ↓
+6. Frontend reads agents_db.json via /api/agents
+   ↓
+7. Agent crashes? → Auto-restart after 30s
 ```
 
 ---
 
-## File Map (Critical Paths)
+## File Structure
 
-| File | Purpose | Who Reads | Who Writes |
-|------|---------|-----------|------------|
-| data/agents_db.json | All agent runtime state | Dashboard, Watchdog, Chief, Control API | Agent Runner |
-| journal.db | Trade history, signals, journal | Professor, Chief, Overseer, Watchdog | Trade Executor, agents |
-| .env.local | API credentials | All services | Jack only |
-| data/brain/ | The Brain (13+ files) | Chief, all agents | Chief, Professor, Evolution Engine |
-| data/logs/ | All service logs | Debugging | supervisord, all processes |
-| data/control_commands.json | Queued control commands | Agent Runner | Control API |
+```
+SwjshAlgoKnife/
+├── src/
+│   ├── app/                    # Next.js pages & API routes
+│   ├── components/             # React components
+│   ├── lib/
+│   │   ├── engine/            # Strategy engine
+│   │   ├── broker/            # Broker integrations
+│   │   └── db.ts              # Database init
+│   └── context/               # React contexts
+├── scripts/
+│   ├── agent_runner.ts        # 🔑 Master orchestrator
+│   ├── *_engine.py            # Python agents
+│   └── ecosystem.config.js    # PM2 config
+├── data/
+│   └── futures_agent_status.json  # Agent state
+└── public/                    # Static assets
+```
+
+See: [[File Structure]] for detailed breakdown
 
 ---
 
-## API Reference
+## Environment Variables
 
-### Control API (localhost:3000/api/control)
-```
-GET  /api/control              — Full system status snapshot
-POST /api/control
-  {"command":"status"}         — Same as GET
-  {"command":"summary"}        — Human-readable P&L report
-  {"command":"pause","agentId":"sterling","reason":"..."}
-  {"command":"resume","agentId":"sterling","reason":"..."}
-  {"command":"restart","agentId":"sterling","reason":"..."}
-  {"command":"killswitch","reason":"..."}
-  {"command":"killswitch_reset","reason":"..."}
-```
-Auth: Optional X-Control-Key header (if CONTROL_API_KEY env set)
+Required for production:
 
-### Webhook (localhost:3000/api/webhook/tradingview)
-```
-POST /api/webhook/tradingview
-  Header: X-Webhook-Secret: {WEBHOOK_SECRET}
-  Body: {"symbol":"EURUSD","action":"BUY","price":1.0842,"strategy":"ThreeDucks"}
+```env
+WEBHOOK_SECRET=your_secret_here
+ACCOUNT_BALANCE=10000
+RISK_PER_TRADE=1
+
+# Alpaca
+ALPACA_API_KEY=...
+ALPACA_SECRET_KEY=...
+ALPACA_BASE_URL=https://paper-api.alpaca.markets
+
+# OANDA
+OANDA_API_KEY=...
+OANDA_ACCOUNT_ID=...
 ```
 
-### Broker APIs
-- OANDA Practice: https://api-fxpractice.oanda.com/v3/
-- Alpaca Paper: https://paper-api.alpaca.markets/v2/
+See: [[Environment Variables]]
 
 ---
 
-## Discord Channel Map
+## Deployment
 
-| Channel | ID | Owner | Purpose |
-|---------|-----|-------|---------|
-| #chief-main | 1465522015095099549 | Chief | Command center. Morning briefs, EOD reports, risk alerts, Professor grades. |
-| #forex | 1467174412615942186 | Sterling | FX zone alerts, session open/close, GBP/USD updates. |
-| #crypto | 1467174512377200640 | Bitcoin Bob | BTC/ETH zone alerts only. Silence = no setup. |
+### Local (Windows)
+```powershell
+./START_SWJSH.ps1
+```
+Starts Dashboard + Agent Runner via PM2
 
-Guild ID: 340322473276997632
+### Docker / GCP
+```bash
+docker compose up -d
+```
+Uses supervisord to manage processes
+
+See: [[Deployment]] for full guide
+
+---
+
+## Related Pages
+
+- [[Agent System]] - Deep dive on autonomous agents
+- [[Risk Management]] - Kill switch & position sizing
+- [[Database Schema]] - Table definitions
+- [[API Reference]] - All endpoints
+- [[Troubleshooting]] - Common issues

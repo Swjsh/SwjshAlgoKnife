@@ -1,99 +1,209 @@
-# Roadmap — Where SwjshAK is Headed
+# Product Roadmap
 
-> Chief reads this to understand the long-term vision.
-> Jack updates this when strategic direction changes.
-> Chief can suggest roadmap items based on performance data.
+---
+tags: #roadmap #planning
+status: 🎯 Active
+last_updated: 2026-03-15
+---
+
+> **⚠️ NOTE**: This is the **long-term strategic roadmap**. For daily/weekly/monthly planning, see:
+> - [[🎯 Master Tracker]] - **YOUR SINGLE SOURCE OF TRUTH** for what's next
+> - [[📅 Daily Log]] - Daily accountability and progress tracking
+> - [[Current Sprint]] - Active sprint details
 
 ---
 
-## Phase 1: Paper Trading Validation (CURRENT)
+## Current Sprint: Backtest Harness & Pivot Pete
 
-**Goal:** Prove the system works end-to-end on paper money. Build a track record.
+**Goal**: Build universal backtesting framework and stabilize Pivot Pete futures agent
 
-- [x] Build trading dashboard (Next.js)
-- [x] Implement 5 trading agents (Sterling, Bob, Pete, Boba, Sniper)
-- [x] Implement oversight agents (Professor, Auditor, Overseer)
-- [x] Build agent runner with auto-restart
-- [x] Build watchdog monitoring (18 checks, 4 tiers)
-- [x] Build LLM Control API
-- [x] Set up OpenClaw with Chief + Discord integration
-- [x] Create the Brain (13 files, 3 learning loops)
-- [x] Deploy to GCP
-- [ ] Validate full autonomous loop (48h stable operation)
-- [ ] Accumulate 50+ paper trades across all agents
-- [ ] First Evolution Engine run (Sunday weekly review)
-- [ ] Professor-to-agent feedback loop confirmed working
-- [ ] Self-healing tested (simulate an agent crash)
+### In Progress
+- [ ] Universal backtest harness (`scripts/universal_backtest.py`)
+- [ ] Pivot Pete real-data provider integration (Alpaca)
+- [ ] Environment variable cleanup (consolidate duplicate vars)
+- [ ] Historical data fetching for futures (ES, NQ, YM)
 
-**Exit criteria:** 50+ trades, >40% WR, max drawdown <5% single day, all systems stable for 1 week.
+### Completed This Sprint
+- [x] Fixed Pivot Pete startup issues (commit a334d20)
+- [x] Added cron status snapshot script
+- [x] Migrated to existing OANDA env vars
+- [x] Updated architecture documentation
 
 ---
 
-## Phase 2: Paper Trading Optimization
+## Phase 1: Foundation ✅ COMPLETE
 
-**Goal:** Let the brain learn and evolve. Tune strategies based on real data.
+### Infrastructure
+- [x] Next.js dashboard with dark mode
+- [x] SQLite database schema
+- [x] Agent Runner orchestrator
+- [x] PM2/supervisord setup
+- [x] Docker deployment
+- [x] TradingView webhook integration
 
-- [ ] Evolution Engine has applied 3+ defensive mutations
-- [ ] Agent parameters have drifted from defaults based on evidence
-- [ ] Professor rubric self-calibrated at least once
-- [ ] Learning log has 5+ CONFIRMED patterns
-- [ ] Self-healing playbook has handled 3+ incidents without Jack
-- [ ] Win rate >50% over 100+ trades
-- [ ] Best-performing agent identified and strategy documented
-- [ ] Worst-performing agent identified — paused or evolved
-
-**Exit criteria:** 100+ trades, stable >50% WR, brain has meaningful learnings, system self-sustaining for 2+ weeks.
-
----
-
-## Phase 3: Micro-Live Trading
-
-**Goal:** Transition best-performing agent to live with minimal capital.
-
-- [ ] Select highest-WR agent from paper phase
-- [ ] Fund live account with $500-1000 (small enough to lose)
-- [ ] Run ONE agent live, rest stay paper
-- [ ] Compare live fills vs paper fills (slippage analysis)
-- [ ] Live Auditor verification against real market data
-- [ ] 20+ live trades before expanding
-- [ ] Kill switch thresholds tightened for live ($50 daily max)
-
-**Exit criteria:** 20+ live trades, performance within 10% of paper results, execution quality acceptable.
+### Core Features
+- [x] Real-time agent monitoring
+- [x] Trade journal with PnL tracking
+- [x] Strategy engine architecture
+- [x] Risk management (position sizing)
+- [x] Kill switch emergency halt
 
 ---
 
-## Phase 4: Scale Live Trading
+## Phase 2: Agent Development 🔧 IN PROGRESS
 
-**Goal:** Gradually move more agents to live. Increase capital as confidence grows.
+### Agents (Python)
+- [x] Pivot Pete (Futures) - **In Development**
+- [x] Boba Trades (Options) - **Needs Review**
+- [x] Bitcoin Bob (Crypto) - **Needs Review**
+- [x] SPX Sniper (Options) - **Needs Review**
+- [x] Sterling FX (Forex) - **Needs Review**
 
-- [ ] Second agent goes live
-- [ ] Account scaled to $5,000
-- [ ] All 5 trading agents live
-- [ ] Account scaled to $10,000+
-- [ ] Cross-agent correlation management proven in live
-- [ ] Monthly P&L positive for 3 consecutive months
-
----
-
-## Phase 5: Advanced Capabilities
-
-**Goal:** Add intelligence layers and new market capabilities.
-
-- [ ] Order flow integration (real-time CVD, absorption)
-- [ ] Sentiment analysis (news, social, on-chain)
-- [ ] New asset classes (commodities, more crypto pairs)
-- [ ] Custom TradingView indicators feeding signals
-- [ ] Multi-timeframe confirmation across agents
-- [ ] Portfolio-level hedging (agent coordination)
+### Testing & Validation
+- [ ] **Universal backtest harness** ⬅️ Current focus
+- [ ] Historical performance validation
+- [ ] Paper trading week (see [[Paper Trading Week Plan]])
+- [ ] Agent audit report
+- [ ] Broker error recovery testing
 
 ---
 
-## Long-Term Vision
+## Phase 3: Strategy Expansion 📋 PLANNED
 
-A fully autonomous trading operation that:
-1. Manages its own risk without human intervention
-2. Evolves its strategies based on market data
-3. Heals itself when things break
-4. Grows its knowledge base over time
-5. Scales capital allocation based on proven performance
-6. Reports to Jack via Discord — Jack oversees but doesn't micromanage
+### New Strategies
+- [ ] Market structure breaks
+- [ ] Smart money concepts (SMC)
+- [ ] Order flow imbalance
+- [ ] Multi-timeframe confluence
+- [ ] Fibonacci retracements
+
+### Strategy Improvements
+- [ ] Backtesting for all existing strategies
+- [ ] Parameter optimization
+- [ ] Win rate tracking
+- [ ] Drawdown monitoring
+
+---
+
+## Phase 4: Intelligence Layer 📋 PLANNED
+
+### On-Chain Analysis
+- [ ] Whale tracker (large wallet movements)
+- [ ] Smart money flows
+- [ ] Exchange inflow/outflow
+
+### Sentiment Analysis
+- [ ] Twitter/X sentiment scraping
+- [ ] News aggregation
+- [ ] Fear & Greed Index integration
+
+### Order Flow
+- [ ] Level 2 data integration
+- [ ] Time & Sales analysis
+- [ ] Imbalance detection
+
+**Files exist but not integrated**:
+- `scripts/onchain/`
+- `scripts/sentiment/`
+- `scripts/run_whale_tracker.ts`
+- `scripts/run_sentiment.ts`
+- `scripts/run_orderflow.ts`
+
+---
+
+## Phase 5: Multi-User Platform 🔮 FUTURE
+
+### Authentication & Accounts
+- [x] Auth system implemented (Firebase)
+- [x] User profiles (`src/app/profile/`)
+- [x] Account management (`src/app/accounts/`)
+- [ ] Multi-tenant database
+- [ ] User-specific agent instances
+- [ ] Billing/subscription system
+
+### UI Enhancements
+- [ ] Mobile responsive design
+- [ ] Portfolio allocation charts
+- [ ] Advanced analytics dashboard
+- [ ] Custom strategy builder (visual)
+
+---
+
+## Phase 6: Advanced Features 🔮 FUTURE
+
+### Broker Integrations
+- [x] OANDA (Forex) ✅
+- [x] Alpaca (Stocks/Options/Crypto) ✅
+- [ ] Interactive Brokers
+- [ ] TD Ameritrade
+- [ ] Coinbase Advanced Trade
+
+### Copy Trading
+- [ ] Master/slave account linking
+- [ ] Proportional position sizing
+- [ ] Real-time trade mirroring
+
+### Portfolio Management
+- [ ] Multi-agent orchestration
+- [ ] Capital allocation across agents
+- [ ] Correlation analysis
+- [ ] Risk-adjusted returns (Sharpe ratio)
+
+---
+
+## Technical Debt & Refactoring
+
+### High Priority
+- [ ] **Environment variable consolidation** (duplicate broker keys)
+- [ ] Agent health monitoring improvements
+- [ ] Database migration system (Prisma schema exists but not used)
+- [ ] TypeScript strict mode fixes
+
+### Medium Priority
+- [ ] Component CSS cleanup (some files have excessive styles)
+- [ ] API error handling standardization
+- [ ] Test coverage (currently minimal)
+- [ ] Logging standardization
+
+### Low Priority
+- [ ] Remove unused files (old breakroom page, old images)
+- [ ] Code splitting optimization
+- [ ] Bundle size reduction
+
+---
+
+## Known Issues & Blockers
+
+### Critical
+1. **Multiple agent instances** - Users running Python agents directly causes duplicates
+   - **Fix**: Documentation + clearer startup instructions
+
+### Important
+2. **Broker error recovery** - See [[Broker Error Recovery Fix]]
+3. **Environment variable chaos** - Multiple duplicate keys
+4. **Agent status persistence** - `agents_db.json` can get stale
+
+### Minor
+5. **CSS inconsistencies** - Some dark mode values hardcoded
+6. **Mobile UI** - Not optimized for small screens
+
+---
+
+## Decision Log
+
+| Date | Decision | Rationale |
+|------|----------|-----------|
+| 2026-03-15 | Build universal backtest harness | Need historical validation before live trading |
+| 2026-03-10 | Migrate Pivot Pete to Alpaca data | OANDA futures data insufficient |
+| 2026-03-05 | Use PM2 for local orchestration | Simpler than Docker for dev |
+| 2026-03-01 | Hybrid TS/Python architecture | Leverage Python ML libs + TS frontend |
+
+---
+
+## Related Pages
+
+- [[Current Sprint]]
+- [[Paper Trading Week Plan]]
+- [[Technical Debt]]
+- [[Agent Audit]]
+- [[Architecture Decisions]]
