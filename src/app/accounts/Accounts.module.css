@@ -116,8 +116,8 @@
     color: white;
 }
 
-.overviewValue.profit { color: #10b981; }
-.overviewValue.loss { color: #ef4444; }
+.overviewValue.profit { color: var(--status-success); }
+.overviewValue.loss { color: var(--status-danger); }
 
 /* Section */
 .section {
@@ -214,8 +214,8 @@
     color: white;
 }
 
-.metricValue.profit { color: #10b981; }
-.metricValue.loss { color: #ef4444; }
+.metricValue.profit { color: var(--status-success); }
+.metricValue.loss { color: var(--status-danger); }
 
 /* Agent Accounts Grid */
 .accountsGrid {
@@ -267,13 +267,13 @@
 
 .statusBadge.active {
     background: rgba(16, 185, 129, 0.15);
-    color: #10b981;
+    color: var(--status-success);
     border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .statusBadge.frozen {
     background: rgba(245, 158, 11, 0.15);
-    color: #f59e0b;
+    color: var(--status-warning);
     border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
@@ -326,11 +326,11 @@
 }
 
 .metric strong.profit {
-    color: #10b981;
+    color: var(--status-success);
 }
 
 .metric strong.loss {
-    color: #ef4444;
+    color: var(--status-danger);
 }
 
 /* Transactions */
@@ -370,12 +370,12 @@
     background: rgba(255, 255, 255, 0.05);
 }
 
-.depositIcon { color: #10b981; }
-.withdrawIcon { color: #ef4444; }
-.allocIcon { color: #f59e0b; }
+.depositIcon { color: var(--status-success); }
+.withdrawIcon { color: var(--status-danger); }
+.allocIcon { color: var(--status-warning); }
 .releaseIcon { color: #06b6d4; }
-.profitIcon { color: #10b981; }
-.lossIcon { color: #ef4444; }
+.profitIcon { color: var(--status-success); }
+.lossIcon { color: var(--status-danger); }
 
 .txnDetails {
     display: flex;
@@ -409,8 +409,8 @@
     text-align: right;
 }
 
-.txnAmount.positive { color: #10b981; }
-.txnAmount.negative { color: #ef4444; }
+.txnAmount.positive { color: var(--status-success); }
+.txnAmount.negative { color: var(--status-danger); }
 
 .txnTime {
     font-size: 12px;

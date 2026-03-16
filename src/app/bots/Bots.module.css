@@ -16,7 +16,7 @@
 
 .spinner {
     animation: spin 1s linear infinite;
-    color: #06b6d4;
+    color: var(--brand-primary);
 }
 
 @keyframes spin {
@@ -94,11 +94,11 @@
 }
 
 .statValue.positive {
-    color: #10b981;
+    color: var(--status-success);
 }
 
 .statValue.negative {
-    color: #ef4444;
+    color: var(--status-danger);
 }
 
 .emptyState {
@@ -196,7 +196,7 @@
 
 .statusBadge.running {
     background: rgba(16, 185, 129, 0.15);
-    color: #10b981;
+    color: var(--status-success);
     border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
@@ -208,7 +208,7 @@
 
 .statusBadge.paused {
     background: rgba(245, 158, 11, 0.15);
-    color: #f59e0b;
+    color: var(--status-warning);
     border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
@@ -253,11 +253,11 @@
 }
 
 .wins {
-    color: #10b981;
+    color: var(--status-success);
 }
 
 .losses {
-    color: #ef4444;
+    color: var(--status-danger);
 }
 
 .brokerInfo {
@@ -297,7 +297,7 @@
 
 .actionBtn.start {
     border-color: rgba(16, 185, 129, 0.3);
-    color: #10b981;
+    color: var(--status-success);
 }
 
 .actionBtn.start:hover {
@@ -306,7 +306,7 @@
 
 .actionBtn.pause {
     border-color: rgba(245, 158, 11, 0.3);
-    color: #f59e0b;
+    color: var(--status-warning);
 }
 
 .actionBtn.pause:hover {
@@ -329,7 +329,7 @@
 
 .actionBtn.danger {
     border-color: rgba(239, 68, 68, 0.3);
-    color: #ef4444;
+    color: var(--status-danger);
 }
 
 .actionBtn.danger:hover {
