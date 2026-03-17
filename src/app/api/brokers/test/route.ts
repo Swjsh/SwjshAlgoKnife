@@ -4,21 +4,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { requireUser } from '@/lib/auth';
-import { brokerLimiter } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
     try {
-        const user = await requireUser();
-
-        // Rate limit: prevent credential brute-force / abuse
-        const { allowed, retryAfter } = brokerLimiter.check(user.id);
-        if (!allowed) {
-            return NextResponse.json(
-                { error: 'Too many test requests. Please wait before trying again.' },
-                { status: 429, headers: { 'Retry-After': String(retryAfter) } }
-            );
-        }
-
+        await requireUser(); // Ensure authenticated
         const { broker, environment, apiKey, apiSecret } = await req.json();
 
         if (!broker || !environment || !apiKey || !apiSecret) {

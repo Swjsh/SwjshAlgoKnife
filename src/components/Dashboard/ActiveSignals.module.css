@@ -1,0 +1,138 @@
+.panelHeight {
+    height: 100%;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.signalItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.signalItem:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(247, 147, 26, 0.3);
+    transform: translateX(4px);
+}
+
+.pair {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.strategy {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.signalInfo {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    letter-spacing: 0.02em;
+}
+
+.tag[data-type="LONG"],
+.tag[data-type="BUY"] {
+    background: rgba(74, 222, 128, 0.15);
+    color: var(--status-success);
+}
+
+.tag[data-type="SHORT"],
+.tag[data-type="SELL"] {
+    background: rgba(244, 114, 182, 0.15);
+    color: var(--status-danger);
+}
+
+.price {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.liveBadge {
+    background: rgba(247, 147, 26, 0.15);
+    color: var(--accent-orange);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    letter-spacing: 0.03em;
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 0;
+    color: var(--text-muted);
+    gap: 16px;
+}
+
+.emptyText {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Nature theme overrides - Parchment Items */
+:global([data-theme='nature']) .signalItem {
+    background: #fff;
+    border: 1px solid rgba(139, 94, 60, 0.15);
+    box-shadow: 0 2px 8px rgba(139, 94, 60, 0.05);
+}
+
+:global([data-theme='nature']) .signalItem:hover {
+    background: #fff;
+    border-color: var(--sage-green);
+    box-shadow: 0 4px 12px rgba(139, 94, 60, 0.1);
+}
+
+:global([data-theme='nature']) .tag[data-type="LONG"],
+:global([data-theme='nature']) .tag[data-type="BUY"] {
+    background: rgba(122, 138, 98, 0.1);
+    color: var(--sage-green);
+}
+
+:global([data-theme='nature']) .tag[data-type="SHORT"],
+:global([data-theme='nature']) .tag[data-type="SELL"] {
+    background: rgba(139, 94, 60, 0.1);
+    color: var(--leather-brown);
+}
+
+:global([data-theme='nature']) .liveBadge {
+    background: rgba(122, 138, 98, 0.15);
+    color: var(--sage-green);
+}
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .signalItem {
+    background: var(--bg-subtle);
+}
+
+:global([data-theme='light']) .signalItem:hover {
+    background: var(--bg-surface);
+}

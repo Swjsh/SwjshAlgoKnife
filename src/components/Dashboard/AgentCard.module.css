@@ -1,0 +1,250 @@
+.card {
+    display: flex;
+    flex-direction: column;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
+.card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--panel-border-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-panel-hover);
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+/* Header */
+.header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.avatarWrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.avatarImage {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.avatarFallback {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: white;
+}
+
+.statusDot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--panel-bg-solid);
+}
+
+.statusActive {
+    background: var(--status-success);
+    box-shadow: 0 0 8px var(--status-success);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.statusIdle {
+    background: var(--text-muted);
+}
+
+.statusError {
+    background: var(--status-danger);
+    animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 8px var(--status-success);
+    }
+    50% {
+        box-shadow: 0 0 16px var(--status-success);
+    }
+}
+
+@keyframes blink {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.nameSection {
+    flex: 1;
+    min-width: 0;
+}
+
+.name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.marketType {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Body */
+.body {
+    flex: 1;
+    margin-bottom: 16px;
+}
+
+.currentAction {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Footer */
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-top: 12px;
+    border-top: 1px solid var(--panel-border);
+}
+
+.pnlSection,
+.winRateSection {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pnl {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.pnlPositive {
+    color: var(--status-success);
+}
+
+.pnlNegative {
+    color: var(--status-danger);
+}
+
+.pnlLabel,
+.winRateLabel {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.winRate {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+}
+
+.winRateSection {
+    text-align: right;
+}
+
+/* Nature Theme */
+:global([data-theme='nature']) .card {
+    background: var(--panel-bg);
+    border-color: var(--panel-border);
+}
+
+:global([data-theme='nature']) .card:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+:global([data-theme='nature']) .card::before {
+    background: linear-gradient(90deg, var(--forest-green), var(--leather-brown));
+}
+
+:global([data-theme='nature']) .statusDot {
+    border-color: var(--panel-bg);
+}
+
+:global([data-theme='nature']) .statusActive {
+    background: var(--forest-green);
+    box-shadow: 0 0 8px var(--forest-green);
+}
+
+:global([data-theme='nature']) .pnlPositive {
+    color: var(--forest-green);
+}
+
+:global([data-theme='nature']) .pnlNegative {
+    color: var(--deep-clay);
+}
+
+:global([data-theme='nature']) .winRate {
+    color: var(--forest-green);
+}
+
+:global([data-theme='nature']) .avatarFallback {
+    background: linear-gradient(135deg, var(--forest-green), var(--leather-brown));
+}
+
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .card:hover {
+    background: var(--bg-subtle);
+    border-color: var(--border-bright);
+}
+
+:global([data-theme='light']) .avatarImage {
+    border-color: var(--border-base);
+}

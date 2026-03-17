@@ -1,0 +1,156 @@
+.container {
+    padding: 24px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.expirationSelect {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-md);
+    padding: 8px 16px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+}
+
+.tableWrapper {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-md);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.th {
+    position: sticky;
+    top: 0;
+    background: rgba(22, 22, 30, 0.95);
+    backdrop-filter: blur(4px);
+    padding: 12px 8px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    border-bottom: 1px solid var(--panel-border);
+    z-index: 10;
+}
+
+.td {
+    padding: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    color: var(--text-secondary);
+}
+
+.strikeCell {
+    background: rgba(255, 255, 255, 0.02);
+    font-weight: 700;
+    color: var(--text-primary);
+    border-left: 1px solid var(--panel-border);
+    border-right: 1px solid var(--panel-border);
+    width: 80px;
+}
+
+.itmCall {
+    background: rgba(74, 222, 128, 0.03);
+}
+
+.itmPut {
+    background: rgba(244, 63, 94, 0.03);
+}
+
+.atmRow .td {
+    background: rgba(247, 147, 26, 0.05);
+    border-top: 1px solid rgba(247, 147, 26, 0.3);
+    border-bottom: 1px solid rgba(247, 147, 26, 0.3);
+}
+
+.callText {
+    color: var(--status-success);
+}
+
+.putText {
+    color: var(--status-danger);
+}
+
+/* Nature theme overrides - Solid cream panels */
+:global([data-theme='nature']) .expirationSelect {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(160, 140, 110, 0.3);
+    color: #2c231a;
+}
+
+:global([data-theme='nature']) .tableWrapper {
+    border: 1px solid rgba(160, 140, 110, 0.2);
+}
+
+:global([data-theme='nature']) .th {
+    background: rgba(255, 250, 240, 0.95);
+    backdrop-filter: none;
+    border-bottom: 1px solid rgba(160, 140, 110, 0.2);
+    color: #6a5a48;
+}
+
+:global([data-theme='nature']) .td {
+    border-bottom: 1px solid rgba(160, 140, 110, 0.1);
+}
+
+:global([data-theme='nature']) .strikeCell {
+    background: rgba(255, 255, 255, 0.3);
+    border-left: 1px solid rgba(160, 140, 110, 0.2);
+    border-right: 1px solid rgba(160, 140, 110, 0.2);
+}
+
+:global([data-theme='nature']) .itmCall {
+    background: rgba(74, 104, 56, 0.06);
+}
+
+:global([data-theme='nature']) .itmPut {
+    background: rgba(192, 144, 122, 0.06);
+}
+
+:global([data-theme='nature']) .atmRow .td {
+    background: rgba(74, 104, 56, 0.1);
+    border-top: 1px solid rgba(74, 104, 56, 0.3);
+    border-bottom: 1px solid rgba(74, 104, 56, 0.3);
+}
+
+:global([data-theme='nature']) .callText {
+    color: #4a6838;
+}
+
+:global([data-theme='nature']) .putText {
+    color: #8a5a4a;
+}
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .container {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}

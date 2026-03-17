@@ -1,31 +1,5 @@
 [
   {
-    "_documentation": {
-      "description": "SwjshAK OpenClaw Cron Jobs — GCP Linux Edition (15 jobs)",
-      "generated_from": "openclaw-setup/cron-jobs-autonomous.json with Windows paths converted to Linux",
-      "base_path": "/home/jackw/SwjshAlgoKnife",
-      "deploy_target": "~/.openclaw/cron/jobs.json on GCP VM (swjsh-server)",
-      "total_jobs": 15,
-      "job_index": {
-        "01_chief-decision-loop":     "*/30 9-16 * * 1-5  — Autonomous decision cycle every 30 min market hours",
-        "02_system-builder":           "0 */3 * * *        — Audit brain vs codebase, identify gaps, fill them",
-        "03_brain-integrity-check":    "0 7 * * *          — Daily 7 AM ET brain health check (all 18 files)",
-        "04_eod-brain-update":         "45 16 * * 1-5      — 4:45 PM ET daily log + performance memory update",
-        "05_morning-briefing":         "0 8 * * 1-5        — 8 AM ET pre-market status + priorities",
-        "06_london-open":              "0 3 * * 1-5        — 3 AM ET Sterling assesses GBP/USD at London open",
-        "07_ny-overlap":               "30 8 * * 1-5       — 8:30 AM ET Sterling NY-London overlap check",
-        "08_market-open-check":        "30 9 * * 1-5       — 9:30 AM ET Chief confirms agents active at NYSE open",
-        "09_midday-check":             "0 12 * * 1-5       — 12 PM ET Chief midday P&L and risk check",
-        "10_sterling-session-close":   "0 12 * * 1-5       — 12 PM ET Sterling closes 4-hour FX window",
-        "11_eod-professor-grade":      "15 16 * * 1-5      — 4:15 PM ET Professor grades trades + agent feedback",
-        "12_eod-overseer-audit":       "30 16 * * 1-5      — 4:30 PM ET Overseer drawdown + kill switch check",
-        "13_bitcoin-bob-watch":        "0 */4 * * *        — Every 4 hours Bitcoin Bob scans BTC impulse zones",
-        "14_sterling-forex-scan":      "0 */2 * * 1-5      — Every 2 hours Sterling scans for fresh FX zones",
-        "15_weekly-evolution-engine":   "0 18 * * 0         — Sunday 6 PM ET weekly brain self-improvement"
-      }
-    }
-  },
-  {
     "jobId": "chief-decision-loop",
     "agentId": "chief",
     "name": "Chief Autonomous Decision Loop (every 30 min market hours)",
@@ -39,50 +13,6 @@
     "payload": {
       "kind": "agentTurn",
       "message": "You are Chief. This is your autonomous decision cycle. You have FULL AUTHORITY to act within the safety guardrails.\n\nProject: /home/jackw/SwjshAlgoKnife\nBrain: /home/jackw/SwjshAlgoKnife/data/brain/\n\n== STEP 1: READ THE BRAIN ==\nRead these files:\n- /home/jackw/SwjshAlgoKnife/data/brain/master-tracker.md — your priorities and directives\n- /home/jackw/SwjshAlgoKnife/data/brain/strategies.md — strategy rules and adjustment triggers\n- /home/jackw/SwjshAlgoKnife/data/brain/decisions-log.md — your recent decisions (don't repeat yourself)\n- /home/jackw/SwjshAlgoKnife/data/brain/learning-log.md — CONFIRMED patterns to enforce\n- /home/jackw/SwjshAlgoKnife/data/brain/performance-memory.md — cumulative stats and trigger thresholds\n\n== STEP 2: READ SYSTEM STATE ==\n- Read /home/jackw/SwjshAlgoKnife/data/agents_db.json — all agent statuses\n- Query /home/jackw/SwjshAlgoKnife/journal.db:\n  Today's trades: SELECT symbol, direction, strategy, status, pnl, entry_date, exit_date FROM trades WHERE date(entry_date) = date('now') OR (status='OPEN') ORDER BY entry_date DESC\n  Today's P&L: SELECT ROUND(SUM(pnl),2) as pnl, COUNT(*) as trades, SUM(CASE WHEN status='WIN' THEN 1 ELSE 0 END) as wins FROM trades WHERE date(exit_date) = date('now') AND status IN ('WIN','LOSS')\n\n== STEP 3: EVALUATE & DECIDE ==\nCheck each agent against the directives in master-tracker.md:\n- Any agent violating its kill switch rules? → Issue pause via Control API\n- Any agent stale (no update in 10 min during market hours)? → Flag it\n- Daily drawdown approaching limit? → Reduce position sizes or pause agents\n- Strategy adjustment triggers met (from strategies.md)? → Note for next cycle\n- Any pending actions from the brain? → Execute them\n- Any CONFIRMED patterns from learning-log being violated right now? → Enforce them\n  (e.g., if learning-log says 'losses cluster 11AM-1PM' and it's 11:30AM with a loss → extra caution)\n- Any evolution triggers from performance-memory approaching threshold? → Preemptive action\n\nAvailable actions (via HTTP to localhost:3000/api/control):\n- POST {\"command\":\"pause\",\"agentId\":\"<id>\",\"reason\":\"...\"}\n- POST {\"command\":\"resume\",\"agentId\":\"<id>\",\"reason\":\"...\"}\n- POST {\"command\":\"killswitch\",\"reason\":\"...\"}\n\n== STEP 4: LOG DECISION ==\nAppend to /home/jackw/SwjshAlgoKnife/data/brain/decisions-log.md:\n[ISO timestamp] DECISION: <what> | REASON: <why> | ACTION: <what was done>\n\nIf no action needed, log: DECISION: No action | REASON: All systems nominal | ACTION: Monitoring\n\n== STEP 5: DISCORD UPDATE ==\nPost to #chief-main ONLY if:\n- An action was taken (pause, resume, killswitch)\n- A warning threshold was hit (>50% daily loss limit)\n- A notable pattern was detected\nIf everything is normal, DO NOT post. No noise.\n\n== SAFETY GUARDRAILS (IMMUTABLE) ==\n- Paper trading ONLY\n- Max daily loss $1,000 → killswitch\n- Max per-trade risk $100\n- Max 3 concurrent trades\n- Kill switch requires manual override to resume\n- You CANNOT increase risk or position sizes\n- You CANNOT start new strategies not in the brain\n- You CAN pause agents, reduce risk, trigger killswitch",
-      "lightContext": true
-    },
-    "delivery": {
-      "mode": "silent",
-      "channel": "discord",
-      "to": "channel:1465522015095099549"
-    }
-  },
-  {
-    "jobId": "system-builder",
-    "agentId": "chief",
-    "name": "System Builder — Audit brain vs code, identify gaps, build next",
-    "enabled": true,
-    "schedule": {
-      "kind": "cron",
-      "expr": "0 */3 * * *",
-      "tz": "America/New_York"
-    },
-    "sessionTarget": "isolated",
-    "payload": {
-      "kind": "agentTurn",
-      "message": "You are Chief operating as the SYSTEM BUILDER. Your job is to continuously improve the SwjshAK platform by auditing the brain against the actual codebase, identifying gaps, and filling them.\n\nProject: /home/jackw/SwjshAlgoKnife\nBrain: /home/jackw/SwjshAlgoKnife/data/brain/\n\n== STEP 1: READ THE MASTER PLAN ==\nRead ALL brain files in order:\n1. data/brain/master-tracker.md\n2. data/brain/roadmap.md\n3. data/brain/system-architecture.md\n4. data/brain/strategies.md\n5. data/brain/environment.md\n6. data/brain/self-healing.md\n7. data/brain/performance-memory.md\n8. data/brain/learning-log.md\n\n== STEP 2: AUDIT CODEBASE VS BRAIN ==\n2a. AGENT STATUS: Read data/agents_db.json — all 8 agents listed? Scripts present?\n2b. DATABASE: Query journal.db — all 4 tables exist? Trade counts?\n2c. API: Test GET http://localhost:3000/api/control and /api/agents\n2d. STRATEGY: List src/lib/engine/strategies/ — compare against strategies.md\n2e. CONFIG: Check .env.local vars (presence only)\n\n== STEP 3: IDENTIFY GAPS ==\nFor each gap: GAP, SEVERITY (HIGH/MED/LOW), CATEGORY (code|brain|config|testing|docs), FIX\n\n== STEP 4: FILL GAPS (WITHIN AUTHORITY) ==\nYou CAN: update brain files, master-tracker, roadmap, self-healing, performance-memory, create missing brain files, write to decisions-log.\nYou CANNOT: modify source code, config files, delete files, change safety guardrails.\nFor code changes: log in master-tracker under 'System Builder Queue'\n\n== STEP 5: ADVANCE THE ROADMAP ==\nCheck off completed Phase 1 items, update progress, document blockers.\n\n== STEP 6: BUILD NEXT PRIORITIES ==\nReorder priorities, add discovered tasks, update 'What Chief Should Work On Next'.\n\n== STEP 7: LOG & REPORT ==\nAppend to data/brain/decisions-log.md:\n[ISO timestamp] SYSTEM_BUILDER: Audited [N] components | Found [N] gaps | Fixed [N] | Queued [N]\n\nPost to Discord #chief-main ONLY if critical gap found or milestone completed. Otherwise STAY SILENT.",
-      "lightContext": true
-    },
-    "delivery": {
-      "mode": "silent",
-      "channel": "discord",
-      "to": "channel:1465522015095099549"
-    }
-  },
-  {
-    "jobId": "brain-integrity-check",
-    "agentId": "chief",
-    "name": "Daily brain integrity check 7 AM ET",
-    "enabled": true,
-    "schedule": {
-      "kind": "cron",
-      "expr": "0 7 * * *",
-      "tz": "America/New_York"
-    },
-    "sessionTarget": "isolated",
-    "payload": {
-      "kind": "agentTurn",
-      "message": "You are Chief. Daily brain integrity check. Ensure the brain is healthy before the trading day.\n\nBrain: /home/jackw/SwjshAlgoKnife/data/brain/\n\n== STEP 1: VERIFY ALL 18 FILES EXIST ==\nCore (7): master-tracker.md, strategies.md, decisions-log.md, daily-log.md, learning-log.md, performance-memory.md, self-healing.md\nSystem (3): system-architecture.md, environment.md, roadmap.md\nAgents (8): sterling.md, bitcoin-bob.md, pivot-pete.md, boba.md, spx-sniper.md, professor.md, auditor.md, overseer.md\n\n== STEP 2: CHECK FRESHNESS ==\nFlag any file stale >7 days. Check daily-log has yesterday's entry, decisions-log has this week's entries.\n\n== STEP 3: VALIDATE CROSS-REFERENCES ==\nAgents in master-tracker → memory files exist? Strategies in strategies.md → code in src/lib/engine/strategies/?\n\n== STEP 4: SYNC CHECK ==\nCompare brain files against Obsidian vault if accessible. Flag drift.\n\n== STEP 5: REPORT ==\nBrain Health Score: [N/18 present, N/18 fresh, N cross-ref issues]\nIf ALL HEALTHY: log to decisions-log only. No Discord.\nIf ISSUES: post to #chief-main with details. Auto-fix what you can, escalate the rest.",
       "lightContext": true
     },
     "delivery": {
@@ -224,9 +154,9 @@
     }
   },
   {
-    "jobId": "eod-professor-grade",
+    "jobId": "eod-review",
     "agentId": "professor",
-    "name": "EOD trade grading + agent feedback 4:15 PM ET",
+    "name": "EOD Professor grades all trades",
     "enabled": true,
     "schedule": {
       "kind": "cron",
@@ -246,9 +176,9 @@
     }
   },
   {
-    "jobId": "eod-overseer-audit",
+    "jobId": "overseer-eod",
     "agentId": "overseer",
-    "name": "EOD risk audit 4:30 PM ET",
+    "name": "EOD Overseer risk check",
     "enabled": true,
     "schedule": {
       "kind": "cron",
@@ -290,9 +220,9 @@
     }
   },
   {
-    "jobId": "weekly-evolution-engine",
+    "jobId": "weekly-review",
     "agentId": "chief",
-    "name": "Sunday 6PM Evolution Engine — brain self-improvement",
+    "name": "Sunday 6PM weekly wrap",
     "enabled": true,
     "schedule": {
       "kind": "cron",

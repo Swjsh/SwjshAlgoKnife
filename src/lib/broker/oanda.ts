@@ -327,40 +327,18 @@ export class OandaClient {
     accountBalance: number,
     riskPercent: number,
     entryPrice: number,
-    stopLossPrice: number,
-    instrument?: string
+    stopLossPrice: number
   ): number {
     const riskAmount = accountBalance * (riskPercent / 100);
-    const stopDistance = Math.abs(entryPrice - stopLossPrice);
-
-    // Dynamic pip value based on instrument type
-    // JPY pairs: 1 pip = 0.01, pip value per standard lot ≈ 1000/rate
-    // All others: 1 pip = 0.0001, pip value per standard lot ≈ 10 (for USD quote pairs)
-    const isJPY = instrument
-      ? instrument.toUpperCase().includes('JPY')
-      : entryPrice > 50; // Heuristic: JPY pair prices are > 50
-
-    let units: number;
-    if (isJPY) {
-      // JPY pairs: pip = 0.01, pip value = (0.01 / rate) * 100,000 ≈ 1000/rate
-      const pipSize = 0.01;
-      const pipsAtRisk = stopDistance / pipSize;
-      const pipValuePerUnit = pipSize / entryPrice; // In USD per unit
-      units = riskAmount / (pipsAtRisk * pipValuePerUnit);
-    } else {
-      // Standard pairs: pip = 0.0001
-      const pipSize = 0.0001;
-      const pipsAtRisk = stopDistance / pipSize;
-      // For USD quote pairs (EUR/USD, GBP/USD): pipValue per unit = 0.0001
-      // For USD base pairs (USD/CHF, USD/CAD): pipValue = 0.0001 / rate
-      const pipValuePerUnit = instrument && instrument.toUpperCase().startsWith('USD')
-        ? pipSize / entryPrice
-        : pipSize;
-      units = riskAmount / (pipsAtRisk * pipValuePerUnit);
-    }
-
-    // Return whole units (OANDA accepts fractional lots via units)
-    return Math.floor(units);
+    const pipRisk = Math.abs(entryPrice - stopLossPrice);
+    
+    // Standard lot = 100,000 units
+    // For most pairs, 1 pip = 0.0001 (except JPY pairs = 0.01)
+    const pipValue = 10; // Approximate pip value per standard lot in USD
+    const lotSize = riskAmount / (pipRisk * 10000 * pipValue);
+    
+    // Return units (micro lots = 1000 units)
+    return Math.floor(lotSize * 100000);
   }
 
   /**

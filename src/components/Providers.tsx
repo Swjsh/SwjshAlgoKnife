@@ -4,7 +4,8 @@ import React from 'react';
 import { AuthProvider } from '@/context/AuthContext';
 import { StrategyProvider } from '@/context/StrategyContext';
 import { AgentProvider } from '@/context/AgentContext';
-import NewUserOnboardingWrapper from '@/components/Onboarding/NewUserOnboardingWrapper';
+import OnboardingTour from '@/components/Onboarding/OnboardingTour';
+import AgentSetupWrapper from '@/components/Onboarding/AgentSetupWrapper';
 import { LogoWatermark } from '@/components/UI/LogoIcon';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -13,7 +14,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <StrategyProvider>
                 <AgentProvider>
                     {children}
-                    <NewUserOnboardingWrapper />
+                    <OnboardingTour />
+                    <AgentSetupWrapper />
                     <LogoWatermark position="bottom-right" />
                 </AgentProvider>
             </StrategyProvider>

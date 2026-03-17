@@ -13,7 +13,6 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import json
-from utils.retry import retry, retry_on_empty
 import time
 import requests
 from pathlib import Path
@@ -23,7 +22,7 @@ from data_feeds import build_feed_for_agent, get_latest_price
 
 # ── Config ────────────────────────────────────────────────────────────────────
 WEBHOOK_URL       = "http://localhost:3000/api/webhook/tradingview"
-WEBHOOK_SECRET    = os.getenv("WEBHOOK_SECRET", "changeme")
+WEBHOOK_SECRET    = "swjshak-tv-webhook-2026"   # must match .env.local WEBHOOK_SECRET
 PAIRS             = ['BTC-USD', 'ETH-USD', 'SOL-USD']
 TIMEFRAME         = '1h'
 PERIOD            = '30d'
@@ -90,21 +89,23 @@ def find_zones(df, atr_series):
     return zones
 
 # ── Current Price ─────────────────────────────────────────────────────────────
-@retry(max_retries=3, base_delay=2.0)
 def get_current_price(ticker: str) -> float | None:
     """
     Get current price. Uses Binance WebSocket cache first (real-time, no auth),
     falls back to yfinance REST if cache is stale.
     """
-    # Try real-time WebSocket cache first (BTC-USD, ETH-USD, SOL-USD)
-    price = get_latest_price(ticker, max_cache_age=10.0)
-    if price:
-        return price
-    # yfinance fallback
-    t   = yf.Ticker(ticker)
-    hist = t.history(period='1d', interval='5m')
-    if not hist.empty:
-        return float(hist['Close'].iloc[-1])
+    try:
+        # Try real-time WebSocket cache first (BTC-USD, ETH-USD, SOL-USD)
+        price = get_latest_price(ticker, max_cache_age=10.0)
+        if price:
+            return price
+        # yfinance fallback
+        t   = yf.Ticker(ticker)
+        hist = t.history(period='1d', interval='5m')
+        if not hist.empty:
+            return float(hist['Close'].iloc[-1])
+    except Exception as e:
+        print(f"[Bob] ⚠️ Price fetch failed for {ticker}: {e}")
     return None
 
 # ── Webhook Fire ──────────────────────────────────────────────────────────────
@@ -182,9 +183,7 @@ def run_scan() -> dict:
             all_zones[pair] = zones
         except Exception as e:
             print(f"[Bob] ❌ Scan error for {pair}: {e}")
-            # Don't clear existing zones on scan failure
-            if pair not in all_zones:
-                all_zones[pair] = []
+            all_zones[pair] = []
     return all_zones
 
 # ── Trade Monitor ─────────────────────────────────────────────────────────────

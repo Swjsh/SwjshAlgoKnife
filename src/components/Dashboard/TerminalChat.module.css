@@ -1,0 +1,148 @@
+.chatContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: rgba(10, 10, 15, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    backdrop-filter: blur(8px);
+    font-family: 'JetBrains Mono', 'Fira Code', var(--font-mono);
+}
+
+.header {
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.statusIndicator {
+    width: 6px;
+    height: 6px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #10b981;
+    animation: blink 2s infinite;
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: rgba(5, 5, 8, 0.5);
+}
+
+.logLine {
+    display: flex;
+    gap: 12px;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: #cbd5e1;
+    padding: 2px 0;
+    border-left: 2px solid transparent;
+}
+
+.logLine:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.logTimestamp {
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 0.75rem;
+    min-width: 64px;
+    font-variant-numeric: tabular-nums;
+}
+
+.logSource {
+    color: #a855f7;
+    font-weight: 700;
+    min-width: 80px;
+}
+
+.logSourceUser {
+    color: #3b82f6;
+}
+
+.logContent {
+    flex: 1;
+    word-break: break-word;
+}
+
+.logError {
+    color: #ef4444;
+}
+
+.logSuccess {
+    color: #10b981;
+}
+
+.inputArea {
+    padding: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(10, 10, 15, 0.6);
+}
+
+.inputWrapper {
+    display: flex;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    align-items: center;
+}
+
+.promptSymbol {
+    color: #10b981;
+    font-weight: 700;
+}
+
+.input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.875rem;
+}
+
+.input:focus {
+    outline: none;
+}
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .chatContainer {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}
+
+:global([data-theme='light']) .header {
+    background: var(--bg-subtle);
+    border-bottom-color: var(--border-base);
+}

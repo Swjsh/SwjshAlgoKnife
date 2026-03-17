@@ -46,9 +46,9 @@ AGENT_CONFIGS = {
         "risk_per_trade": 0.02,
         "strategy_params": {
             "lookback": 50,
-            "zone_tolerance_pct": 0.15,
-            "min_touches": 3,
-            "rr": 1.5,
+            "zone_tolerance_pct": 0.3,
+            "min_touches": 2,
+            "rr": 2.0,
         },
     },
 
@@ -95,149 +95,11 @@ AGENT_CONFIGS = {
         "initial_capital": 50000,
         "risk_per_trade": 0.01,
         "strategy_params": {
-            "threshold_pct": 0.4,
-            "rr": 2.0,
-        },
-    },
-
-    # ── NEW STRATEGIES ──────────────────────────────────────────
-
-    "liquidity_scalper": {
-        "name": "Liquidity Pool Scalper",
-        "market": "futures",
-        "symbols": ["ES=F", "NQ=F"],
-        "primary_symbol": "ES=F",
-        "strategy": "liquidity",
-        "timeframe": "5m",
-        "initial_capital": 100000,
-        "risk_per_trade": 0.01,
-        "strategy_params": {
-            "swing_strength": 3,
-            "zone_tolerance": 0.0004,
-            "min_pool_touches": 2,
-            "cooldown": 5,
-            "risk_pct": 0.003,
-            "rr": 2.0,
-        },
-        "session": {
-            "start_hour": 9,
-            "start_minute": 30,
-            "end_hour": 16,
-            "end_minute": 0,
-        },
-        "data_sources": ["yfinance", "alpaca"],
-    },
-
-    "ema_adx_trend": {
-        "name": "EMA Crossover + ADX",
-        "market": "multi",
-        "symbols": ["ES=F", "NQ=F", "BTC-USD", "EURUSD=X"],
-        "primary_symbol": "ES=F",
-        "strategy": "ema_adx",
-        "timeframe": "15m",
-        "initial_capital": 100000,
-        "risk_per_trade": 0.01,
-        "strategy_params": {
-            "fast": 9,
-            "slow": 21,
-            "adx_period": 14,
-            "adx_threshold": 25,
-            "risk_pct": 0.005,
-            "rr": 2.0,
-        },
-        "data_sources": ["yfinance", "alpaca"],
-    },
-
-    "rsi_mean_reversion": {
-        "name": "RSI Mean Reversion",
-        "market": "multi",
-        "symbols": ["BTC-USD", "ETH-USD", "SPY", "EURUSD=X"],
-        "primary_symbol": "BTC-USD",
-        "strategy": "rsi_mr",
-        "timeframe": "1h",
-        "initial_capital": 100000,
-        "risk_per_trade": 0.015,
-        "strategy_params": {
-            "period": 14,
-            "oversold": 30,
-            "overbought": 70,
-            "cooldown": 8,
-            "risk_pct": 0.004,
-            "rr": 1.5,
-        },
-        "data_sources": ["yfinance", "alpaca"],
-    },
-
-    "three_ducks_fx": {
-        "name": "Three Ducks Trend",
-        "market": "forex",
-        "symbols": ["GBPUSD=X", "EURUSD=X", "USDJPY=X", "AUDUSD=X"],
-        "primary_symbol": "GBPUSD=X",
-        "strategy": "three_ducks",
-        "timeframe": "1m",
-        "initial_capital": 50000,
-        "risk_per_trade": 0.01,
-        "strategy_params": {
-            "short_period": 60,
-            "med_period": 240,
-            "long_period": 1440,
-            "rr": 2.0,
-        },
-        "notes": "Requires 1m data for SMA proxy timeframes (1H/4H/Daily)",
-    },
-
-    "grid_btc": {
-        "name": "Grid Trading (BTC)",
-        "market": "crypto",
-        "symbols": ["BTC-USD", "ETH-USD"],
-        "primary_symbol": "BTC-USD",
-        "strategy": "grid",
-        "timeframe": "5m",
-        "initial_capital": 50000,
-        "risk_per_trade": 0.01,
-        "strategy_params": {
-            "grid_pct": 0.5,
-            "rr": 1.0,
-        },
-        "notes": "Best in ranging/consolidation markets. Poor in trends.",
-    },
-
-    "never_stopped_out_mnq": {
-        "name": "NeverStoppedOut (MNQ)",
-        "market": "futures",
-        "symbols": ["NQ=F", "ES=F"],
-        "primary_symbol": "NQ=F",
-        "strategy": "never_stopped_out",
-        "timeframe": "5m",
-        "initial_capital": 100000,
-        "risk_per_trade": 0.01,
-        "strategy_params": {
-            "session_start_hour": 9,
-            "session_start_min": 30,
-            "orb_duration": 15,
-            "wide_range_threshold": 400,
-            "cooldown_minutes": 15,
+            "threshold_pct": 1.5,
             "rr": 2.0,
         },
     },
 }
-
-# ── DATA SOURCE RECOMMENDATIONS ──────────────────────────────
-# REAL DATA ONLY — never use simulated/synthetic data for backtesting.
-#
-# Recommended sources by asset class:
-#   Futures (ES, NQ, YM):  Alpaca (ETF proxy: SPY/QQQ/DIA), yfinance (ES=F/NQ=F)
-#   Forex:                 yfinance (*=X symbols), HistData.com (CSV), OANDA practice API
-#   Crypto:                yfinance (*-USD), Alpaca crypto API, CoinGecko API
-#   Equities:              Alpaca (5yr intraday free), yfinance
-#
-# Paper trading brokers:
-#   Alpaca:  Equities + Crypto — https://paper-api.alpaca.markets
-#   OANDA:   Forex — https://api-fxpractice.oanda.com (v20 API)
-#
-# Walk-forward analysis:
-#   Always run --walk-forward 5 before deploying any strategy live.
-#   Only out-of-sample results count. In-sample results are meaningless.
 
 
 def get_agent_config(agent_name: str) -> Dict[str, Any]:

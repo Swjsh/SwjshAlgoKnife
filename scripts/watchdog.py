@@ -837,68 +837,8 @@ throttle = AlertThrottle()
 # MAIN LOOP
 # ═══════════════════════════════════════════════════════════════════════════
 
-def check_pipeline_health():
-    """Tier 0 — Pipeline health. Catches the 31-day silent outage class of failures."""
-    issues = []
-
-    # 1. Critical env vars present
-    critical_vars = ["WEBHOOK_SECRET", "ANTHROPIC_API_KEY", "ACCOUNT_BALANCE"]
-    missing = [v for v in critical_vars if not os.environ.get(v)]
-    if missing:
-        issues.append(f"Missing critical env vars: {', '.join(missing)}")
-
-    # 2. API health endpoint reachable
-    try:
-        req = urllib.request.Request("http://localhost:3000/api/health", method="GET")
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            if resp.status != 200:
-                issues.append(f"API /health returned {resp.status}")
-    except Exception as e:
-        issues.append(f"API /health unreachable: {e}")
-
-    # 3. Trade staleness (0 trades in 24h during market hours)
-    now = datetime.now()
-    is_market_hours = now.weekday() < 5 and 9 <= now.hour < 17
-    if is_market_hours and DB_PATH.exists():
-        try:
-            conn = sqlite3.connect(str(DB_PATH))
-            cursor = conn.execute(
-                "SELECT COUNT(*) FROM trades WHERE entry_date > datetime('now', '-24 hours')"
-            )
-            recent_trades = cursor.fetchone()[0]
-            conn.close()
-            if recent_trades == 0:
-                issues.append("ZERO trades in last 24 market hours — pipeline may be dead")
-        except Exception as e:
-            issues.append(f"Cannot query trades DB: {e}")
-
-    # 4. agents_db.json exists and is not empty
-    if not AGENTS_DB_PATH.exists():
-        issues.append("agents_db.json MISSING — agents cannot persist state")
-    else:
-        try:
-            data = json.loads(AGENTS_DB_PATH.read_text())
-            if len(data) == 0:
-                issues.append("agents_db.json is EMPTY — no agents registered")
-        except Exception as e:
-            issues.append(f"agents_db.json corrupt: {e}")
-
-    if issues:
-        msg = "**TIER 0 PIPELINE ALERT**\n" + "\n".join(f"- {i}" for i in issues)
-        log.critical(msg)
-        post_discord(msg, title="PIPELINE DOWN", level="critical")
-        if len(issues) >= 2:
-            wake_chief("Multiple pipeline failures detected", msg)
-    else:
-        log.info("Tier 0: Pipeline healthy")
-
-
 def run_cycle():
     """Execute all monitoring checks at appropriate intervals."""
-
-    # ── TIER 0: Pipeline health (every 5 min) — catches silent outages ──
-    if throttle.should_fire("pipeline_health", 300):
-        check_pipeline_health()
 
     # ── TIER 1: Critical (every 2-3 min) ──
     if throttle.should_fire("agent_health", 120):

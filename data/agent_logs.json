@@ -1,0 +1,226 @@
+[
+  {
+    "timestamp": "2025-12-31T17:43:33.827235",
+    "agentId": "fx",
+    "content": "Neural Engine ACTIVE. Scanning Asian Range...",
+    "type": "status",
+    "id": "fx-1767221013"
+  },
+  {
+    "timestamp": "2025-12-31T17:43:34.263816",
+    "agentId": "fx",
+    "content": "Scanning EURUSD: Found 1 fresh zones.",
+    "type": "signal",
+    "id": "fx-1767221014"
+  },
+  {
+    "timestamp": "2025-12-31T17:43:34.852894",
+    "agentId": "fx",
+    "content": "Scanning USDCAD: Found 1 fresh zones.",
+    "type": "signal",
+    "id": "fx-1767221014"
+  },
+  {
+    "timestamp": "2025-12-31T17:43:34.860535",
+    "agentId": "fx",
+    "content": "Scan cycle complete. Monitoring 2 zones.",
+    "type": "status",
+    "id": "fx-1767221014"
+  },
+  {
+    "timestamp": "2025-12-31T17:43:35.918134",
+    "agentId": "crypto",
+    "content": "Ethereum demand levels holding strong.",
+    "type": "status",
+    "id": "crypto-1767221015"
+  },
+  {
+    "timestamp": "2025-12-31T17:43:36.249676",
+    "agentId": "crypto",
+    "content": "Scanning BTC-USD: Found 2 fresh crypto zones.",
+    "type": "signal",
+    "id": "crypto-1767221016"
+  },
+  {
+    "timestamp": "2025-12-31T17:43:36.441071",
+    "agentId": "crypto",
+    "content": "Scanning ETH-USD: Found 2 fresh crypto zones.",
+    "type": "signal",
+    "id": "crypto-1767221016"
+  },
+  {
+    "timestamp": "2025-12-31T17:43:36.636823",
+    "agentId": "crypto",
+    "content": "Scanning SOL-USD: Found 1 fresh crypto zones.",
+    "type": "signal",
+    "id": "crypto-1767221016"
+  },
+  {
+    "timestamp": "2025-12-31T17:43:37.022350",
+    "agentId": "crypto",
+    "content": "Scanning DOGE-USD: Found 5 fresh crypto zones.",
+    "type": "signal",
+    "id": "crypto-1767221017"
+  },
+  {
+    "timestamp": "2025-12-31T17:43:37.029037",
+    "agentId": "crypto",
+    "content": "Crypto scan cycle complete. Tracking 10 zones.",
+    "type": "status",
+    "id": "crypto-1767221017"
+  },
+  {
+    "timestamp": "2025-12-31T17:43:37.838823",
+    "agentId": "spx",
+    "content": "Crossed VWAP. Bullish momentum confirmed.",
+    "type": "status",
+    "id": "spx-1767221017"
+  },
+  {
+    "timestamp": "2025-12-31T17:43:38.151258",
+    "agentId": "spx",
+    "content": "Time-gate active. Waiting for 10:30 AM EST.",
+    "type": "status",
+    "id": "spx-1767221018"
+  },
+  {
+    "timestamp": "2025-12-31T17:43:39.074164",
+    "agentId": "futures",
+    "content": "NQ rejection at S2. Classic bounce setup.",
+    "type": "status",
+    "id": "futures-1767221019"
+  },
+  {
+    "timestamp": "2025-12-31T17:43:39.501967",
+    "agentId": "futures",
+    "content": "Futures scan cycle complete. Analyzed 0 levels.",
+    "type": "status",
+    "id": "futures-1767221019"
+  },
+  {
+    "timestamp": "2025-12-31T17:47:11.877071",
+    "agentId": "fx",
+    "content": "Supply zone identified. Awaiting rejection.",
+    "type": "status",
+    "id": "fx-1767221231"
+  },
+  {
+    "timestamp": "2025-12-31T17:47:12.261012",
+    "agentId": "fx",
+    "content": "Scanning EURUSD: Found 1 fresh zones.",
+    "type": "signal",
+    "id": "fx-1767221232"
+  },
+  {
+    "timestamp": "2025-12-31T17:47:12.954910",
+    "agentId": "fx",
+    "content": "Scanning USDCAD: Found 1 fresh zones.",
+    "type": "signal",
+    "id": "fx-1767221232"
+  },
+  {
+    "timestamp": "2025-12-31T17:47:12.977752",
+    "agentId": "fx",
+    "content": "Scan cycle complete. Monitoring 2 zones.",
+    "type": "status",
+    "id": "fx-1767221232"
+  },
+  {
+    "timestamp": "2025-12-31T17:47:14.107472",
+    "agentId": "crypto",
+    "content": "Ethereum demand levels holding strong.",
+    "type": "status",
+    "id": "crypto-1767221234"
+  },
+  {
+    "timestamp": "2025-12-31T17:47:14.456072",
+    "agentId": "crypto",
+    "content": "Scanning BTC-USD: Found 2 fresh crypto zones.",
+    "type": "signal",
+    "id": "crypto-1767221234"
+  },
+  {
+    "timestamp": "2025-12-31T17:47:14.678684",
+    "agentId": "crypto",
+    "content": "Scanning ETH-USD: Found 2 fresh crypto zones.",
+    "type": "signal",
+    "id": "crypto-1767221234"
+  },
+  {
+    "timestamp": "2025-12-31T17:47:14.875094",
+    "agentId": "crypto",
+    "content": "Scanning SOL-USD: Found 1 fresh crypto zones.",
+    "type": "signal",
+    "id": "crypto-1767221234"
+  },
+  {
+    "timestamp": "2025-12-31T17:47:15.285604",
+    "agentId": "crypto",
+    "content": "Scanning DOGE-USD: Found 5 fresh crypto zones.",
+    "type": "signal",
+    "id": "crypto-1767221235"
+  },
+  {
+    "timestamp": "2025-12-31T17:47:15.299008",
+    "agentId": "crypto",
+    "content": "Crypto scan cycle complete. Tracking 10 zones.",
+    "type": "status",
+    "id": "crypto-1767221235"
+  },
+  {
+    "timestamp": "2025-12-31T17:47:16.779603",
+    "agentId": "spx",
+    "content": "Targeting 0DTE. Time-gate clear. Sniper in position.",
+    "type": "status",
+    "id": "spx-1767221236"
+  },
+  {
+    "timestamp": "2025-12-31T17:47:17.081784",
+    "agentId": "spx",
+    "content": "Time-gate active. Waiting for 10:30 AM EST.",
+    "type": "status",
+    "id": "spx-1767221237"
+  },
+  {
+    "timestamp": "2025-12-31T17:47:18.166928",
+    "agentId": "futures",
+    "content": "NQ rejection at S2. Classic bounce setup.",
+    "type": "status",
+    "id": "futures-1767221238"
+  },
+  {
+    "timestamp": "2025-12-31T17:47:18.874970",
+    "agentId": "futures",
+    "content": "Futures scan cycle complete. Analyzed 0 levels.",
+    "type": "status",
+    "id": "futures-1767221238"
+  },
+  {
+    "timestamp": "2025-12-31T19:30:53.697198",
+    "agentId": "fx",
+    "content": "Connection established. Low-latency feed synced.",
+    "type": "status",
+    "id": "fx-1767227453"
+  },
+  {
+    "timestamp": "2025-12-31T19:30:54.081765",
+    "agentId": "fx",
+    "content": "Scanning EURUSD: Found 1 fresh zones.",
+    "type": "signal",
+    "id": "fx-1767227454"
+  },
+  {
+    "timestamp": "2025-12-31T19:30:54.863945",
+    "agentId": "fx",
+    "content": "Scanning USDCAD: Found 1 fresh zones.",
+    "type": "signal",
+    "id": "fx-1767227454"
+  },
+  {
+    "timestamp": "2025-12-31T19:30:54.870230",
+    "agentId": "fx",
+    "content": "Scan cycle complete. Monitoring 2 zones.",
+    "type": "status",
+    "id": "fx-1767227454"
+  }
+]

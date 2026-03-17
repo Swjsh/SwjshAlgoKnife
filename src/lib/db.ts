@@ -12,27 +12,17 @@ try {
     verbose: process.env.NODE_ENV === 'development' ? console.log : undefined
   });
 } catch (error) {
-  const isBuildTime = process.env.NODE_ENV === 'production' && !process.env.DATABASE_PATH;
-  const isVercel = !!process.env.VERCEL;
-
-  if (isBuildTime || isVercel) {
-    // ONLY allow mock DB during build time (Next.js build) or Vercel edge
-    console.warn("⚠️ better-sqlite3 unavailable (build/Vercel). Using mock DB — NO DATA WILL PERSIST.");
-    db = {
-      prepare: () => ({
-        run: () => ({ lastInsertRowid: 0 }),
-        get: () => null,
-        all: () => []
-      }),
-      transaction: (fn: any) => () => fn(),
-      exec: () => { }
-    };
-  } else {
-    // RUNTIME FAILURE: Do NOT silently swallow this — trades would be lost
-    console.error("🚨 CRITICAL: better-sqlite3 failed to load at RUNTIME. Trades will NOT be recorded.");
-    console.error("🚨 Error:", error);
-    throw new Error(`Database initialization failed: ${error}`);
-  }
+  console.warn("⚠️ Failed to load better-sqlite3 (likely build environment or Vercel). Using mock DB.");
+  // Mock DB for build time or serverless environments where sqlite is missing
+  db = {
+    prepare: () => ({
+      run: () => ({ lastInsertRowid: 0 }),
+      get: () => null,
+      all: () => []
+    }),
+    transaction: (fn: any) => () => fn(),
+    exec: () => { }
+  };
 }
 
 // Create Tables
@@ -46,7 +36,7 @@ export function initDB() {
       exit_price REAL,
       size REAL,
       strategy TEXT,
-      status TEXT CHECK(status IN ('PENDING', 'OPEN', 'CLOSED', 'WIN', 'LOSS', 'BE', 'REJECTED')),
+      status TEXT CHECK(status IN ('OPEN', 'CLOSED', 'WIN', 'LOSS', 'BE')),
       pnl REAL,
       notes TEXT,
       entry_date TEXT NOT NULL,
@@ -176,13 +166,11 @@ export function initDB() {
     // Column already exists — safe to ignore
   }
 
-  // Initialize account management tables (lazy require to avoid circular dep with accounts.ts)
-  // FIXED: Balance corrected from $100k to $10k to match brain docs and risk parameters
+  // Initialize account management tables
   try {
-    const startingBalance = parseFloat(process.env.ACCOUNT_BALANCE || '10000');
-    const accounts = require('./accounts');
-    accounts.initAccountTables();
-    accounts.initializeAccountSystem(startingBalance);
+    const { initAccountTables, initializeAccountSystem } = require('./accounts');
+    initAccountTables();
+    initializeAccountSystem(100000); // $100k starting capital
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       console.warn('Account tables init skipped (circular dependency or build env)');

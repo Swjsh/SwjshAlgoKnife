@@ -1,0 +1,70 @@
+.container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-md);
+}
+
+.label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-right: 8px;
+}
+
+.toggle {
+    padding: 10px 20px;
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.toggle:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.active {
+    background: var(--indicator-color);
+    border-color: var(--indicator-color);
+    color: white;
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--indicator-color) 40%, transparent);
+}
+
+.active:hover {
+    background: var(--indicator-color);
+    color: white;
+}
+
+/* Nature theme overrides - Parchment Controls */
+:global([data-theme='nature']) .container {
+    background: #fdfaf5;
+    backdrop-filter: none;
+    border: 1px solid rgba(139, 94, 60, 0.15);
+    box-shadow: 0 4px 12px rgba(139, 94, 60, 0.05);
+}
+
+:global([data-theme='nature']) .toggle {
+    background: #fff;
+    border: 1px solid rgba(139, 94, 60, 0.2);
+    color: var(--text-secondary);
+}
+
+:global([data-theme='nature']) .toggle:hover {
+    background: rgba(122, 138, 98, 0.1);
+    color: var(--sage-green);
+}
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .container {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}

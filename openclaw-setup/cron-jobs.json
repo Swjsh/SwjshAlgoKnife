@@ -1,0 +1,241 @@
+[
+  {
+    "jobId": "morning-briefing",
+    "agentId": "chief",
+    "name": "Pre-market morning brief 8 AM ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 8 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "You are Chief. 8 AM ET pre-market. Full morning startup check.\n\nProject: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\n\n1. Read agents_db.json at C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\src\\app\\api\\agents\\agents_db.json -- list all 8 agents and their status.\n\n2. SQLite queries on C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db:\n   Yesterday: SELECT COUNT(*) as trades, ROUND(SUM(pnl),2) as total_pnl, SUM(CASE WHEN status='WIN' THEN 1 ELSE 0 END) as wins FROM trades WHERE date(exit_date) = date('now','-1 day') AND status IN ('WIN','LOSS')\n   Overnight open positions: SELECT symbol, strategy, entry_date FROM trades WHERE status='OPEN' AND date(entry_date) < date('now')\n\n3. Check C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\.env.local -- confirm presence (NOT values) of: WEBHOOK_SECRET, APCA_API_KEY_ID, OANDA_API_TOKEN, DISCORD_CHIEF_WEBHOOK\n\n4. From your knowledge of today's date -- any major US/UK/EU events today? (NFP, CPI, FOMC, BOE, ECB)\n\nSend ONE Discord embed to #chief-main: title='Morning brief -- [DAY, DATE]', color=394452, fields: Agents (status for each), Yesterday (trades/PnL/WR), Overnight (open positions or Clear), Calendar (events or Clear), System (credentials present or missing). One line after: what to watch today.",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  },
+  {
+    "jobId": "london-open",
+    "agentId": "sterling",
+    "name": "London session open 3 AM ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 3 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "London just opened. You are Sterling.\n\nCheck C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\src\\app\\api\\agents\\agents_db.json for Sterling's last_signal.\n\nUsing your knowledge of today's date:\n1. GBP/USD -- daily trend direction? Key H4 levels today?\n2. EUR/USD -- daily bias?\n3. Any HIGH-IMPACT news today for GBP, EUR, or USD? (BOE, UK CPI, NFP, FOMC, ECB)\n\nPost to Discord #forex: 'London open. GBP/USD -- [2-line honest assessment]. [News: EVENT at TIME ET / No major news -- watching for structure]'\n\n3 lines max. If nothing notable: 'London open. No clean structure. Monitoring.' -- done.",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1467174412615942186"
+    }
+  },
+  {
+    "jobId": "ny-overlap",
+    "agentId": "sterling",
+    "name": "NY-London overlap 8:30 AM ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "30 8 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "8:30 AM ET. NY-London overlap. You are Sterling.\n\nQuery C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db for open FX positions:\nSELECT symbol, direction, ROUND(entry_price,5) as entry, status, entry_date FROM trades WHERE status='OPEN' AND (symbol LIKE '%USD%' OR symbol LIKE '%GBP%' OR symbol LIKE '%EUR%' OR symbol LIKE '%JPY%' OR symbol LIKE '%AUD%' OR symbol LIKE '%NZD%') AND date(entry_date) = date('now')\n\nCheck agents_db.json for Sterling's last_signal.\n\nPost to Discord #forex: 'NY overlap active. GBP/USD -- [current level, key zone]. [Open position: SYMBOL DIRECTION @ ENTRY / No open positions]. [Watching: specific level, or Nothing new].'\n\n2-3 lines max.",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1467174412615942186"
+    }
+  },
+  {
+    "jobId": "market-open-check",
+    "agentId": "chief",
+    "name": "NYSE market open 9:30 AM ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "30 9 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "9:30 AM ET. Market just opened. You are Chief.\n\nRead C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\src\\app\\api\\agents\\agents_db.json.\n\n1. Confirm ACTIVE status: boba, spx-sniper, pivot-pete, sterling, bitcoin-bob\n2. sqlite3 C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db \"SELECT symbol, action, price, strategy, timestamp FROM signals WHERE datetime(timestamp) > datetime('now','-60 minutes') ORDER BY timestamp DESC LIMIT 5\"\n3. Open FX from overnight: SELECT symbol, direction, ROUND(entry_price,5) as entry, entry_date FROM trades WHERE status='OPEN' AND (symbol LIKE '%USD%' OR symbol LIKE '%GBP%' OR symbol LIKE '%EUR%' OR symbol LIKE '%JPY%')\n\nSend to Discord #chief-main: 'Market open. [N]/5 trading agents active[, AGENT offline]. Sterling overnight: [X open FX / clear]. Signals (last hour): [SYMBOL ACTION @ PRICE / None]. Standing by.'\n\n3 lines max.",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  },
+  {
+    "jobId": "midday-check",
+    "agentId": "chief",
+    "name": "Midday check noon ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 12 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "Noon ET. You are Chief. Morning session summary.\n\nDB: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db\n\nToday's trades: SELECT symbol, direction, strategy, status, ROUND(pnl,2) as pnl FROM trades WHERE date(entry_date) = date('now') ORDER BY entry_date ASC\n\nTotals: SELECT COUNT(*) as total, SUM(CASE WHEN status='WIN' THEN 1 ELSE 0 END) as wins, SUM(CASE WHEN status='LOSS' THEN 1 ELSE 0 END) as losses, ROUND(SUM(CASE WHEN status IN ('WIN','LOSS') THEN pnl ELSE 0 END),2) as realized_pnl, COUNT(CASE WHEN status='OPEN' THEN 1 END) as open FROM trades WHERE date(entry_date) = date('now')\n\nagents_db.json -- any agent with consecutive_losses >= 2?\n\nSend to Discord #chief-main: 'Midday. [W/L/O open +/-$X realized]. Sterling window closing -- [FX status]. [AGENT has N consecutive losses / Risk: clear]'",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  },
+  {
+    "jobId": "sterling-session-close",
+    "agentId": "sterling",
+    "name": "Sterling closes set-and-forget window noon ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 12 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "Noon ET. You are Sterling. 4-hour NY window closing.\n\nQuery C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db for today's FX trades:\nSELECT id, symbol, direction, ROUND(entry_price,5) as entry, ROUND(exit_price,5) as exit, ROUND(pnl,2) as pnl, status, entry_date, exit_date FROM trades WHERE (symbol LIKE '%USD%' OR symbol LIKE '%GBP%' OR symbol LIKE '%EUR%' OR symbol LIKE '%JPY%' OR symbol LIKE '%AUD%' OR symbol LIKE '%NZD%' OR symbol LIKE '%CAD%' OR symbol LIKE '%CHF%') AND date(entry_date) = date('now')\n\nIf any OPEN at noon: 'Sterling: Open FX position past window -- [SYMBOL] [DIRECTION] @ [ENTRY]. Should be closed manually.'\n\nPost to Discord #forex: 'Sterling -- Session close. [N trades: W wins, L losses FX PnL: +/-$X]. [One honest line on execution]. Done.'",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1467174412615942186"
+    }
+  },
+  {
+    "jobId": "eod-professor-grade",
+    "agentId": "professor",
+    "name": "EOD trade grading 4:15 PM ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "15 16 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "Market closed. You are The Professor. Time to grade.\n\nQuery C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db:\nSELECT id, symbol, direction, ROUND(entry_price,5) as entry, ROUND(exit_price,5) as exit, ROUND(stop_loss,5) as stop, ROUND(pnl,2) as pnl, strategy, status, entry_date, exit_date, CAST((julianday(COALESCE(exit_date, datetime('now'))) - julianday(entry_date)) * 1440 AS INTEGER) as duration_min FROM trades WHERE status IN ('WIN','LOSS') AND date(exit_date) = date('now') ORDER BY exit_date ASC\n\nIf zero rows: 'Professor: No trades to grade today. The market will still be there tomorrow.' Stop.\n\nFor each trade calculate R:R. If stop exists: risk=ABS(entry-stop), reward=ABS(exit-entry), R=reward/risk. If no stop: estimate risk=entry*0.005 (FX) or entry*0.01 (equities/options).\n\nGrading: WIN+R>=2.0=A, WIN+R1-1.99=B, WIN+R<1.0=C+, LOSS+duration<5min=F, LOSS+stop+Rtarget>=2.0=B-, LOSS=C-.\n\nSend one embed per trade to Discord #chief-main with grade, R:R, duration, and homework. Then one summary embed with Net PnL, Win Rate, Session Grade, Tomorrow key takeaway."
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  },
+  {
+    "jobId": "eod-overseer-audit",
+    "agentId": "overseer",
+    "name": "EOD risk audit 4:30 PM ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "30 16 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "Market closed. You are The Overseer. Daily risk audit. Facts only.\n\nDB: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db\n\n1. SELECT ROUND(SUM(pnl),2) as daily_pnl, COUNT(*) as total, SUM(CASE WHEN status='WIN' THEN 1 ELSE 0 END) as wins, SUM(CASE WHEN status='LOSS' THEN 1 ELSE 0 END) as losses FROM trades WHERE date(exit_date) = date('now') AND status IN ('WIN','LOSS')\n\n2. SELECT symbol, direction, strategy, ROUND(entry_price,5) as entry, entry_date FROM trades WHERE status='OPEN'\n\n3. SELECT strategy, COUNT(*) as loss_count FROM trades WHERE status='LOSS' AND date(entry_date) >= date('now','-2 days') GROUP BY strategy ORDER BY loss_count DESC\n\nRead agents_db.json -- any already HALTED?\n\nThresholds (account $10k paper): daily_pnl<=-1000=KILL SWITCH, strategy 3+ losses=KILL SWITCH, daily_pnl -500 to -999=WARNING, open positions at EOD=FLAG.\n\nALL CLEAR: 'Overseer EOD -- [DATE]. Drawdown: $[ABS(pnl)] ([X]%). [N trades W/L]. All within parameters. Resuming tomorrow.'\nWARNING: 'Overseer WARNING -- $[AMOUNT] ([X]% of limit). [STRATEGY] at [N] consecutive losses. Review before open.'\nKILL SWITCH: 'KILL SWITCH -- [DATE]. [EXACT REASON]. Loss: $[AMOUNT]. Manual override required before tomorrow.'"
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  },
+  {
+    "jobId": "bitcoin-bob-watch",
+    "agentId": "bitcoin-bob",
+    "name": "Bitcoin Bob 4-hour crypto scan",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 */4 * * *",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "You are Bitcoin Bob. 4-hour scan.\n\nCheck C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\src\\app\\api\\agents\\agents_db.json for bitcoin-bob's last_signal.\n\nCheck open crypto positions:\nSELECT symbol, direction, status, ROUND(pnl,2) as pnl, entry_date, ROUND(entry_price,2) as entry FROM trades WHERE (symbol LIKE '%BTC%' OR symbol LIKE '%ETH%' OR symbol LIKE '%SOL%') AND entry_date >= datetime('now','-24 hours') ORDER BY entry_date DESC\nDB: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db\n\nUsing your training knowledge of today's BTC structure:\n1. Clear trend or choppy consolidation?\n2. Impulse candle (2.5x ATR) on 1H or 4H in last 8 hours?\n3. If impulse -- 50% zone location? Previously tested? (freshness check)\n4. Major crypto event today?\n\nPost to Discord #crypto ONLY if: fresh high-confidence zone OR major catalyst OR open position update.\nIF NOTHING NOTABLE: reply HEARTBEAT_OK.",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1467174512377200640"
+    }
+  },
+  {
+    "jobId": "sterling-forex-scan",
+    "agentId": "sterling",
+    "name": "Sterling FX scan every 2 hours weekdays",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 */2 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "You are Sterling. 2-hour FX scan.\n\nCheck agents_db.json for Sterling's last_signal.\nOpen FX positions: SELECT symbol, direction, ROUND(entry_price,5) as entry, status FROM trades WHERE status='OPEN' AND (symbol LIKE '%USD%' OR symbol LIKE '%GBP%' OR symbol LIKE '%EUR%' OR symbol LIKE '%JPY%')\nDB: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db\n\n1. GBP/USD structural change in last 2 hours?\n2. EUR/USD same\n3. High-impact news in next 2 hours?\n\nPost to Discord #forex ONLY IF: NEW zone formed, imminent news ('Sterling: [EVENT] in [N] min. Standing aside.'), or position status changed.\nIF NOTHING CHANGED: reply HEARTBEAT_OK.",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1467174412615942186"
+    }
+  },
+  {
+    "jobId": "weekly-review",
+    "agentId": "chief",
+    "name": "Sunday 6 PM weekly wrap",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 18 * * 0",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "Sunday 6 PM ET. You are Chief. Full weekly review.\n\nDB: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db\n\n1. Per-strategy: SELECT strategy, COUNT(*) as trades, ROUND(SUM(pnl),2) as total_pnl, SUM(CASE WHEN status='WIN' THEN 1 ELSE 0 END) as wins, SUM(CASE WHEN status='LOSS' THEN 1 ELSE 0 END) as losses FROM trades WHERE status IN ('WIN','LOSS') AND entry_date >= datetime('now','-7 days') GROUP BY strategy ORDER BY total_pnl DESC\n\n2. Overall: SELECT COUNT(*) as total, SUM(CASE WHEN status='WIN' THEN 1 ELSE 0 END) as wins, ROUND(SUM(pnl),2) as weekly_pnl FROM trades WHERE status IN ('WIN','LOSS') AND entry_date >= datetime('now','-7 days')\n\n3. Sterling hold times: SELECT symbol, CAST((julianday(exit_date)-julianday(entry_date))*1440 AS INTEGER) as hold_min, status, pnl FROM trades WHERE (symbol LIKE '%USD%' OR symbol LIKE '%GBP%' OR symbol LIKE '%EUR%' OR symbol LIKE '%JPY%') AND entry_date >= datetime('now','-7 days')\n\n4. agents_db.json -- which agents had zero trades this week?\n\nSend to Discord #chief-main embed: title='Weekly Wrap -- Week ending [DATE]', color green if positive/red if negative, fields: Weekly PnL, Win Rate, Total Trades, Best Strategy, Weakest Strategy, Dormant Agents, Professor's Note (pattern + Monday action), Next Week (macro events + themes)"
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  }
+]

@@ -13,7 +13,6 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import json
-from utils.retry import retry, retry_on_empty
 import time
 import requests
 from pathlib import Path
@@ -27,11 +26,11 @@ TIMEFRAME           = '15m'
 PERIOD              = '5d'
 SCAN_INTERVAL_SEC   = 300            # 5 minute scan interval
 MAX_OPEN_TRADES     = 1              # Options = one at a time
-SL_PCT              = 0.03          # 1.5% stop (tighter for equity proxy)
+SL_PCT              = 0.015          # 1.5% stop (tighter for equity proxy)
 TP_PCT              = 0.03           # 3% target (simulates options leverage gain)
 STATUS_FILE         = Path(__file__).parent.parent / 'data' / 'boba_agent_status.json'
 WEBHOOK_URL         = "http://localhost:3000/api/webhook/tradingview"
-WEBHOOK_SECRET      = os.getenv("WEBHOOK_SECRET", "changeme")
+WEBHOOK_SECRET      = "swjshak-tv-webhook-2026"
 
 EST = pytz.timezone('US/Eastern')
 
@@ -156,11 +155,13 @@ def find_zones(df: pd.DataFrame) -> tuple:
 
 
 # ── Live Price ────────────────────────────────────────────────────────────────
-@retry(max_retries=3, base_delay=2.0)
 def get_current_price() -> float | None:
-    hist = yf.Ticker(SYMBOL).history(period='1d', interval='5m')
-    if not hist.empty:
-        return float(hist['Close'].iloc[-1])
+    try:
+        hist = yf.Ticker(SYMBOL).history(period='1d', interval='5m')
+        if not hist.empty:
+            return float(hist['Close'].iloc[-1])
+    except Exception as e:
+        print(f"[Boba] Price fetch failed: {e}")
     return None
 
 

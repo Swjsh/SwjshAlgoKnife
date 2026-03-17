@@ -30,8 +30,16 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files — NEVER commit real secrets
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.integration
+
+# Keep only the example template
+!.env.example
 
 # vercel
 .vercel
@@ -39,5 +47,34 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Large media files (deployment blockers)
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.pdf
+*.docx
+docs/boba_strategy/
+docs/WeBull History/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Windows reserved
 nul
-docs/boba_strategy/Supply_Demand_Strategy.mp4
+
+# Database
+journal.db
+
+# Logs
+dev.log
+server.log
+/logs/
+
+# Backtest & paper-sim artifacts
+/data/_backtests/
+/data/_paper/
+/data/pivot_pete_backtest_*.json
+/data/pivot_pete_paper_latest.json

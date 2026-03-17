@@ -200,63 +200,57 @@ export class TradeExecutor {
                   : Math.max(1, Math.floor(size));
 
         try {
-            // ── Step 1: Record intent in SQLite as PENDING (not yet broker-confirmed) ─
-            const entryDate = new Date().toISOString();
+            // ── Step 1: Record intent in SQLite ───────────────────────────────
+            const tradeEntry = {
+                symbol:      signal.symbol,
+                direction,
+                entry_price: signal.price,
+                size:        qty,
+                strategy:    signal.strategy,
+                status:      'OPEN',
+                entry_date:  new Date().toISOString(),
+                notes:       'Pending broker fill...',
+            };
 
             // Capture intel score snapshot at trade entry for attribution
             const intelSnap = intelBus.score(signal.symbol, direction);
 
             const result = db.prepare(`
                 INSERT INTO trades (symbol, direction, entry_price, size, strategy, status, entry_date, notes, intel_snapshot)
-                VALUES (?, ?, ?, ?, ?, 'PENDING', ?, 'Awaiting broker confirmation...', ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).run(
-                signal.symbol, direction, signal.price,
-                qty, signal.strategy,
-                entryDate,
+                tradeEntry.symbol, tradeEntry.direction, tradeEntry.entry_price,
+                tradeEntry.size, tradeEntry.strategy, tradeEntry.status,
+                tradeEntry.entry_date, tradeEntry.notes,
                 JSON.stringify(intelSnap)
             );
             const tradeId = result.lastInsertRowid;
 
             // ── Step 2: Submit to Broker ──────────────────────────────────────
-            let brokerSuccess = false;
-            try {
-                if (isFX && OANDA_ENABLED) {
-                    await this._openOanda(signal, direction, qty, tradeId);
-                    brokerSuccess = true;
-                } else if (isCrypto || !isFX) {
-                    const { enabled: alpacaEnabled } = await this.getAlpacaClientForUser();
-                    if (alpacaEnabled) {
-                        await this._openAlpaca(signal, direction, qty, tradeId, isCrypto);
-                        brokerSuccess = true;
-                    } else {
-                        // Journal-only fallback — mark as OPEN (paper trade)
-                        db.prepare(`UPDATE trades SET status = 'OPEN', notes = ? WHERE id = ?`)
-                          .run(`Paper only — no Alpaca broker configured`, tradeId);
-                        brokerSuccess = true;
-                        console.log(`[Executor] (PAPER ONLY) ${direction} ${qty} ${signal.symbol} @ ${signal.price}`);
-                    }
+            if (isFX && OANDA_ENABLED) {
+                await this._openOanda(signal, direction, qty, tradeId);
+            } else if (isCrypto || !isFX) {
+                // Check if user has Alpaca or if env vars are set
+                const { enabled: alpacaEnabled } = await this.getAlpacaClientForUser();
+                if (alpacaEnabled) {
+                    await this._openAlpaca(signal, direction, qty, tradeId, isCrypto);
                 } else {
-                    // Journal-only fallback (no broker configured for this market)
+                    // Journal-only fallback
                     db.prepare(`UPDATE trades SET status = 'OPEN', notes = ? WHERE id = ?`)
-                      .run(`Paper only — no broker for ${isFX ? 'FX' : 'equity'}`, tradeId);
-                    brokerSuccess = true;
+                      .run(`Paper only — no Alpaca broker configured`, tradeId);
                     console.log(`[Executor] (PAPER ONLY) ${direction} ${qty} ${signal.symbol} @ ${signal.price}`);
                 }
-            } catch (brokerError: any) {
-                // ── CRITICAL: Broker failed — mark trade as REJECTED, NOT LOSS ──
-                db.prepare(`UPDATE trades SET status = 'REJECTED', notes = ? WHERE id = ?`)
-                  .run(`BROKER_REJECTED: ${brokerError.message}`, tradeId);
-                console.error(`[Executor] ❌ Broker rejected — trade ${tradeId} marked REJECTED: ${brokerError.message}`);
-                notifySystemAlert(`Broker rejected ${signal.symbol}: ${brokerError.message}`, 'error').catch(() => {});
+            } else {
+                // Journal-only fallback (no broker configured for this market)
+                db.prepare(`UPDATE trades SET status = 'OPEN', notes = ? WHERE id = ?`)
+                  .run(`Paper only — no broker for ${isFX ? 'FX' : 'equity'}`, tradeId);
+                console.log(`[Executor] (PAPER ONLY) ${direction} ${qty} ${signal.symbol} @ ${signal.price}`);
             }
 
-            // ── Cloud Sync (only on success) ──────────────────────────────────
-            if (brokerSuccess && CLOUD_SYNC_ENABLED && cloudDb) {
-                set(ref(cloudDb, `trades/${tradeId}`), {
-                    id: tradeId, symbol: signal.symbol, direction,
-                    entry_price: signal.price, size: qty, strategy: signal.strategy,
-                    status: 'OPEN', entry_date: entryDate,
-                }).catch(e => console.error('[Firebase]', e));
+            // ── Cloud Sync ────────────────────────────────────────────────────
+            if (CLOUD_SYNC_ENABLED && cloudDb) {
+                set(ref(cloudDb, `trades/${tradeId}`), { id: tradeId, ...tradeEntry })
+                    .catch(e => console.error('[Firebase]', e));
             }
 
         } catch (error: any) {
@@ -295,9 +289,10 @@ export class TradeExecutor {
                 strategy:  signal.strategy,
             }).catch(() => {});
         } catch (err: any) {
-            // Re-throw to caller which handles REJECTED status (no longer marking as LOSS)
+            db.prepare(`UPDATE trades SET status = 'LOSS', notes = ? WHERE id = ?`)
+              .run(`BROKER_ERROR (OANDA): ${err.message}`, tradeId);
             console.error(`[Executor] ❌ OANDA failed: ${err.message}`);
-            throw err;
+            notifySystemAlert(`OANDA order failed — ${signal.symbol}: ${err.message}`, 'error').catch(() => {});
         }
     }
 
@@ -333,9 +328,10 @@ export class TradeExecutor {
                 strategy:  signal.strategy,
             }).catch(() => {});
         } catch (err: any) {
-            // Re-throw to caller which handles REJECTED status (no longer marking as LOSS)
+            db.prepare(`UPDATE trades SET status = 'LOSS', notes = ? WHERE id = ?`)
+              .run(`BROKER_ERROR (Alpaca): ${err.message}`, tradeId);
             console.error(`[Executor] ❌ Alpaca failed: ${err.message}`);
-            throw err;
+            notifySystemAlert(`Alpaca order failed — ${signal.symbol}: ${err.message}`, 'error').catch(() => {});
         }
     }
 

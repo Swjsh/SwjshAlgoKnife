@@ -1,0 +1,44 @@
+# ── Build artifacts ───────────────────────────────────────────────────────────
+.next/
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# ── Runtime data (stays local / on volume) ────────────────────────────────────
+journal.db
+data/
+logs/
+*.log
+
+# ── Dev / CI ──────────────────────────────────────────────────────────────────
+.env.local
+.env.development
+.env*.local
+.git/
+.gitignore
+tests/
+testsprite_tests/
+vitest.config.ts
+coverage/
+
+# ── Windows artifacts ─────────────────────────────────────────────────────────
+*.ps1
+Thumbs.db
+desktop.ini
+nul
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+*.pptx
+*.docx
+backups/
+docs/
+maintenance/
+theories/
+WoodTheme/
+openclaw-setup/
+dev.log
+server.log

@@ -15,7 +15,6 @@ services:
       - "3000:3000"     # Dashboard + API
     volumes:
       - swjsh-data:/app/data    # Persistent: DB, agent state, logs
-      - ${HOME}/.openclaw:/root/.openclaw  # OpenClaw config (Chief gateway)
     env_file:
       - .env.local              # All secrets (API keys, broker creds, etc.)
     environment:

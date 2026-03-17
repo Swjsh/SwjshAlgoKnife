@@ -1,0 +1,126 @@
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--panel-border);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.section {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.divider {
+    width: 1px;
+    height: 20px;
+    background: var(--panel-border);
+    margin: 0 8px;
+}
+
+.spacer {
+    flex: 1;
+}
+
+.toolBtn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+}
+
+.toolBtn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.layoutSelect {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-family: inherit;
+    padding: 4px 8px;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    height: 28px;
+}
+
+.layoutSelect:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+}
+
+.layoutSelect option {
+    background: #1a1a1a;
+    color: var(--text-primary);
+}
+
+.active {
+    background: rgba(139, 92, 246, 0.15) !important;
+    color: #a78bfa !important;
+}
+
+.toolBtn svg {
+    opacity: 0.8;
+}
+
+.active svg {
+    opacity: 1;
+}
+
+/* Nature theme overrides - Wood-toned toolbar */
+:global([data-theme='nature']) .toolbar {
+    background: rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid rgba(139, 94, 60, 0.15);
+}
+
+:global([data-theme='nature']) .toolBtn {
+    color: var(--text-secondary);
+}
+
+:global([data-theme='nature']) .toolBtn:hover {
+    background: rgba(122, 138, 98, 0.1);
+    color: var(--sage-green);
+}
+
+:global([data-theme='nature']) .active {
+    background: rgba(122, 138, 98, 0.15) !important;
+    color: var(--sage-green) !important;
+}
+
+:global([data-theme='nature']) .layoutSelect {
+    background: #fff;
+    border: 1px solid rgba(139, 94, 60, 0.2);
+    color: var(--text-primary);
+}
+
+:global([data-theme='nature']) .layoutSelect:hover {
+    background: #fdfaf5;
+    border-color: var(--leather-brown);
+}
+
+:global([data-theme='nature']) .layoutSelect option {
+    background: #fdfaf5;
+    color: var(--text-primary);
+}
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .toolbar {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}

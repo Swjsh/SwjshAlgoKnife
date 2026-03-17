@@ -27,16 +27,5 @@ DB_FILE="${DATABASE_PATH:-$DATA_DIR/journal.db}"
 echo "  SQLite  = $DB_FILE"
 echo "  Agents  = $AGENTS_DB"
 
-# ── Deploy OpenClaw cron jobs if present ──────────────────────────────────────
-# The GCP-ready cron jobs file is bundled in the image under openclaw-setup/.
-# Copy it to the OpenClaw cron directory so the scheduler picks it up.
-CRON_SRC="/app/openclaw-setup/cron-jobs-gcp.json"
-CRON_DST_DIR="${OPENCLAW_CRON_DIR:-$HOME/.openclaw/cron}"
-if [ -f "$CRON_SRC" ]; then
-    mkdir -p "$CRON_DST_DIR"
-    cp "$CRON_SRC" "$CRON_DST_DIR/jobs.json"
-    echo "  Cron jobs = $CRON_DST_DIR/jobs.json ($(grep -c jobId "$CRON_DST_DIR/jobs.json") jobs)"
-fi
-
 echo "▶ Handing off to supervisord..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/swjsh.conf

@@ -1,0 +1,14 @@
+{
+  "last_updated": "2025-12-31T17:47:17.082455",
+  "status": "WAITING (Time Gate)",
+  "market_price": 6845.77,
+  "trend": "BEARISH",
+  "active_pairs": 1,
+  "pending_orders": [],
+  "total_zones_found": 0,
+  "performance": {
+    "win_rate": 0,
+    "total_pnl": 0,
+    "trades": 0
+  }
+}

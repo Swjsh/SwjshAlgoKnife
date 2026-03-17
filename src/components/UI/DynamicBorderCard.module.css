@@ -1,0 +1,49 @@
+.cardWrapper {
+    position: relative;
+    padding: 1px;
+    overflow: hidden;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.borderEffect {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    z-index: 1;
+    pointer-events: none;
+    filter: blur(10px);
+}
+
+.innerCard {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    background: #0f1118;
+    border-radius: 15px;
+    padding: 1.5rem;
+    overflow: hidden;
+}
+
+/* Glass Variant */
+:global([data-theme='voltrex']) .innerCard {
+    background: rgba(15, 17, 24, 0.8);
+    backdrop-filter: blur(16px);
+}
+
+/* Nature Variant Overlay */
+:global([data-theme='nature']) .innerCard {
+    background: var(--panel-bg);
+    border-color: var(--panel-border);
+}
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .cardWrapper {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}

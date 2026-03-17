@@ -9,7 +9,6 @@ import {
     Wallet, Plug, Coffee, Settings,
     Plus, LogOut,
     Activity, FlaskConical, Layers, ChevronRight,
-    DollarSign,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./Sidebar.module.css";
@@ -63,10 +62,9 @@ const NAV_GROUPS: NavGroup[] = [
         icon: Layers,
         color: '#64748b',
         items: [
-            { label: 'Accounts',     href: '/accounts',     icon: Wallet,     desc: 'Balances & funding'   },
-            { label: 'Connections',  href: '/connections',  icon: Plug,       desc: 'Broker integrations'  },
-            { label: 'Costs',        href: '/admin/costs',  icon: DollarSign, desc: 'Infrastructure spend' },
-            { label: 'Settings',     href: '/settings',     icon: Settings,   desc: 'Preferences & config' },
+            { label: 'Accounts',     href: '/accounts',     icon: Wallet,   desc: 'Balances & funding'   },
+            { label: 'Connections',  href: '/connections',  icon: Plug,     desc: 'Broker integrations'  },
+            { label: 'Settings',     href: '/settings',     icon: Settings, desc: 'Preferences & config' },
         ],
     },
 ];

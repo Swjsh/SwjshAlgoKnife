@@ -13,7 +13,6 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import json
-from utils.retry import retry, retry_on_empty
 import time
 import requests
 from pathlib import Path
@@ -23,7 +22,7 @@ from data_feeds import build_feed_for_agent, get_latest_price
 
 # ── Config ────────────────────────────────────────────────────────────────────
 WEBHOOK_URL        = "http://localhost:3000/api/webhook/tradingview"
-WEBHOOK_SECRET     = os.getenv("WEBHOOK_SECRET", "changeme")
+WEBHOOK_SECRET     = "swjshak-tv-webhook-2026"
 PAIRS              = ['EURUSD=X', 'GBPUSD=X', 'USDJPY=X', 'AUDUSD=X', 'USDCAD=X']
 TIMEFRAME          = '1h'
 PERIOD             = '1mo'
@@ -109,20 +108,22 @@ def find_zones(df, atr_series, pair: str):
     return zones
 
 # ── Live Price ────────────────────────────────────────────────────────────────
-@retry(max_retries=3, base_delay=2.0)
 def get_current_price(ticker: str) -> float | None:
     """
     Get FX pair price. Uses OANDA streaming cache first (real-time),
     falls back to yfinance REST if OANDA stream isn't running.
     """
-    # Try real-time OANDA streaming cache first
-    price = get_latest_price(ticker, max_cache_age=5.0)
-    if price:
-        return price
-    # yfinance fallback (30s - 5m delayed)
-    hist = yf.Ticker(ticker).history(period='1d', interval='5m')
-    if not hist.empty:
-        return float(hist['Close'].iloc[-1])
+    try:
+        # Try real-time OANDA streaming cache first
+        price = get_latest_price(ticker, max_cache_age=5.0)
+        if price:
+            return price
+        # yfinance fallback (30s - 5m delayed)
+        hist = yf.Ticker(ticker).history(period='1d', interval='5m')
+        if not hist.empty:
+            return float(hist['Close'].iloc[-1])
+    except Exception as e:
+        print(f"[Sterling] ⚠️ Price fetch failed {ticker}: {e}")
     return None
 
 # ── Webhook ───────────────────────────────────────────────────────────────────
@@ -211,9 +212,7 @@ def run_scan() -> dict:
             all_zones[pair] = zones
         except Exception as e:
             print(f"[Sterling] ❌ Scan error {pair}: {e}")
-            # Don't clear existing zones on scan failure
-            if pair not in all_zones:
-                all_zones[pair] = []
+            all_zones[pair] = []
     return all_zones
 
 # ── Trade Exit Monitor ────────────────────────────────────────────────────────

@@ -1,0 +1,217 @@
+/* ═══════════════════════════════════════════════════════════════
+   TRADE LIST - High-Density Data Table
+   Zebra striping, monospace numbers, status badges
+   ═══════════════════════════════════════════════════════════════ */
+.panelOverride {
+    padding: 0;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLE HEADER
+   ═══════════════════════════════════════════════════════════════ */
+.th {
+    padding: 14px 16px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--panel-border);
+    background: rgba(255, 255, 255, 0.02);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLE CELLS
+   ═══════════════════════════════════════════════════════════════ */
+.td {
+    padding: 14px 16px;
+    font-size: 0.875rem;
+    border-bottom: 1px solid var(--panel-border);
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ZEBRA STRIPING
+   ═══════════════════════════════════════════════════════════════ */
+.row {
+    transition: background-color 0.15s ease;
+}
+
+.row:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.row:hover {
+    background: rgba(168, 85, 247, 0.05);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MONOSPACE FOR NUMERICAL DATA
+   ═══════════════════════════════════════════════════════════════ */
+.mono {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-feature-settings: "tnum" 1;
+    letter-spacing: -0.02em;
+}
+
+.bold {
+    font-weight: 700;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BADGES - Direction Indicators
+   ═══════════════════════════════════════════════════════════════ */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.long {
+    background: rgba(74, 222, 128, 0.15);
+    color: var(--status-success);
+    border: 1px solid rgba(74, 222, 128, 0.25);
+}
+
+.short {
+    background: rgba(244, 114, 182, 0.15);
+    color: var(--status-danger);
+    border: 1px solid rgba(244, 114, 182, 0.25);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PNL COLORING
+   ═══════════════════════════════════════════════════════════════ */
+.win {
+    color: var(--status-success);
+    font-family: var(--font-mono);
+    font-weight: 600;
+}
+
+.loss {
+    color: var(--status-danger);
+    font-family: var(--font-mono);
+    font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STATUS INDICATORS
+   ═══════════════════════════════════════════════════════════════ */
+.statusDot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.bgWin {
+    background: var(--status-success);
+    box-shadow: 0 0 8px var(--status-success);
+}
+
+.bgLoss {
+    background: var(--status-danger);
+    box-shadow: 0 0 8px var(--status-danger);
+}
+
+.bgOpen {
+    background: var(--accent-orange);
+    box-shadow: 0 0 8px var(--accent-orange);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EMPTY STATE
+   ═══════════════════════════════════════════════════════════════ */
+.empty {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CAFÉ PRECISION - Light Theme Overrides
+   ═══════════════════════════════════════════════════════════════ */
+:global([data-theme='nature']) .th {
+    border-bottom: 1px solid var(--panel-border);
+    color: var(--text-muted);
+    background: rgba(61, 43, 31, 0.03);
+}
+
+:global([data-theme='nature']) .td {
+    border-bottom: 1px solid var(--panel-border);
+}
+
+:global([data-theme='nature']) .row:nth-child(even) {
+    background: rgba(61, 43, 31, 0.02);
+}
+
+:global([data-theme='nature']) .row:hover {
+    background: rgba(74, 104, 56, 0.05);
+}
+
+:global([data-theme='nature']) .long {
+    background: rgba(74, 104, 56, 0.1);
+    color: var(--forest-green);
+    border: 1px solid rgba(74, 104, 56, 0.2);
+}
+
+:global([data-theme='nature']) .short {
+    background: rgba(138, 90, 74, 0.1);
+    color: var(--deep-clay);
+    border: 1px solid rgba(138, 90, 74, 0.2);
+}
+
+:global([data-theme='nature']) .win {
+    color: var(--forest-green);
+}
+
+:global([data-theme='nature']) .loss {
+    color: var(--deep-clay);
+}
+
+:global([data-theme='nature']) .bgWin {
+    background: var(--forest-green);
+    box-shadow: 0 0 6px rgba(74, 104, 56, 0.3);
+}
+
+:global([data-theme='nature']) .bgLoss {
+    background: var(--deep-clay);
+    box-shadow: 0 0 6px rgba(138, 90, 74, 0.3);
+}
+
+:global([data-theme='nature']) .bgOpen {
+    background: var(--accent-gold);
+    box-shadow: 0 0 6px rgba(201, 162, 39, 0.3);
+}
+
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .panelOverride {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}

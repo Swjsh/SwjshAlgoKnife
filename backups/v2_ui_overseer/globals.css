@@ -1,0 +1,481 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  /* ═══════════════════════════════════════════════════════════════
+     VOLTREX PROTOCOL - Dark Mode Theme
+     Deep Indigo/Black with Neon Purple/Pink glows
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* Background Gradient - Deep Indigo */
+  --bg-gradient-start: #0a0a12;
+  --bg-gradient-mid: #12101f;
+  --bg-gradient-end: #1a1530;
+
+  /* Panel Colors - Glassmorphism with subtle noise */
+  --panel-bg: rgba(18, 16, 32, 0.85);
+  --panel-bg-solid: #0e0c18;
+  --panel-border: rgba(255, 255, 255, 0.1);
+  --panel-border-hover: rgba(255, 255, 255, 0.15);
+
+  /* Text Colors - High contrast */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.75);
+  --text-muted: rgba(255, 255, 255, 0.5);
+
+  /* Brand Colors - Neon Accents */
+  --accent-orange: #F7931A;
+  --accent-gold: #FFB84D;
+  --accent-pink: #E84393;
+  --accent-purple: #a855f7;
+  --accent-cyan: #06b6d4;
+  --accent-neon: #c084fc;
+
+  /* Status Colors */
+  --status-success: #4ADE80;
+  --status-danger: #F472B6;
+  --status-warning: #FBBF24;
+
+  /* Radii - Tighter for professional look */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Shadows & Glows */
+  --shadow-panel: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-panel-hover: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-glow-purple: 0 0 30px rgba(168, 85, 247, 0.15);
+  --shadow-glow-pink: 0 0 20px rgba(232, 67, 147, 0.2);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  /* Transitions */
+  --transition-fast: 0.12s ease-out;
+  --transition-base: 0.2s ease-out;
+  --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Typography Scale */
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Legacy Compat */
+  --color-bg: var(--panel-bg-solid);
+  --color-text: var(--text-primary);
+  --color-text-dim: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --glass-bg: var(--panel-bg);
+  --glass-border: var(--panel-border);
+  --brand-primary: 36 100% 54%;
+  --status-success-hsl: 142 69% 58%;
+  --status-danger-hsl: 340 82% 65%;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CAFÉ PRECISION - Light Mode Theme
+   Artisan Coffee Shop aesthetic - warm, organic, clean
+   "Where precision meets espresso"
+   ═══════════════════════════════════════════════════════════════ */
+[data-theme='nature'] {
+  /* ═══════════════════════════════════════════════════════════════
+     WOOD & ORGANIC TEXTURES
+     ═══════════════════════════════════════════════════════════════ */
+  --wood-bg: url('/images/textures/wood_dark.png');
+  --wood-light: #c4a574;
+  --wood-medium: #a67c52;
+  --wood-dark: #8b6f47;
+
+  /* ═══════════════════════════════════════════════════════════════
+     PANEL COLORS - Cream/Parchment with Wood Undertones
+     ═══════════════════════════════════════════════════════════════ */
+  --panel-bg: rgba(245, 234, 216, 0.95);
+  --panel-bg-solid: #F5EAD8;
+  --panel-bg-wood: linear-gradient(145deg, #c4a574 0%, #a67c52 50%, #8b6f47 100%);
+  --panel-border: rgba(139, 111, 71, 0.2);
+  --panel-border-hover: rgba(139, 111, 71, 0.35);
+
+  /* ═══════════════════════════════════════════════════════════════
+     COFFEE SHOP COLOR PALETTE
+     ═══════════════════════════════════════════════════════════════ */
+  /* Forest Greens - Like potted plants in a cafe */
+  --forest-green: #4a6838;
+  --forest-green-light: #5a7848;
+  --forest-green-dark: #3a5828;
+
+  /* Deep Olive - Leather booth seats */
+  --deep-olive: #5a6444;
+  --deep-olive-light: #6a7454;
+
+  /* Espresso Browns - Rich coffee tones */
+  --espresso: #3D2B1F;
+  --espresso-light: #5c4a3d;
+  --leather-brown: #8b5e3c;
+  --leather-brown-light: #a67b5b;
+
+  /* Clay/Terracotta - Warm pottery accent */
+  --deep-clay: #8a5a4a;
+  --deep-clay-light: #9a6a5a;
+
+  /* Cream & Latte */
+  --cream: #F5EAD8;
+  --latte: #EDE4D3;
+  --foam: #faf7f2;
+
+  /* ═══════════════════════════════════════════════════════════════
+     CHART BACKGROUND - Rich Wood Table Surface
+     ═══════════════════════════════════════════════════════════════ */
+  --chart-bg: linear-gradient(145deg, #a67c52 0%, #8b6f47 100%);
+  --chart-bg-solid: #96704a;
+  --chart-grid: rgba(255, 255, 255, 0.08);
+  --chart-candle-up: #4a6838;
+  --chart-candle-down: #8a5a4a;
+
+  /* ═══════════════════════════════════════════════════════════════
+     TEXT COLORS - Coffee Brown Ink
+     ═══════════════════════════════════════════════════════════════ */
+  --text-primary: #3D2B1F;
+  --text-secondary: #5c4a3d;
+  --text-muted: #8c7a6b;
+  --text-on-wood: #F5EAD8;
+  --text-on-green: #ffffff;
+
+  /* ═══════════════════════════════════════════════════════════════
+     BUTTON COLORS
+     ═══════════════════════════════════════════════════════════════ */
+  --btn-toggle-buy: var(--leather-brown);
+  --btn-toggle-sell: var(--deep-olive);
+  --btn-action-buy: var(--forest-green);
+  --btn-action-buy-hover: var(--forest-green-light);
+  --btn-buy: var(--forest-green);
+  --btn-buy-hover: var(--forest-green-light);
+  --btn-sell: var(--deep-clay);
+  --btn-sell-hover: var(--deep-clay-light);
+
+  /* ═══════════════════════════════════════════════════════════════
+     ACCENTS - Warm Gold & Brass
+     ═══════════════════════════════════════════════════════════════ */
+  --accent-orange: #d4a040;
+  --accent-gold: #c9a227;
+  --accent-brass: #b8860b;
+  --accent-green: var(--forest-green);
+  --accent-coffee: #6f4e37;
+
+  /* ═══════════════════════════════════════════════════════════════
+     STATUS COLORS - Natural Tones
+     ═══════════════════════════════════════════════════════════════ */
+  --status-success: var(--forest-green);
+  --status-danger: var(--deep-clay);
+  --status-warning: var(--accent-gold);
+  --status-brewing: var(--forest-green);
+
+  /* ═══════════════════════════════════════════════════════════════
+     SIDEBAR - Warm Parchment Menu Board
+     ═══════════════════════════════════════════════════════════════ */
+  --sidebar-bg: rgba(237, 228, 211, 0.98);
+  --sidebar-bg-solid: #EDE4D3;
+  --sidebar-text: #3D2B1F;
+  --sidebar-text-secondary: rgba(61, 43, 31, 0.7);
+  --sidebar-border: rgba(139, 111, 71, 0.15);
+  --sidebar-hover: rgba(74, 104, 56, 0.08);
+  --sidebar-active-bg: var(--forest-green);
+  --sidebar-active-text: #ffffff;
+
+  /* ═══════════════════════════════════════════════════════════════
+     INPUT FIELDS - Clean Paper
+     ═══════════════════════════════════════════════════════════════ */
+  --input-bg: #ffffff;
+  --input-border: rgba(139, 111, 71, 0.25);
+  --input-focus: var(--forest-green);
+
+  /* ═══════════════════════════════════════════════════════════════
+     SHADOWS - Warm Ambient Light
+     ═══════════════════════════════════════════════════════════════ */
+  --shadow-panel: 0 4px 16px rgba(61, 43, 31, 0.1);
+  --shadow-panel-hover: 0 8px 24px rgba(61, 43, 31, 0.15);
+  --shadow-wood: 0 4px 20px rgba(139, 111, 71, 0.25);
+  --shadow-inset-wood: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+
+  /* ═══════════════════════════════════════════════════════════════
+     SCROLLBAR - Subtle Wood Grain
+     ═══════════════════════════════════════════════════════════════ */
+  --scrollbar-thumb: rgba(139, 111, 71, 0.3);
+  --scrollbar-thumb-hover: rgba(139, 111, 71, 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BASE RESET & TYPOGRAPHY
+   ═══════════════════════════════════════════════════════════════ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background:
+    linear-gradient(145deg, var(--bg-gradient-start) 0%, var(--bg-gradient-mid) 40%, var(--bg-gradient-end) 100%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Monospace for all numerical data */
+.mono,
+[data-mono="true"] {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1;
+  letter-spacing: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CAFÉ PRECISION - Coffee Shop Ambiance Background
+   "Looking out the window at a cozy street cafe"
+   ═══════════════════════════════════════════════════════════════ */
+body[data-theme='nature'] {
+  /* Rich wood table surface */
+  background-color: #a67c52;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05)),
+    var(--wood-bg);
+  background-size: 400px;
+  background-repeat: repeat;
+  background-attachment: fixed;
+  color: var(--text-primary);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Coffee shop window - right side ambiance */
+body[data-theme='nature']::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 35%;
+  height: 100%;
+  background:
+    /* Soft window light gradient */
+    linear-gradient(
+      to left,
+      rgba(255, 252, 245, 0.4) 0%,
+      rgba(255, 252, 245, 0.2) 30%,
+      transparent 100%
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Foliage/Plant decoration - bottom left corner */
+body[data-theme='nature']::after {
+  content: '';
+  position: fixed;
+  bottom: -100px;
+  left: 60px;
+  width: 500px;
+  height: 500px;
+  background-image: url('/images/foliage/monstera_leaf.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 0;
+  transform: rotate(-30deg) scaleX(-1);
+}
+
+/* Global Scrollbar overrides for nature */
+body[data-theme='nature'] ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+}
+
+body[data-theme='nature'] .chartContainer {
+  background: var(--chart-bg);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme='nature'] ::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Nature theme selection */
+[data-theme='nature'] ::selection {
+  background: rgba(184, 149, 106, 0.35);
+  color: var(--text-primary);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Utility Classes */
+.text-orange {
+  color: var(--accent-orange);
+}
+
+.text-success {
+  color: var(--status-success);
+}
+
+.text-danger {
+  color: var(--status-danger);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TYPOGRAPHY SCALE
+   ═══════════════════════════════════════════════════════════════ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+h5 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+h6 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Small text */
+small,
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Selection */
+::selection {
+  background: rgba(247, 147, 26, 0.3);
+  color: var(--text-primary);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DATA TABLES - Engineered Precision
+   ═══════════════════════════════════════════════════════════════ */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+  margin: 1rem 0;
+}
+
+th {
+  text-align: left;
+  padding: 16px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  border-bottom: 1px solid var(--panel-border);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+td {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  color: var(--text-primary);
+  transition: background 0.1s;
+}
+
+/* Zebra Striping - Subtle */
+tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+/* Hover Effect - Interactive */
+tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Monospace Numbers - Heuristic: Any column after the first */
+td:not(:first-child) {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Nature Theme Overrides */
+[data-theme='nature'] th {
+  border-bottom-color: rgba(61, 43, 31, 0.15);
+}
+
+[data-theme='nature'] td {
+  border-bottom-color: rgba(61, 43, 31, 0.05);
+}
+
+[data-theme='nature'] tbody tr:nth-child(even) {
+  background: rgba(61, 43, 31, 0.03);
+}
+
+[data-theme='nature'] tbody tr:hover td {
+  background: rgba(61, 43, 31, 0.06);
+}

@@ -53,18 +53,41 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(signInUrl);
   }
 
-  // ── Onboarding enforcement ──
-  // The unified NewUserOnboardingWrapper (rendered via Providers.tsx) handles
-  // incomplete onboarding as an in-dashboard overlay. We no longer redirect
-  // to separate /onboarding/* pages from middleware.
-  //
-  // However, we still block unauthenticated API access to sensitive routes
-  // if the user hasn't completed legal acceptance. This is enforced per-route
-  // in each API handler via requireUser() + onboardingStep checks.
-  //
-  // NOTE: If you need to enforce onboarding completion at the middleware level
-  // for specific API routes, add checks here. The overlay wizard ensures UX
-  // compliance; server-side route guards ensure security compliance.
+  // For authenticated users, check onboarding status on non-onboarding, non-API routes
+  if (
+    !pathname.startsWith(API_ROUTES_PREFIX) &&
+    !ONBOARDING_ROUTES.some(route => pathname.startsWith(route))
+  ) {
+    try {
+      // Check user's onboarding status
+      const response = await fetch(new URL('/api/me', request.url), {
+        headers: {
+          Cookie: request.headers.get('cookie') || '',
+        },
+      });
+
+      if (response.ok) {
+        const { user } = await response.json();
+
+        // Redirect incomplete users to appropriate onboarding step
+        if (user.onboardingStep !== 'COMPLETED' && user.onboardingStep !== 'BROKER_CONNECTED') {
+          const redirectMap: Record<string, string> = {
+            CREATED: '/onboarding/legal',
+            EMAIL_VERIFIED: '/onboarding/legal',
+            TERMS_ACCEPTED: '/onboarding/broker',
+          };
+
+          const redirectTo = redirectMap[user.onboardingStep];
+          if (redirectTo && pathname !== redirectTo) {
+            return NextResponse.redirect(new URL(redirectTo, request.url));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Middleware onboarding check failed:', error);
+      // Continue on error - don't block the request
+    }
+  }
 
   return NextResponse.next();
 }

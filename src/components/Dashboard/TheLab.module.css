@@ -1,0 +1,270 @@
+.labContainer {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: radial-gradient(circle at 50% -20%, #1a1b26 0%, #050507 100%);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    perspective: 1000px;
+}
+
+.ambientGrid {
+    position: absolute;
+    inset: -50%;
+    background-image:
+        linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    transform: rotateX(60deg) translateY(-100px);
+    animation: gridScroll 20s linear infinite;
+    z-index: 0;
+}
+
+@keyframes gridScroll {
+    0% {
+        transform: rotateX(60deg) translateY(0);
+    }
+
+    100% {
+        transform: rotateX(60deg) translateY(50px);
+    }
+}
+
+.header {
+    position: relative;
+    z-index: 10;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+    background: rgba(5, 5, 7, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.profProfile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.profAvatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid #a855f7;
+    position: relative;
+    overflow: hidden;
+}
+
+.profAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profName {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.profRole {
+    font-size: 0.8rem;
+    color: #a855f7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.hudStats {
+    display: flex;
+    gap: 24px;
+}
+
+.hudItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* 3D Canvas */
+.gridCanvas {
+    flex: 1;
+    position: relative;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    padding: 40px;
+    gap: 40px;
+}
+
+.agentDeck {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    max-width: 70%;
+    justify-content: center;
+    transform-style: preserve-3d;
+}
+
+.holoCard {
+    width: 180px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(0, 255, 255, 0.1);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.holoCard.selected {
+    border-color: #06b6d4;
+    box-shadow: 0 0 30px rgba(6, 182, 212, 0.3);
+    background: rgba(6, 182, 212, 0.1);
+}
+
+.scanLine {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: rgba(0, 255, 255, 0.5);
+    box-shadow: 0 0 10px #06b6d4;
+    animation: scan 3s linear infinite;
+    opacity: 0.5;
+}
+
+@keyframes scan {
+    0% {
+        top: 0%;
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        top: 100%;
+        opacity: 0;
+    }
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.cardAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.gradeBadge {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 0 10px currentColor;
+}
+
+.gradeBadge[data-grade="A"] {
+    color: #4ade80;
+}
+
+.gradeBadge[data-grade="B"] {
+    color: #facc15;
+}
+
+.gradeBadge[data-grade="C"] {
+    color: #fb923c;
+}
+
+.cardName {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.cardStats {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 8px;
+    display: flex;
+    flex-col: column;
+    gap: 4px;
+}
+
+.statRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.statVal {
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Analysis Panel */
+.analysisPanel {
+    width: 300px;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    border-left: 1px solid rgba(0, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+}
+
+.panelHeader {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #06b6d4;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+.analysisContent {
+    padding: 24px;
+    flex: 1;
+}
+
+.gradeBox {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .labContainer {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}

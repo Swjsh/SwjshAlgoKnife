@@ -4,14 +4,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-## 📝 Lessons Learned
-
-**File**: `LESSONS.md` in project root
-
-Whenever we hit a gotcha, misconfig, or non-obvious fix during a session, **add it to `LESSONS.md`** so we don't make the same mistake twice. Check this file when debugging issues — the answer may already be there.
-
----
-
 ## ⚡ QUICK START FOR EVERY SESSION
 
 **Step 1**: Read `🎯 Master Tracker.md` → "Claude Session Handoff" section
@@ -104,7 +96,7 @@ grep -r "keyword" "C:\Users\jackw\Documents\ObsidianVaults\SwjshAK-Brain\"
 
 **SwjshAK (Swjsh Army Knife)** is an algorithmic trading platform focused on live market scanning, strategy execution, and trade journaling across multiple asset classes (Forex, Crypto, Options, Futures). The platform features autonomous trading agents with real-time monitoring and performance tracking.
 
-**Design Philosophy**: "Voltrex Protocol" SaaS dark mode aesthetic with glassmorphism, neon purple primary (`#a855f7`), and pink secondary (`#ec4899`).
+**Design Philosophy**: "Cyber-Industrial" dark mode aesthetic with glassmorphism, electric cyan primary (`#06b6d4`), and neon purple accents (`#a855f7`).
 
 ## Starting the System
 
@@ -148,7 +140,7 @@ npx tsx scripts/agent_runner.ts  # Agent runner (dev, standalone)
 ## Architecture
 
 ### Frontend (Next.js 15 App Router)
-- **Styling**: Vanilla CSS Modules with hex color variable system (see `src/app/globals.css`)
+- **Styling**: Vanilla CSS Modules with HSL variable system (see `src/app/globals.css`)
 - **State**: No global state library - relies on React Context for real-time data feeds
 - **Charts**: `lightweight-charts` (TradingView open-source) for canvas-based rendering
 
@@ -213,19 +205,12 @@ src/components/
 
 ## Environment Variables
 
-See `.env.example` for the full list with descriptions. Key groups:
-
-| Group | Variables | Required |
-|-------|-----------|----------|
-| Core | `NODE_ENV`, `PORT`, `WEBHOOK_SECRET` | Yes |
-| Alpaca | `APCA_API_KEY_ID`, `APCA_API_SECRET_KEY`, `APCA_API_BASE_URL` | For paper trading |
-| OANDA | `OANDA_API_TOKEN`, `OANDA_ACCOUNT_ID`, `OANDA_ENVIRONMENT` | For FX agents |
-| Firebase | `NEXT_PUBLIC_FIREBASE_*`, `FIREBASE_*` | For auth |
-| Discord | `DISCORD_BOT_TOKEN`, `DISCORD_CHANNEL_ID` | For notifications |
-| OpenClaw | `ANTHROPIC_API_KEY`, `OPENCLAW_GATEWAY_TOKEN` | For AI orchestration |
-| Trading | `ACCOUNT_BALANCE`, `RISK_PER_TRADE` | Yes |
-
-**Standard**: Use `OANDA_API_TOKEN` everywhere (not `OANDA_API_KEY`). All Python agents read `WEBHOOK_SECRET` from env vars.
+Required for production webhook authentication:
+```
+WEBHOOK_SECRET=your_secret_here
+ACCOUNT_BALANCE=10000
+RISK_PER_TRADE=1
+```
 
 ## Data Flow
 
@@ -259,22 +244,14 @@ Agents require specific packages (see `scripts/requirements_*.txt` for agent-spe
 
 ## Design System Variables
 
-Core colors defined in `src/app/globals.css` (dark mode defaults):
+Core colors defined in `src/app/globals.css`:
 ```css
---bg-main: #0a0a0c;                  /* Deep gunmetal background */
---bg-surface: #111116;               /* Surface layer */
---bg-subtle: #191921;                /* Subtle background */
---brand-primary: #a855f7;            /* Neon purple */
---brand-secondary: #ec4899;          /* Hot pink */
---status-success: #10b981;           /* Emerald green */
---status-danger: #ef4444;            /* Red */
---status-warning: #f59e0b;           /* Amber */
---text-primary: #f8fafc;             /* Off-white text */
---text-secondary: #94a3b8;           /* Slate secondary text */
---text-muted: #64748b;               /* Slate muted text */
+--background: 222 47% 11%;           /* Deep gunmetal */
+--brand-primary: 188 95% 43%;        /* Electric cyan */
+--accent-neon: 271 77% 62%;          /* Neon purple */
 ```
 
-Glassmorphic surfaces: `backdrop-filter: blur(12px)` with translucent backgrounds using `--panel-bg: rgba(17, 17, 22, 0.8)`
+Glassmorphic surfaces: `backdrop-filter: blur(12px)` with translucent backgrounds
 
 ---
 

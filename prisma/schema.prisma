@@ -1,0 +1,523 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id                String   @id @default(cuid())
+  externalId        String   @unique // Clerk user ID
+  email             String   @unique
+  displayName       String?
+  avatarUrl         String?
+
+  // Onboarding state
+  onboardingStep    OnboardingStep @default(CREATED)
+  acceptedTermsAt   DateTime?
+  acceptedWaiverAt  DateTime?
+
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  lastLoginAt       DateTime?
+
+  // Relations
+  brokerConfigs     BrokerConfig[]
+  bots              Bot[]
+  trades            Trade[]
+  signals           Signal[]
+  auditLogs         AuditLog[]
+  legalAcceptances  LegalAcceptance[]
+  journalEntries    JournalEntry[]
+  settings          Setting[]
+  intelSignals      IntelSignal[]
+  agentAccounts     AgentAccount[]
+
+  @@index([externalId])
+  @@index([email])
+}
+
+enum OnboardingStep {
+  CREATED           // Account created, not verified
+  EMAIL_VERIFIED    // Email confirmed
+  TERMS_ACCEPTED    // Legal docs signed
+  BROKER_CONNECTED  // At least one broker linked
+  COMPLETED         // Full onboarding done
+}
+
+// ============================================
+// BROKER CONFIGURATION
+// ============================================
+
+model BrokerConfig {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Broker identity
+  broker            BrokerType
+  label             String        // User-defined name: "My Alpaca Paper", "Live Trading"
+
+  // Environment
+  environment       TradingEnvironment
+  isActive          Boolean       @default(true)
+  isPrimary         Boolean       @default(false) // Default broker for this user
+
+  // Encrypted credentials (AES-256-GCM)
+  apiKeyEncrypted   String        // Encrypted API key
+  apiSecretEncrypted String       // Encrypted API secret
+  encryptionIv      String        // Initialization vector for decryption
+
+  // Connection status
+  connectionStatus  ConnectionStatus @default(PENDING)
+  lastVerifiedAt    DateTime?
+  lastErrorMessage  String?
+
+  // Metadata
+  accountId         String?       // Broker's account identifier (fetched on verify)
+  accountType       String?       // e.g., "margin", "cash"
+  buyingPower       Decimal?      @db.Decimal(20, 2)
+
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  bots              Bot[]
+  trades            Trade[]
+
+  @@unique([userId, broker, environment, label])
+  @@index([userId])
+  @@index([broker, environment])
+}
+
+enum BrokerType {
+  ALPACA
+  WEBULL
+  ROBINHOOD
+  FIDELITY
+}
+
+enum TradingEnvironment {
+  PAPER
+  LIVE
+}
+
+enum ConnectionStatus {
+  PENDING           // Never tested
+  CONNECTED         // Last test succeeded
+  FAILED            // Last test failed
+  REVOKED           // User revoked access
+}
+
+// ============================================
+// TRADING BOTS
+// ============================================
+
+model Bot {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  brokerConfigId    String
+  brokerConfig      BrokerConfig  @relation(fields: [brokerConfigId], references: [id], onDelete: Cascade)
+
+  // Bot configuration
+  name              String
+  strategy          String        // Strategy identifier
+  strategyConfig    Json          @default("{}")
+
+  // Risk management
+  maxPositionSize   Decimal       @db.Decimal(20, 2)
+  maxDailyLoss      Decimal?      @db.Decimal(20, 2)
+  maxOpenPositions  Int           @default(1)
+
+  // State
+  status            BotStatus     @default(STOPPED)
+  lastHeartbeat     DateTime?
+  lastError         String?
+
+  // Performance tracking
+  totalTrades       Int           @default(0)
+  winningTrades     Int           @default(0)
+  totalPnl          Decimal       @default(0) @db.Decimal(20, 2)
+
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  startedAt         DateTime?
+  stoppedAt         DateTime?
+
+  // Relations
+  trades            Trade[]
+  signals           Signal[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum BotStatus {
+  STOPPED
+  STARTING
+  RUNNING
+  PAUSED
+  ERROR
+}
+
+// ============================================
+// TRADES & SIGNALS
+// ============================================
+
+model Trade {
+  id                String        @id @default(cuid())
+
+  // Ownership
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  botId             String?
+  bot               Bot?          @relation(fields: [botId], references: [id], onDelete: SetNull)
+  brokerConfigId    String?
+  brokerConfig      BrokerConfig? @relation(fields: [brokerConfigId], references: [id], onDelete: SetNull)
+
+  // Trade details
+  symbol            String
+  direction         TradeDirection
+  quantity          Decimal       @db.Decimal(20, 8)
+
+  // Entry
+  entryPrice        Decimal       @db.Decimal(20, 8)
+  entryTime         DateTime
+  entryOrderId      String?       // Broker's order ID
+
+  // Exit (nullable until closed)
+  exitPrice         Decimal?      @db.Decimal(20, 8)
+  exitTime          DateTime?
+  exitOrderId       String?
+  exitReason        String?
+
+  // P&L
+  realizedPnl       Decimal?      @db.Decimal(20, 2)
+  fees              Decimal       @default(0) @db.Decimal(20, 4)
+
+  // Status
+  status            TradeStatus   @default(OPEN)
+
+  // Strategy & metadata
+  strategy          String?
+  notes             String?
+  screenshotUrl     String?
+  intelSnapshot     Json?         // Intel conditions at trade time
+
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+  @@index([userId, symbol, status])
+  @@index([botId])
+  @@index([symbol])
+  @@index([createdAt])
+  @@index([strategy])
+}
+
+enum TradeDirection {
+  LONG
+  SHORT
+}
+
+enum TradeStatus {
+  PENDING
+  OPEN
+  CLOSED
+  CANCELLED
+  FAILED
+}
+
+model Signal {
+  id                String        @id @default(cuid())
+
+  // Ownership
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  botId             String?
+  bot               Bot?          @relation(fields: [botId], references: [id], onDelete: SetNull)
+
+  // Signal details
+  symbol            String
+  direction         TradeDirection?
+  action            String        // "BUY", "SELL", "EXIT", "ALERT"
+  strategy          String?
+  price             Decimal?      @db.Decimal(20, 8)
+
+  // Price targets
+  entryPrice        Decimal?      @db.Decimal(20, 8)
+  stopLoss          Decimal?      @db.Decimal(20, 8)
+  takeProfit        Decimal?      @db.Decimal(20, 8)
+
+  // Metadata
+  confidence        Decimal?      @db.Decimal(5, 4) // 0.0000 to 1.0000
+  payload           Json          @default("{}")
+  source            String        @default("system") // "tradingview", "strategy", "manual"
+
+  // State
+  status            SignalStatus  @default(PENDING)
+  processed         Boolean       @default(false)
+  executedTradeId   String?
+  rejectionReason   String?
+
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  expiresAt         DateTime?
+  processedAt       DateTime?
+
+  @@index([userId, status])
+  @@index([userId, processed, createdAt])
+  @@index([createdAt])
+  @@index([symbol])
+  @@index([processed])
+}
+
+enum SignalStatus {
+  PENDING
+  EXECUTED
+  REJECTED
+  EXPIRED
+}
+
+// ============================================
+// AUDIT & COMPLIANCE
+// ============================================
+
+model AuditLog {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Event details
+  action            String        // "broker.connect", "bot.start", "trade.execute"
+  resourceType      String        // "BrokerConfig", "Bot", "Trade"
+  resourceId        String?
+
+  // Context
+  ipAddress         String?
+  userAgent         String?
+  metadata          Json          @default("{}")
+
+  // Result
+  status            AuditStatus
+  errorMessage      String?
+
+  // Timestamp
+  createdAt         DateTime      @default(now())
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@index([action])
+  @@index([resourceType, resourceId])
+}
+
+enum AuditStatus {
+  SUCCESS
+  FAILURE
+  DENIED
+}
+
+// ============================================
+// LEGAL COMPLIANCE
+// ============================================
+
+model LegalAcceptance {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentType      LegalDocumentType
+  documentVersion   String        // "1.0", "1.1", etc.
+
+  // Acceptance details
+  acceptedAt        DateTime      @default(now())
+  ipAddress         String
+  userAgent         String?
+
+  @@unique([userId, documentType, documentVersion])
+  @@index([userId])
+}
+
+enum LegalDocumentType {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  TRADING_DISCLAIMER
+  LIABILITY_WAIVER
+}
+
+// ============================================
+// JOURNAL ENTRIES
+// ============================================
+
+model JournalEntry {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Entry details
+  date              DateTime      @db.Date
+  dailyPnl          Decimal       @default(0) @db.Decimal(20, 2)
+  mood              String?       // "great", "good", "neutral", "bad", "terrible"
+  notes             String?
+  tags              String?       // Comma-separated tags
+
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
+}
+
+// ============================================
+// USER SETTINGS
+// ============================================
+
+model Setting {
+  id                String        @id @default(cuid())
+  userId            String?       // null = global setting
+  user              User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  key               String
+  value             String?
+
+  // Timestamps
+  updatedAt         DateTime      @updatedAt
+
+  @@unique([userId, key])
+  @@index([key])
+}
+
+// ============================================
+// INTELLIGENCE SIGNALS
+// ============================================
+
+model IntelSignal {
+  id                String        @id @default(cuid())
+  userId            String?       // null = shared intel
+  user              User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Signal details
+  source            String        // "orderflow", "sentiment", "onchain", "whale"
+  symbol            String
+  signalType        String        // "bullish", "bearish", "neutral"
+  confidence        Decimal       @default(0.5) @db.Decimal(5, 4)
+  summary           String?
+  payload           Json          @default("{}")
+
+  // Lifecycle
+  expiresAt         DateTime?
+  isActive          Boolean       @default(true)
+
+  // Timestamps
+  createdAt         DateTime      @default(now())
+
+  @@index([symbol, isActive])
+  @@index([source])
+  @@index([expiresAt])
+}
+
+// ============================================
+// AGENT ACCOUNTS (Capital Management)
+// ============================================
+
+model AgentAccount {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Account identity
+  accountId         String        // "master", "bitcoin_bob", etc.
+  name              String
+  accountType       AgentAccountType
+
+  // Balances
+  initialBalance    Decimal       @default(0) @db.Decimal(20, 2)
+  currentBalance    Decimal       @default(0) @db.Decimal(20, 2)
+  allocatedCapital  Decimal       @default(0) @db.Decimal(20, 2)
+  totalDeposited    Decimal       @default(0) @db.Decimal(20, 2)
+  totalWithdrawn    Decimal       @default(0) @db.Decimal(20, 2)
+  realizedPnl       Decimal       @default(0) @db.Decimal(20, 2)
+  unrealizedPnl     Decimal       @default(0) @db.Decimal(20, 2)
+  totalEquity       Decimal       @default(0) @db.Decimal(20, 2)
+
+  // State
+  status            AgentAccountStatus @default(ACTIVE)
+
+  // Timestamps
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  transactions      AccountTransaction[]
+
+  @@unique([userId, accountId])
+  @@index([userId])
+  @@index([accountType])
+}
+
+enum AgentAccountType {
+  MASTER
+  AGENT
+}
+
+enum AgentAccountStatus {
+  ACTIVE
+  FROZEN
+  CLOSED
+}
+
+// ============================================
+// ACCOUNT TRANSACTIONS (Money Flow Ledger)
+// ============================================
+
+model AccountTransaction {
+  id                String        @id @default(cuid())
+
+  // Account reference
+  accountId         String
+  account           AgentAccount  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  // Transaction details
+  type              TransactionType
+  amount            Decimal       @db.Decimal(20, 2)
+  balanceBefore     Decimal       @db.Decimal(20, 2)
+  balanceAfter      Decimal       @db.Decimal(20, 2)
+
+  // Related entities
+  relatedTradeId    String?
+  relatedAccountId  String?
+  description       String?
+
+  // Timestamp
+  createdAt         DateTime      @default(now())
+
+  @@index([accountId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  ALLOCATION
+  RELEASE
+  PROFIT
+  LOSS
+  TRANSFER
+}

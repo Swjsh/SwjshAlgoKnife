@@ -1,0 +1,9 @@
+{
+  "agent": "Pivot Pete",
+  "mode": "PAPER",
+  "provider": "ALPACA",
+  "symbol": "ES",
+  "generated_at": "2026-02-23T03:36:20.710316Z",
+  "last_price": 684.27,
+  "bars": 5
+}

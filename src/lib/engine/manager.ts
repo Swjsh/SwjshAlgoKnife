@@ -6,9 +6,6 @@ import { BollingerBandStrategy } from './strategies/bbBreakout';
 import { ThreeDucksStrategy } from './strategies/threeDucks';
 import { GridTradingStrategy } from './strategies/gridTrading';
 import { NeverStoppedOutStrategy } from './strategies/neverStoppedOut';
-import { LiquidityScalperStrategy } from './strategies/liquidityScalper';
-import { EMACrossoverADXStrategy } from './strategies/emaCrossoverADX';
-import { RSIMeanReversionStrategy } from './strategies/rsiMeanReversion';
 import { BaseStrategy, Signal, IntelStrategyContext } from './types';
 import { IntelAdapter } from '../intel/adapter';
 
@@ -88,59 +85,6 @@ export class EngineManager {
             isActive: false,
             params: {},
             category: 'CRYPTO'
-        }));
-
-        // === FUTURES STRATEGIES ===
-        this.strategies.push(new LiquidityScalperStrategy({
-            id: 'liquidity_scalper',
-            name: 'Liquidity Pool Scalper',
-            isActive: true,
-            params: {
-                symbol: 'ES',
-                lookback: 60,
-                swingStrength: 3,
-                zoneTolerance: 0.0004,    // 0.04% — tight for ES
-                minPoolTouches: 2,
-                cooldownCandles: 5,
-                riskPct: 0.003,
-                rrRatio: 2,
-                maxAge: 200,
-            },
-            category: 'FUTURES',
-        }));
-
-        this.strategies.push(new EMACrossoverADXStrategy({
-            id: 'ema_crossover_adx',
-            name: 'EMA Crossover + ADX',
-            isActive: true,
-            params: {
-                fastPeriod: 9,
-                slowPeriod: 21,
-                adxPeriod: 14,
-                adxThreshold: 25,
-                riskPct: 0.005,
-                rrRatio: 2,
-            },
-            category: 'FUTURES',
-            categories: ['FUTURES', 'CRYPTO', 'FOREX'],
-        }));
-
-        // === MEAN REVERSION ===
-        this.strategies.push(new RSIMeanReversionStrategy({
-            id: 'rsi_mean_reversion',
-            name: 'RSI Mean Reversion',
-            isActive: true,
-            params: {
-                rsiPeriod: 14,
-                oversold: 30,
-                overbought: 70,
-                cooldownCandles: 8,
-                riskPct: 0.004,
-                rrRatio: 1.5,
-                confirmationBars: 3,
-            },
-            category: 'CRYPTO',
-            categories: ['CRYPTO', 'FOREX', 'FUTURES'],
         }));
     }
 

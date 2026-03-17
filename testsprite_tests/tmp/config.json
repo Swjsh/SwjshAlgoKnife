@@ -1,0 +1,16 @@
+{
+  "status": "commited",
+  "type": "backend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "backendAuthType": "public",
+  "executionArgs": {
+    "projectName": "SwjshAlgoKnife",
+    "projectPath": "C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife",
+    "testIds": [],
+    "additionalInstruction": "Run all backend tests",
+    "envs": {
+      "API_KEY": "sk-user-8i3fixrsSt5jPk4ZVg0cABMgjz3VYdN7tkBx7RxyhZoQkfaJn74-dGIwR9LZJg2hr_enOYExoVoJo9Bkg3D2puVUhwjEptj6hTPcDxZ1wrfKagLio6eeGMUXFLu_Rf6TEUw"
+    }
+  }
+}

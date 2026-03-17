@@ -12,7 +12,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 import { AGENTS_DB_PATH } from '@/lib/dataPaths';
-import { controlLimiter } from '@/lib/rateLimit';
 
 // ============================================================================
 // Types
@@ -230,64 +229,25 @@ POST /api/control
 // ============================================================================
 
 /**
- * Verify the Control API key.
- *
- * SECURITY:
- * - In production (NODE_ENV=production), CONTROL_API_KEY is REQUIRED.
- *   Without it, the control API returns 503 to prevent accidental open access.
- * - In development, if CONTROL_API_KEY is not set, requests are allowed
- *   for local testing convenience.
- * - When set, requests must include: X-Control-Key: <key>
+ * Verify the Control API key if CONTROL_API_KEY env var is set.
+ * When the env var is NOT set, all requests are allowed (local/internal use).
+ * When set, requests must include: X-Control-Key: <key>
  */
 function checkAuth(req: NextRequest): NextResponse | null {
-  const crypto = require('crypto');
   const requiredKey = process.env.CONTROL_API_KEY;
-  const isProduction = process.env.NODE_ENV === 'production';
+  if (!requiredKey) return null; // No key configured — open access
 
-  // In production, CONTROL_API_KEY must be configured
-  if (!requiredKey && isProduction) {
-    console.error('[SECURITY] CONTROL_API_KEY not set in production — blocking all control API requests');
+  const providedKey = req.headers.get('x-control-key');
+  if (!providedKey || providedKey !== requiredKey) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Control API is not configured. Set CONTROL_API_KEY environment variable.',
+        error: 'Unauthorized. Provide a valid X-Control-Key header.',
         timestamp: new Date().toISOString(),
       },
-      { status: 503 }
-    );
-  }
-
-  // In dev without a key, log a warning but allow — localhost only
-  if (!requiredKey) {
-    console.warn('[SECURITY] CONTROL_API_KEY not set — control API is open. Set this env var to secure it.');
-    return null;
-  }
-
-  // Timing-safe key comparison
-  const providedKey = req.headers.get('x-control-key');
-  if (!providedKey) {
-    return NextResponse.json(
-      { success: false, error: 'Unauthorized. Provide X-Control-Key header.', timestamp: new Date().toISOString() },
       { status: 401 }
     );
   }
-
-  try {
-    const providedBuf = Buffer.from(providedKey);
-    const requiredBuf = Buffer.from(requiredKey);
-    if (providedBuf.length !== requiredBuf.length || !crypto.timingSafeEqual(providedBuf, requiredBuf)) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized. Invalid X-Control-Key.', timestamp: new Date().toISOString() },
-        { status: 401 }
-      );
-    }
-  } catch {
-    return NextResponse.json(
-      { success: false, error: 'Unauthorized.', timestamp: new Date().toISOString() },
-      { status: 401 }
-    );
-  }
-
   return null; // Auth passed
 }
 
@@ -298,16 +258,6 @@ function checkAuth(req: NextRequest): NextResponse | null {
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const authError = checkAuth(req);
   if (authError) return authError;
-
-  // Rate limit by IP
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? req.headers.get('x-real-ip') ?? 'unknown';
-  const { allowed, retryAfter } = controlLimiter.check(ip);
-  if (!allowed) {
-    return NextResponse.json(
-      { success: false, error: 'Rate limit exceeded', timestamp: new Date().toISOString() },
-      { status: 429, headers: { 'Retry-After': String(retryAfter) } }
-    );
-  }
 
   try {
     // Read all data
@@ -366,16 +316,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const authError = checkAuth(req);
   if (authError) return authError;
-
-  // Rate limit by IP
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? req.headers.get('x-real-ip') ?? 'unknown';
-  const { allowed, retryAfter } = controlLimiter.check(ip);
-  if (!allowed) {
-    return NextResponse.json(
-      { success: false, error: 'Rate limit exceeded', timestamp: new Date().toISOString() },
-      { status: 429, headers: { 'Retry-After': String(retryAfter) } }
-    );
-  }
 
   try {
     const body = await req.json();

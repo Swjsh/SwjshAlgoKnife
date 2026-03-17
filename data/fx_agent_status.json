@@ -1,0 +1,39 @@
+{
+  "last_updated": "2025-12-31T19:30:54.864814",
+  "status": "ACTIVE",
+  "active_pairs": 5,
+  "pending_orders": [
+    {
+      "created_at": "2025-12-10 19:00",
+      "type": "DEMAND",
+      "top": 1.16632,
+      "bottom": 1.16577,
+      "entry": 1.16632,
+      "stop_loss": 1.16527,
+      "status": "PENDING",
+      "ticker": "EURUSD"
+    },
+    {
+      "created_at": "2025-12-05 13:00",
+      "type": "SUPPLY",
+      "top": 1.3947,
+      "bottom": 1.3927,
+      "entry": 1.3927,
+      "stop_loss": 1.3952,
+      "status": "PENDING",
+      "ticker": "USDCAD"
+    }
+  ],
+  "total_zones_found": 2,
+  "equity_curve": [
+    {
+      "date": "2025-01-01",
+      "balance": 10000
+    }
+  ],
+  "performance": {
+    "win_rate": 0,
+    "total_pnl": 0,
+    "trades": 0
+  }
+}

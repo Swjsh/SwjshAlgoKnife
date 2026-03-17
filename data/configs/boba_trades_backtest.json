@@ -1,0 +1,20 @@
+{
+  "name": "Boba Trades",
+  "market": "options",
+  "symbols": [
+    "SPY",
+    "QQQ",
+    "IWM"
+  ],
+  "primary_symbol": "SPY",
+  "strategy": "supp_res",
+  "timeframe": "5m",
+  "initial_capital": 50000,
+  "risk_per_trade": 0.02,
+  "strategy_params": {
+    "lookback": 50,
+    "zone_tolerance_pct": 0.3,
+    "min_touches": 2,
+    "rr": 2.0
+  }
+}

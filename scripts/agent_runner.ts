@@ -283,7 +283,6 @@ let db: DbSchema = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
 // --- Agent State Management ---
 let lastTickTime: number = Date.now();
 const pausedAgents: Set<string> = new Set();
-const restartPending: Map<string, boolean> = new Map();
 
 // 1b. Start intelligence services (async, non-blocking)
 startIntelServices();
@@ -310,9 +309,7 @@ function startSterling() {
                     const json = JSON.parse(line.split('AGENT_STATUS_UPDATE:')[1]);
                     db.fx = { ...db.fx, ...json, last_updated: new Date().toISOString() };
                     saveDb();
-                } catch (e: any) {
-                    console.error('[AgentRunner] Failed to parse Sterling agent output:', e.message, line);
-                }
+                } catch {}
             }
             if (line.trim()) console.log(`[Sterling] ${line.trim()}`);
         });
@@ -324,12 +321,8 @@ function startSterling() {
 
     sterlingProcess.on('close', (code: number) => {
         console.log(`⚠️ Sterling exited with code ${code}`);
-        if (!pausedAgents.has('fx') && !restartPending.get('sterling')) {
-            restartPending.set('sterling', true);
-            setTimeout(() => {
-                startSterling();
-                restartPending.set('sterling', false);
-            }, 30000);
+        if (!pausedAgents.has('fx')) {
+            setTimeout(startSterling, 30000);
         }
     });
 }
@@ -352,9 +345,7 @@ function startBitcoinBob() {
                     const json = JSON.parse(line.split('AGENT_STATUS_UPDATE:')[1]);
                     db.crypto = { ...db.crypto, ...json, last_updated: new Date().toISOString() };
                     saveDb();
-                } catch (e: any) {
-                    console.error('[AgentRunner] Failed to parse Bitcoin Bob agent output:', e.message, line);
-                }
+                } catch {}
             }
             if (line.trim()) console.log(`[BitcoinBob] ${line.trim()}`);
         });
@@ -366,12 +357,8 @@ function startBitcoinBob() {
 
     bitcoinBobProcess.on('close', (code: number) => {
         console.log(`⚠️ Bitcoin Bob exited with code ${code}`);
-        if (!pausedAgents.has('crypto') && !restartPending.get('bitcoin_bob')) {
-            restartPending.set('bitcoin_bob', true);
-            setTimeout(() => {
-                startBitcoinBob();
-                restartPending.set('bitcoin_bob', false);
-            }, 30000);
+        if (!pausedAgents.has('crypto')) {
+            setTimeout(startBitcoinBob, 30000);
         }
     });
 }
@@ -382,8 +369,7 @@ function startBitcoinBob() {
 let pivotPeteProcess: any = null;
 function startPivotPete() {
     console.log('🚀 Starting Pivot Pete (Python Engine)...');
-    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-    pivotPeteProcess = spawn(pythonCmd, ['scripts/run_pivot_pete.py'], {
+    pivotPeteProcess = spawn('python', ['scripts/run_pivot_pete.py'], {
         cwd: process.cwd(),
         stdio: ['ignore', 'pipe', 'pipe']
     });
@@ -419,12 +405,8 @@ function startPivotPete() {
     pivotPeteProcess.on('close', (code: number) => {
         console.log(`⚠️ Pivot Pete process exited with code ${code}`);
         // Restart after 30 seconds, but only if not paused
-        if (!pausedAgents.has('futures') && !pausedAgents.has('pivot_pete') && !restartPending.get('pivot_pete')) {
-            restartPending.set('pivot_pete', true);
-            setTimeout(() => {
-                startPivotPete();
-                restartPending.set('pivot_pete', false);
-            }, 30000);
+        if (!pausedAgents.has('futures') && !pausedAgents.has('pivot_pete')) {
+            setTimeout(startPivotPete, 30000);
         } else {
             console.log(`⏸️ Pivot Pete auto-restart suppressed (PAUSED)`);
         }
@@ -436,8 +418,7 @@ function startPivotPete() {
 let bobaProcess: any = null;
 function startBoba() {
     console.log('🚀 Starting Boba (Python Engine)...');
-    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-    bobaProcess = spawn(pythonCmd, ['scripts/run_boba.py'], {
+    bobaProcess = spawn('python', ['scripts/run_boba.py'], {
         cwd: process.cwd(),
         stdio: ['ignore', 'pipe', 'pipe']
     });
@@ -472,12 +453,8 @@ function startBoba() {
 
     bobaProcess.on('close', (code: number) => {
         console.log(`⚠️ Boba process exited with code ${code}`);
-        if (!pausedAgents.has('boba') && !restartPending.get('boba')) {
-            restartPending.set('boba', true);
-            setTimeout(() => {
-                startBoba();
-                restartPending.set('boba', false);
-            }, 30000);
+        if (!pausedAgents.has('boba')) {
+            setTimeout(startBoba, 30000);
         } else {
             console.log(`⏸️ Boba auto-restart suppressed (PAUSED)`);
         }
@@ -490,8 +467,7 @@ function startBoba() {
 let spxProcess: any = null;
 function startSPX() {
     console.log('🚀 Starting SPX Sniper (Python Engine)...');
-    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-    spxProcess = spawn(pythonCmd, ['scripts/run_spx_sniper.py'], {
+    spxProcess = spawn('python', ['scripts/run_spx_sniper.py'], {
         cwd: process.cwd(),
         stdio: ['ignore', 'pipe', 'pipe']
     });
@@ -525,12 +501,8 @@ function startSPX() {
 
     spxProcess.on('close', (code: number) => {
         console.log(`⚠️ SPX Sniper process exited with code ${code}`);
-        if (!pausedAgents.has('spx') && !restartPending.get('spx')) {
-            restartPending.set('spx', true);
-            setTimeout(() => {
-                startSPX();
-                restartPending.set('spx', false);
-            }, 30000);
+        if (!pausedAgents.has('spx')) {
+            setTimeout(startSPX, 30000);
         } else {
             console.log(`⏸️ SPX Sniper auto-restart suppressed (PAUSED)`);
         }
@@ -586,12 +558,8 @@ function startORB() {
 
     orbProcess.on('close', (code: number) => {
         console.log(`⚠️ ORB process exited with code ${code}`);
-        if (!pausedAgents.has('orb') && !restartPending.get('orb')) {
-            restartPending.set('orb', true);
-            setTimeout(() => {
-                startORB();
-                restartPending.set('orb', false);
-            }, 30000);
+        if (!pausedAgents.has('orb')) {
+            setTimeout(startORB, 30000);
         } else {
             console.log(`⏸️ ORB Runner auto-restart suppressed (PAUSED)`);
         }
@@ -832,9 +800,7 @@ market.on('price', (tick: PriceUpdate) => {
 });
 
 function saveDb() {
-    const tmpPath = DB_PATH + '.tmp';
-    fs.writeFileSync(tmpPath, JSON.stringify(db, null, 2));
-    fs.renameSync(tmpPath, DB_PATH);
+    fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
 }
 
 // --- Unified Audit Loop (The Watcher) ---

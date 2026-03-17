@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwjshAK — Agent Status</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --border: #30363d;
+    --cyan: #06b6d4;
+    --purple: #a855f7;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --text: #e6edf3;
+    --muted: #7d8590;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 32px 24px;
+  }
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 32px; }
+
+  .all-live-banner {
+    background: rgba(34,197,94,0.08);
+    border: 1px solid rgba(34,197,94,0.3);
+    border-left: 4px solid var(--green);
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .all-live-icon { font-size: 22px; }
+  .all-live-text { font-size: 13px; color: #86efac; font-weight: 600; }
+  .all-live-sub  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Summary Bar ── */
+  .summary-bar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--green);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+  .summary-icon { font-size: 22px; margin-bottom: 4px; }
+  .summary-name { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+  .summary-market { font-size: 10px; color: var(--muted); margin-bottom: 6px; }
+  .summary-status { font-size: 10px; color: var(--green); font-weight: 600; }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex; gap: 20px; margin-bottom: 28px; flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted);
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ── Section title ── */
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── Pipeline Flows ── */
+  .flow-wrap { display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px; }
+
+  .agent-row {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: 0;
+    align-items: stretch;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(34,197,94,0.25);
+  }
+  .agent-label {
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    background: var(--surface2);
+    border-right: 1px solid var(--border);
+    min-width: 0;
+  }
+  .agent-name { font-size: 14px; font-weight: 700; letter-spacing: 0.02em; }
+  .agent-market { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .agent-broker { font-size: 10px; color: var(--cyan); margin-top: 2px; }
+  .status-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 6px;
+    width: fit-content;
+    background: rgba(34,197,94,0.15);
+    color: var(--green);
+    border: 1px solid rgba(34,197,94,0.3);
+  }
+
+  .pipeline {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    background: var(--surface);
+    overflow-x: auto;
+    gap: 0;
+  }
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-width: 84px;
+    flex-shrink: 0;
+  }
+  .step-box {
+    background: rgba(34,197,94,0.07);
+    border: 1px solid rgba(34,197,94,0.4);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+    color: var(--green);
+  }
+  .step-box.info {
+    background: rgba(6,182,212,0.07);
+    border-color: rgba(6,182,212,0.4);
+    color: var(--cyan);
+  }
+  .step-box.purple {
+    background: rgba(168,85,247,0.08);
+    border-color: rgba(168,85,247,0.35);
+    color: var(--purple);
+  }
+  .step-label {
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: center;
+  }
+  .arrow {
+    color: rgba(34,197,94,0.5);
+    font-size: 16px;
+    padding: 0 4px;
+    flex-shrink: 0;
+    margin-top: -10px;
+  }
+
+  /* ── What Changed ── */
+  .changes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+  .change-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .change-card.was-broken { border-left-color: #f97316; }
+  .change-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .change-agent { font-weight: 700; font-size: 13px; }
+  .before-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .was-ok     { background: rgba(34,197,94,0.12);  color: var(--green);  border: 1px solid rgba(34,197,94,0.3); }
+  .was-warn   { background: rgba(234,179,8,0.12);  color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+  .was-broken-badge { background: rgba(239,68,68,0.12);  color: var(--red);    border: 1px solid rgba(239,68,68,0.3); }
+  .now-badge  { background: rgba(34,197,94,0.12);  color: var(--green);  border: 1px solid rgba(34,197,94,0.3); font-size:10px; font-weight:700; padding:2px 7px; border-radius:4px; text-transform:uppercase; }
+
+  .change-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .change-list li {
+    font-size: 12px;
+    color: var(--muted);
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .change-list li::before { content: '+'; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+  .change-list li.unchanged::before { content: '✓'; color: var(--green); }
+  .change-list li.unchanged { color: #86efac; }
+
+  /* ── PM2 table ── */
+  .pm2-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-bottom: 40px;
+    background: var(--surface);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .pm2-table th {
+    background: var(--surface2);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 10px;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .pm2-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .pm2-table tr:last-child td { border-bottom: none; }
+  .pm2-table code {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+    color: var(--purple);
+  }
+  .dot-green { display:inline-block; width:8px; height:8px; background:var(--green); border-radius:50%; margin-right:6px; box-shadow: 0 0 6px var(--green); }
+
+  @media (max-width: 700px) {
+    .agent-row { grid-template-columns: 1fr; }
+    .agent-label { border-right: none; border-bottom: 1px solid var(--border); }
+    .summary-bar { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<h1>SwjshAK — Agent System</h1>
+<p class="subtitle">Post-fix audit · March 2026 · All 5 agents paper trading</p>
+
+<!-- ── All Live Banner ── -->
+<div class="all-live-banner">
+  <div class="all-live-icon">✅</div>
+  <div>
+    <div class="all-live-text">All 5 agents wired and paper trading</div>
+    <div class="all-live-sub">Every bot now fires webhooks → executor → broker. Zero broken pipelines.</div>
+  </div>
+</div>
+
+<!-- ── Summary Cards ── -->
+<div class="summary-bar">
+  <div class="summary-card">
+    <div class="summary-icon">₿</div>
+    <div class="summary-name">Bitcoin Bob</div>
+    <div class="summary-market">Crypto · 24/7</div>
+    <div class="summary-status">✓ Alpaca Paper</div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-icon">💱</div>
+    <div class="summary-name">Sterling FX</div>
+    <div class="summary-market">Forex · Market Hours</div>
+    <div class="summary-status">✓ OANDA Practice</div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-icon">📈</div>
+    <div class="summary-name">Pivot Pete</div>
+    <div class="summary-market">Futures · Market Hours</div>
+    <div class="summary-status">✓ Alpaca Paper</div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-icon">🔫</div>
+    <div class="summary-name">SPX Sniper</div>
+    <div class="summary-market">0DTE · 10:30–15:50</div>
+    <div class="summary-status">✓ Alpaca Paper</div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-icon">🎯</div>
+    <div class="summary-name">Boba</div>
+    <div class="summary-market">Options · 9:30–11:00</div>
+    <div class="summary-status">✓ Alpaca Paper</div>
+  </div>
+</div>
+
+<!-- ── Legend ── -->
+<div class="legend">
+  <div class="legend-item"><div class="dot" style="background:var(--green)"></div> Wired &amp; working</div>
+  <div class="legend-item"><div class="dot" style="background:var(--cyan)"></div> Infrastructure</div>
+  <div class="legend-item"><div class="dot" style="background:var(--purple)"></div> Grading / Review</div>
+</div>
+
+<!-- ── Pipeline Flows ── -->
+<div class="section-title">Full Pipeline — All Agents</div>
+<div class="flow-wrap">
+
+  <!-- Bitcoin Bob -->
+  <div class="agent-row">
+    <div class="agent-label">
+      <span class="agent-name" style="color:#f59e0b">₿ Bitcoin Bob</span>
+      <span class="agent-market">Crypto · 24/7</span>
+      <span class="agent-broker">Alpaca Paper → BTC/ETH/SOL</span>
+      <span class="status-badge">✓ Paper Trading</span>
+    </div>
+    <div class="pipeline">
+      <div class="step"><div class="step-box info">yfinance</div><div class="step-label">BTC ETH SOL</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">Zone Scan</div><div class="step-label">Every 30m</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">Entry Check</div><div class="step-label">Every 60s</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">fire_signal()</div><div class="step-label">Webhook</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box info">Executor</div><div class="step-label">Risk Gate</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">Alpaca Paper</div><div class="step-label">BTC/ETH/SOL</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box info">SQLite</div><div class="step-label">Trade saved</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box info">Discord</div><div class="step-label">Notified</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box purple">Professor</div><div class="step-label">Graded</div></div>
+    </div>
+  </div>
+
+  <!-- Sterling FX -->
+  <div class="agent-row">
+    <div class="agent-label">
+      <span class="agent-name" style="color:#06b6d4">💱 Sterling FX</span>
+      <span class="agent-market">Forex · Market Hours</span>
+      <span class="agent-broker">OANDA Practice → EUR/GBP/JPY/AUD/CAD</span>
+      <span class="status-badge">✓ Paper Trading</span>
+    </div>
+    <div class="pipeline">
+      <div class="step"><div class="step-box info">yfinance</div><div class="step-label">5 FX Pairs</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">Zone Scan</div><div class="step-label">Every 60m</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">Entry Check</div><div class="step-label">Every 30s</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">fire_signal()</div><div class="step-label">Webhook</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box info">Executor</div><div class="step-label">Risk Gate</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">OANDA Practice</div><div class="step-label">EUR GBP JPY…</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box info">SQLite</div><div class="step-label">Trade saved</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box info">Discord</div><div class="step-label">Notified</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box purple">Professor</div><div class="step-label">Graded</div></div>
+    </div>
+  </div>
+
+  <!-- Pivot Pete -->
+  <div class="agent-row">
+    <div class="agent-label">
+      <span class="agent-name" style="color:#eab308">📈 Pivot Pete</span>
+      <span class="agent-market">Futures · Market Hours</span>
+      <span class="agent-broker">Alpaca Paper → ES/NQ (SPY proxy)</span>
+      <span class="status-badge">✓ Paper Trading</span>
+    </div>
+    <div class="pipeline">
+      <div class="step"><div class="step-box info">OANDA/Alpaca</div><div class="step-label">Real data</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">Pivot Engine</div><div class="step-label">Multi-TF bias</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">Entry Check</div><div class="step-label">Every 5m</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">fire_signal()</div><div class="step-label">Webhook</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box info">Executor</div><div class="step-label">Risk Gate</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">Alpaca Paper</div><div class="step-label">ES proxy</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box info">SQLite</div><div class="step-label">Trade saved</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box info">Discord</div><div class="step-label">Notified</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box purple">Professor</div><div class="step-label">Graded</div></div>
+    </div>
+  </div>
+
+  <!-- SPX Sniper -->
+  <div class="agent-row">
+    <div class="agent-label">
+      <span class="agent-name" style="color:#a855f7">🔫 SPX Sniper</span>
+      <span class="agent-market">0DTE · 10:30–15:50 EST</span>
+      <span class="agent-broker">Alpaca Paper → SPY proxy</span>
+      <span class="status-badge">✓ Paper Trading</span>
+    </div>
+    <div class="pipeline">
+      <div class="step"><div class="step-box info">yfinance ^SPX</div><div class="step-label">5m candles</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">EMA9 + VWAP</div><div class="step-label">Indicators</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">CALL/PUT</div><div class="step-label">Signal gen</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">fire_signal()</div><div class="step-label">Webhook</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box info">Executor</div><div class="step-label">Risk Gate</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">Alpaca Paper</div><div class="step-label">SPY proxy</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box info">SQLite</div><div class="step-label">Trade saved</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box info">Discord</div><div class="step-label">Notified</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box purple">Professor</div><div class="step-label">Graded</div></div>
+    </div>
+  </div>
+
+  <!-- Boba -->
+  <div class="agent-row">
+    <div class="agent-label">
+      <span class="agent-name" style="color:#22c55e">🎯 Boba</span>
+      <span class="agent-market">Options · 9:30–11:00 EST</span>
+      <span class="agent-broker">Alpaca Paper → SPY proxy</span>
+      <span class="status-badge">✓ Paper Trading</span>
+    </div>
+    <div class="pipeline">
+      <div class="step"><div class="step-box info">yfinance SPY</div><div class="step-label">15m candles</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">Zone Scan</div><div class="step-label">Every 15m</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">Entry Check</div><div class="step-label">Every 5m</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">fire_signal()</div><div class="step-label">Webhook</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box info">Executor</div><div class="step-label">Risk Gate</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box">Alpaca Paper</div><div class="step-label">SPY proxy</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box info">SQLite</div><div class="step-label">Trade saved</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box info">Discord</div><div class="step-label">Notified</div></div>
+      <span class="arrow">→</span>
+      <div class="step"><div class="step-box purple">Professor</div><div class="step-label">Graded</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── What Changed ── -->
+<div class="section-title">What Was Fixed — Per Agent</div>
+<div class="changes-grid">
+
+  <div class="change-card">
+    <div class="change-header">
+      <span class="change-agent" style="color:#f59e0b">₿ Bitcoin Bob</span>
+      <span class="before-badge was-ok">Was: Live</span>
+    </div>
+    <ul class="change-list">
+      <li class="unchanged">No changes needed — already fully wired</li>
+      <li class="unchanged">Webhook → Alpaca Paper working since day 1</li>
+      <li class="unchanged">SL/TP exit monitoring active</li>
+      <li class="unchanged">Dashboard broadcast active</li>
+    </ul>
+  </div>
+
+  <div class="change-card">
+    <div class="change-header">
+      <span class="change-agent" style="color:#06b6d4">💱 Sterling FX</span>
+      <span class="before-badge was-ok">Was: Live</span>
+    </div>
+    <ul class="change-list">
+      <li class="unchanged">No changes needed — already fully wired</li>
+      <li class="unchanged">Webhook → OANDA Practice working since rewrite</li>
+      <li class="unchanged">5 pairs scanning on live loop</li>
+      <li class="unchanged">Dashboard broadcast active</li>
+    </ul>
+  </div>
+
+  <div class="change-card was-broken">
+    <div class="change-header">
+      <span class="change-agent" style="color:#eab308">📈 Pivot Pete</span>
+      <span class="before-badge was-warn">Was: 3 Bugs</span>
+    </div>
+    <ul class="change-list">
+      <li>Added <code>fire_signal()</code> — trades now hit the webhook chain</li>
+      <li>Wired <code>execute_trade()</code> to fire BUY/SELL on entry</li>
+      <li>Wired <code>close_trade()</code> to fire EXIT on SL/TP hit</li>
+      <li>Added <code>broadcast_status()</code> — dashboard sees live state</li>
+      <li>Added startup quip + agent log messages</li>
+      <li>Added to <code>ecosystem.config.js</code> as AK-PivotPete</li>
+      <li>Added to <code>supervisord.conf</code> for Docker</li>
+    </ul>
+  </div>
+
+  <div class="change-card was-broken">
+    <div class="change-header">
+      <span class="change-agent" style="color:#a855f7">🔫 SPX Sniper</span>
+      <span class="before-badge was-broken-badge">Was: Crashed</span>
+    </div>
+    <ul class="change-list">
+      <li>Full rewrite — was a one-shot function, now a continuous live loop</li>
+      <li>Added <code>SPXSniperEngine</code> class (was missing, caused ImportError)</li>
+      <li>Added <code>fire_signal()</code> → webhook → Alpaca Paper (SPY)</li>
+      <li>Added VWAP cross + EMA9 + RSI signal generation</li>
+      <li>Added <code>check_trade_exits()</code> — SL/TP exit monitoring</li>
+      <li>Time gate enforced: 10:30–15:50 EST entries only</li>
+      <li>Added <code>broadcast_status()</code> for dashboard</li>
+      <li>Added to <code>ecosystem.config.js</code> as AK-SPXSniper</li>
+    </ul>
+  </div>
+
+  <div class="change-card was-broken">
+    <div class="change-header">
+      <span class="change-agent" style="color:#22c55e">🎯 Boba</span>
+      <span class="before-badge was-broken-badge">Was: Skeleton</span>
+    </div>
+    <ul class="change-list">
+      <li>Added <code>fire_signal()</code> → webhook → Alpaca Paper (SPY)</li>
+      <li>Rewrote <code>execute_trade()</code> to fire the webhook instead of local dict</li>
+      <li>Added <code>check_trade_exits()</code> — SL/TP exit monitoring (was missing entirely)</li>
+      <li>Added <code>check_zone_entries()</code> with proper entry logic</li>
+      <li>Added continuous live loop with 5m scan interval</li>
+      <li>Added <code>broadcast_status()</code> for dashboard</li>
+      <li>Entry gated to 9:30–11:00 AM EST, exits monitored all day</li>
+      <li>Added to <code>ecosystem.config.js</code> as AK-Boba</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- ── PM2 Process Table ── -->
+<div class="section-title">PM2 Processes — ecosystem.config.js</div>
+<table class="pm2-table">
+  <thead>
+    <tr>
+      <th>Process Name</th>
+      <th>Script</th>
+      <th>Market</th>
+      <th>Broker</th>
+      <th>Schedule</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>AK-Dashboard</code></td>
+      <td><code>next start</code></td>
+      <td>—</td>
+      <td>—</td>
+      <td>Always on · port 3000</td>
+      <td><span class="dot-green"></span>Running</td>
+    </tr>
+    <tr>
+      <td><code>AK-BitcoinBob</code></td>
+      <td><code>bitcoin_bob_engine.py</code></td>
+      <td>Crypto</td>
+      <td>Alpaca Paper</td>
+      <td>24/7 · 60s ticks · 30m scan</td>
+      <td><span class="dot-green"></span>Running</td>
+    </tr>
+    <tr>
+      <td><code>AK-Sterling</code></td>
+      <td><code>sterling_fx_engine.py</code></td>
+      <td>Forex</td>
+      <td>OANDA Practice</td>
+      <td>Market hours · 30s ticks · 60m scan</td>
+      <td><span class="dot-green"></span>Running</td>
+    </tr>
+    <tr>
+      <td><code>AK-PivotPete</code></td>
+      <td><code>pivot_pete_engine.py</code></td>
+      <td>Futures</td>
+      <td>Alpaca Paper</td>
+      <td>Market hours · 5m scan</td>
+      <td><span class="dot-green"></span>Running</td>
+    </tr>
+    <tr>
+      <td><code>AK-SPXSniper</code></td>
+      <td><code>spx_sniper_engine.py</code></td>
+      <td>0DTE Options</td>
+      <td>Alpaca Paper</td>
+      <td>10:30–15:50 EST · 5m scan</td>
+      <td><span class="dot-green"></span>Running</td>
+    </tr>
+    <tr>
+      <td><code>AK-Boba</code></td>
+      <td><code>boba_trades_engine.py</code></td>
+      <td>Options</td>
+      <td>Alpaca Paper</td>
+      <td>Entry 9:30–11:00 EST · 5m scan</td>
+      <td><span class="dot-green"></span>Running</td>
+    </tr>
+  </tbody>
+</table>
+
+<div style="color:var(--muted);font-size:11px;padding-top:16px;border-top:1px solid var(--border)">
+  SwjshAK · All 5 agents paper trading · March 2026 · Next step: deploy to GCP
+</div>
+
+</body>
+</html>

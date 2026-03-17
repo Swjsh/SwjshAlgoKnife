@@ -1,0 +1,23 @@
+
+> dark-rosette@0.1.0 build
+> next build
+
+▲ Next.js 16.1.1 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.5s
+  Running TypeScript ...
+Failed to compile.
+
+./src/components/SaaSLanding/index.tsx:268:21
+Type error: Type '"element"' is not assignable to type '"default" | "gradient" | "secondary" | "ghost" | undefined'.
+
+[0m [90m 266 |[39m                 [33m<[39m[33mButton[39m
+ [90m 267 |[39m                     type[33m=[39m[32m"button"[39m
+[31m[1m>[22m[39m[90m 268 |[39m                     variant[33m=[39m[32m"element"[39m [90m// Fallback to ghost/secondary styles if element doesn't exist, using secondary here effectively[39m
+ [90m     |[39m                     [31m[1m^[22m[39m
+ [90m 269 |[39m                     className[33m=[39m[32m"bg-[var(--bg-subtle)] text-[var(--text-primary)] hover:bg-[var(--bg-surface)] border border-[var(--border-base)] h-12 px-8 rounded-lg"[39m
+ [90m 270 |[39m                     onClick[33m=[39m{() [33m=>[39m router[33m.[39mpush([32m'/strategies'[39m)}
+ [90m 271 |[39m                 [33m>[39m[0m
+Next.js build worker exited with code: 1 and signal: null

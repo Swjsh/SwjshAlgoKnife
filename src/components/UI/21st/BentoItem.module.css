@@ -1,0 +1,55 @@
+.bentoItem {
+    position: relative;
+    background: rgba(10, 10, 15, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 2px;
+    /* Space for corners if needed, or adjust positioning */
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+}
+
+.contentWrapper {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    z-index: 10;
+}
+
+.corner {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-color: rgba(168, 85, 247, 0.5);
+    border-style: solid;
+    pointer-events: none;
+    z-index: 20;
+}
+
+.topLeft {
+    top: 0;
+    left: 0;
+    border-width: 1px 0 0 1px;
+    border-top-left-radius: 8px;
+}
+
+.topRight {
+    top: 0;
+    right: 0;
+    border-width: 1px 1px 0 0;
+    border-top-right-radius: 8px;
+}
+
+.bottomLeft {
+    bottom: 0;
+    left: 0;
+    border-width: 0 0 1px 1px;
+    border-bottom-left-radius: 8px;
+}
+
+.bottomRight {
+    bottom: 0;
+    right: 0;
+    border-width: 0 1px 1px 0;
+    border-bottom-right-radius: 8px;
+}

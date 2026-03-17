@@ -1,0 +1,472 @@
+.container {
+    min-height: 100vh;
+    background: hsl(222, 47%, 11%);
+    color: white;
+    padding: 24px;
+}
+
+.loading {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: hsl(222, 47%, 11%);
+    color: rgba(255, 255, 255, 0.7);
+    gap: 16px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(6, 182, 212, 0.2);
+    border-top-color: hsl(188, 95%, 43%);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.title {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(135deg, hsl(188, 95%, 43%), hsl(271, 77%, 62%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    color: rgba(255, 255, 255, 0.5);
+    margin: 4px 0 0;
+    font-size: 14px;
+}
+
+.headerActions {
+    display: flex;
+    gap: 12px;
+}
+
+.refreshBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(6, 182, 212, 0.1);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    color: hsl(188, 95%, 43%);
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.refreshBtn:hover {
+    background: rgba(6, 182, 212, 0.15);
+    border-color: rgba(6, 182, 212, 0.5);
+}
+
+/* System Overview */
+.overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.overviewCard {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 18px;
+    border-radius: 12px;
+}
+
+.overviewCard svg {
+    color: hsl(188, 95%, 43%);
+}
+
+.overviewLabel {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 4px;
+}
+
+.overviewValue {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'Consolas', monospace;
+    color: white;
+}
+
+.overviewValue.profit { color: var(--status-success); }
+.overviewValue.loss { color: var(--status-danger); }
+
+/* Section */
+.section {
+    margin-bottom: 32px;
+}
+
+.sectionTitle {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 16px;
+}
+
+/* Master Account Card */
+.masterCard {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.accountHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.accountInfo h3 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    color: white;
+}
+
+.accountType {
+    display: inline-block;
+    padding: 4px 10px;
+    background: rgba(6, 182, 212, 0.15);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: hsl(188, 95%, 43%);
+}
+
+.accountBalance {
+    text-align: right;
+}
+
+.balanceLabel {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 4px;
+}
+
+.balanceValue {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'Consolas', monospace;
+    color: white;
+}
+
+.accountGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.accountMetric {
+    text-align: center;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+}
+
+.metricLabel {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 8px;
+}
+
+.metricValue {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Consolas', monospace;
+    color: white;
+}
+
+.metricValue.profit { color: var(--status-success); }
+.metricValue.loss { color: var(--status-danger); }
+
+/* Agent Accounts Grid */
+.accountsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.agentCard {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 18px;
+    transition: all 0.2s ease;
+}
+
+.agentCard:hover {
+    border-color: rgba(6, 182, 212, 0.3);
+    background: rgba(6, 182, 212, 0.05);
+}
+
+.agentHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+}
+
+.agentHeader h4 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    color: white;
+}
+
+.agentId {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: 'Consolas', monospace;
+}
+
+.statusBadge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.statusBadge.active {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--status-success);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.statusBadge.frozen {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--status-warning);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.statusBadge.closed {
+    background: rgba(107, 114, 128, 0.15);
+    color: #6b7280;
+    border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+.agentEquity {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.equityLabel {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 6px;
+}
+
+.equityValue {
+    font-size: 24px;
+    font-weight: 700;
+    font-family: 'Consolas', monospace;
+    color: white;
+}
+
+.agentMetrics {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+
+.metric span {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.metric strong {
+    font-family: 'Consolas', monospace;
+    color: white;
+}
+
+.metric strong.profit {
+    color: var(--status-success);
+}
+
+.metric strong.loss {
+    color: var(--status-danger);
+}
+
+/* Transactions */
+.transactionList {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.transactionRow {
+    display: grid;
+    grid-template-columns: 40px 2fr 1fr 120px 150px;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    transition: all 0.2s ease;
+}
+
+.transactionRow:last-child {
+    border-bottom: none;
+}
+
+.transactionRow:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.txnIcon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.depositIcon { color: var(--status-success); }
+.withdrawIcon { color: var(--status-danger); }
+.allocIcon { color: var(--status-warning); }
+.releaseIcon { color: #06b6d4; }
+.profitIcon { color: var(--status-success); }
+.lossIcon { color: var(--status-danger); }
+
+.txnDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.txnType {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.txnDesc {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.txnAccount {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Consolas', monospace;
+}
+
+.txnAmount {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Consolas', monospace;
+    text-align: right;
+}
+
+.txnAmount.positive { color: var(--status-success); }
+.txnAmount.negative { color: var(--status-danger); }
+
+.txnTime {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: 'Consolas', monospace;
+    text-align: right;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .accountGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .transactionRow {
+        grid-template-columns: 40px 1fr 100px;
+        gap: 12px;
+    }
+
+    .txnAccount,
+    .txnTime {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 16px;
+    }
+
+    .overview {
+        grid-template-columns: 1fr;
+    }
+
+    .accountGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .accountsGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+   ═══════════════════════════════════════════════════════════════ */
+:global([data-theme='light']) .container {
+    background: var(--bg-main);
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .loading {
+    background: var(--bg-main);
+    color: var(--text-muted);
+}
+
+:global([data-theme='light']) .title {
+    color: var(--text-primary);
+}

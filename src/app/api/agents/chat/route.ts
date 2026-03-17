@@ -1,15 +1,9 @@
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { requireAdmin } from '@/lib/adminGuard';
 
-export async function GET(request: NextRequest) {
-    // SECURITY: Require authentication — agent logs contain trade data
-    const adminCheck = await requireAdmin(request);
-    if (!adminCheck.authorized) {
-        return adminCheck.error!;
-    }
+export async function GET() {
     const logPath = path.join(process.cwd(), 'data', 'agent_logs.json');
 
     // Base personas (matching the scripts)

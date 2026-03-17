@@ -21,7 +21,6 @@ from pathlib import Path
 from datetime import datetime, time as dtime
 import pytz
 from agent_utils import log_message, get_random_quip, save_agent_state, load_agent_state
-from utils.retry import retry, retry_on_empty
 
 # ── Config ────────────────────────────────────────────────────────────────────
 TICKER             = 'SPY'            # Use SPY directly — eliminates SPX/SPY price divergence
@@ -33,7 +32,7 @@ MAX_OPEN_TRADES    = 1               # 0DTE = one at a time
 RISK_REWARD        = 1.5
 STATUS_FILE        = Path(__file__).parent.parent / 'data' / 'spx_agent_status.json'
 WEBHOOK_URL        = "http://localhost:3000/api/webhook/tradingview"
-WEBHOOK_SECRET     = os.getenv("WEBHOOK_SECRET", "changeme")
+WEBHOOK_SECRET     = "swjshak-tv-webhook-2026"
 
 EST = pytz.timezone('US/Eastern')
 
@@ -254,11 +253,8 @@ def run():
             now_str = datetime.now(EST).strftime('%H:%M:%S')
             print(f"\n[{now_str}] SPX Sniper scan #{scan_count}")
 
-            # Fetch data (with retry on transient failures)
-            @retry_on_empty(max_retries=2, base_delay=3.0)
-            def _fetch_spx_data():
-                return yf.download(TICKER, period=PERIOD, interval=TIMEFRAME, progress=False)
-            data = _fetch_spx_data()
+            # Fetch data
+            data = yf.download(TICKER, period=PERIOD, interval=TIMEFRAME, progress=False)
             if isinstance(data.columns, pd.MultiIndex):
                 data.columns = data.columns.get_level_values(0)
 

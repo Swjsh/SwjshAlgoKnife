@@ -1,0 +1,482 @@
+
+> dark-rosette@0.1.0 build
+> next build
+
+▲ Next.js 16.1.1 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 20 errors:
+./src/app/agent/[id]/page.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/app/agent/[id]/page.module.css [Client Component Browser]
+    ./src/app/agent/[id]/page.tsx [Client Component Browser]
+    ./src/app/agent/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/agent/[id]/page.module.css [Client Component SSR]
+    ./src/app/agent/[id]/page.tsx [Client Component SSR]
+    ./src/app/agent/[id]/page.tsx [Server Component]
+
+
+./src/app/agents/break-room/page.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/app/agents/break-room/page.module.css [Client Component Browser]
+    ./src/app/agents/break-room/page.tsx [Client Component Browser]
+    ./src/app/agents/break-room/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/agents/break-room/page.module.css [Client Component SSR]
+    ./src/app/agents/break-room/page.tsx [Client Component SSR]
+    ./src/app/agents/break-room/page.tsx [Server Component]
+
+
+./src/app/agents/page.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/app/agents/page.module.css [Client Component Browser]
+    ./src/app/agents/page.tsx [Client Component Browser]
+    ./src/app/agents/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/agents/page.module.css [Client Component SSR]
+    ./src/app/agents/page.tsx [Client Component SSR]
+    ./src/app/agents/page.tsx [Server Component]
+
+
+./src/app/globals.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import trace:
+  Client Component Browser:
+    ./src/app/globals.css [Client Component Browser]
+    ./src/app/layout.tsx [Server Component]
+
+
+./src/app/layout.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/app/layout.module.css [Client Component Browser]
+    ./src/components/Navigation/ConditionalLayout.tsx [Client Component Browser]
+    ./src/components/Navigation/ConditionalLayout.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/layout.module.css [Client Component SSR]
+    ./src/components/Navigation/ConditionalLayout.tsx [Client Component SSR]
+    ./src/components/Navigation/ConditionalLayout.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+
+./src/app/login/login.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/app/login/login.module.css [Client Component Browser]
+    ./src/app/login/page.tsx [Client Component Browser]
+    ./src/app/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/login/login.module.css [Client Component SSR]
+    ./src/app/login/page.tsx [Client Component SSR]
+    ./src/app/login/page.tsx [Server Component]
+
+
+./src/app/logs/page.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/app/logs/page.module.css [Client Component Browser]
+    ./src/app/logs/page.tsx [Client Component Browser]
+    ./src/app/logs/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/logs/page.module.css [Client Component SSR]
+    ./src/app/logs/page.tsx [Client Component SSR]
+    ./src/app/logs/page.tsx [Server Component]
+
+
+./src/app/research/Research.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/app/research/Research.module.css [Client Component Browser]
+    ./src/app/research/page.tsx [Client Component Browser]
+    ./src/app/research/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/research/Research.module.css [Client Component SSR]
+    ./src/app/research/page.tsx [Client Component SSR]
+    ./src/app/research/page.tsx [Server Component]
+
+
+./src/app/scanner/Scanner.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/app/scanner/Scanner.module.css [Client Component Browser]
+    ./src/app/scanner/page.tsx [Client Component Browser]
+    ./src/app/scanner/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/scanner/Scanner.module.css [Client Component SSR]
+    ./src/app/scanner/page.tsx [Client Component SSR]
+    ./src/app/scanner/page.tsx [Server Component]
+
+
+./src/app/settings/page.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/app/settings/page.module.css [Client Component Browser]
+    ./src/app/settings/page.tsx [Client Component Browser]
+    ./src/app/settings/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/settings/page.module.css [Client Component SSR]
+    ./src/app/settings/page.tsx [Client Component SSR]
+    ./src/app/settings/page.tsx [Server Component]
+
+
+./src/app/strategies/Strategies.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/app/strategies/Strategies.module.css [Client Component Browser]
+    ./src/app/strategies/page.tsx [Client Component Browser]
+    ./src/app/strategies/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/strategies/Strategies.module.css [Client Component SSR]
+    ./src/app/strategies/page.tsx [Client Component SSR]
+    ./src/app/strategies/page.tsx [Server Component]
+
+
+./src/components/Header/StrategyMenu.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/components/Header/StrategyMenu.module.css [Client Component Browser]
+    ./src/components/Header/StrategyMenu.tsx [Client Component Browser]
+    ./src/components/Layout/Header.tsx [Client Component Browser]
+    ./src/components/Navigation/ConditionalLayout.tsx [Client Component Browser]
+    ./src/components/Navigation/ConditionalLayout.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/Header/StrategyMenu.module.css [Client Component SSR]
+    ./src/components/Header/StrategyMenu.tsx [Client Component SSR]
+    ./src/components/Layout/Header.tsx [Client Component SSR]
+    ./src/components/Navigation/ConditionalLayout.tsx [Client Component SSR]
+    ./src/components/Navigation/ConditionalLayout.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+
+./src/components/Journal/AnalyticsHeader.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/components/Journal/AnalyticsHeader.module.css [Client Component Browser]
+    ./src/components/Journal/AnalyticsHeader.tsx [Client Component Browser]
+    ./src/app/journal/page.tsx [Client Component Browser]
+    ./src/app/journal/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/Journal/AnalyticsHeader.module.css [Client Component SSR]
+    ./src/components/Journal/AnalyticsHeader.tsx [Client Component SSR]
+    ./src/app/journal/page.tsx [Client Component SSR]
+    ./src/app/journal/page.tsx [Server Component]
+
+
+./src/components/Journal/EntryForm.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/components/Journal/EntryForm.module.css [Client Component Browser]
+    ./src/components/Journal/EntryForm.tsx [Client Component Browser]
+    ./src/app/journal/page.tsx [Client Component Browser]
+    ./src/app/journal/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/Journal/EntryForm.module.css [Client Component SSR]
+    ./src/components/Journal/EntryForm.tsx [Client Component SSR]
+    ./src/app/journal/page.tsx [Client Component SSR]
+    ./src/app/journal/page.tsx [Server Component]
+
+
+./src/components/Journal/TradeList.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/components/Journal/TradeList.module.css [Client Component Browser]
+    ./src/components/Journal/TradeList.tsx [Client Component Browser]
+    ./src/app/journal/page.tsx [Client Component Browser]
+    ./src/app/journal/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/Journal/TradeList.module.css [Client Component SSR]
+    ./src/components/Journal/TradeList.tsx [Client Component SSR]
+    ./src/app/journal/page.tsx [Client Component SSR]
+    ./src/app/journal/page.tsx [Server Component]
+
+
+./src/components/Landing/HeroParticle.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/components/Landing/HeroParticle.module.css [Client Component Browser]
+    ./src/components/Landing/HeroParticle.tsx [Client Component Browser]
+    ./src/components/Landing/HeroParticle.tsx [Server Component]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/Landing/HeroParticle.module.css [Client Component SSR]
+    ./src/components/Landing/HeroParticle.tsx [Client Component SSR]
+    ./src/components/Landing/HeroParticle.tsx [Server Component]
+    ./src/app/page.tsx [Server Component]
+
+
+./src/components/Layout/Header.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/components/Layout/Header.module.css [Client Component Browser]
+    ./src/components/Layout/Header.tsx [Client Component Browser]
+    ./src/components/Navigation/ConditionalLayout.tsx [Client Component Browser]
+    ./src/components/Navigation/ConditionalLayout.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/Layout/Header.module.css [Client Component SSR]
+    ./src/components/Layout/Header.tsx [Client Component SSR]
+    ./src/components/Navigation/ConditionalLayout.tsx [Client Component SSR]
+    ./src/components/Navigation/ConditionalLayout.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+
+./src/components/Layout/Sidebar.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/components/Layout/Sidebar.module.css [Client Component Browser]
+    ./src/components/Layout/Sidebar.tsx [Client Component Browser]
+    ./src/components/Navigation/ConditionalLayout.tsx [Client Component Browser]
+    ./src/components/Navigation/ConditionalLayout.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/Layout/Sidebar.module.css [Client Component SSR]
+    ./src/components/Layout/Sidebar.tsx [Client Component SSR]
+    ./src/components/Navigation/ConditionalLayout.tsx [Client Component SSR]
+    ./src/components/Navigation/ConditionalLayout.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+
+./src/components/UI/DynamicBorderCard.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/components/UI/DynamicBorderCard.module.css [Client Component Browser]
+    ./src/components/UI/DynamicBorderCard.tsx [Client Component Browser]
+    ./src/components/Header/StrategyMenu.tsx [Client Component Browser]
+    ./src/components/Layout/Header.tsx [Client Component Browser]
+    ./src/components/Navigation/ConditionalLayout.tsx [Client Component Browser]
+    ./src/components/Navigation/ConditionalLayout.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/UI/DynamicBorderCard.module.css [Client Component SSR]
+    ./src/components/UI/DynamicBorderCard.tsx [Client Component SSR]
+    ./src/components/Header/StrategyMenu.tsx [Client Component SSR]
+    ./src/components/Layout/Header.tsx [Client Component SSR]
+    ./src/components/Navigation/ConditionalLayout.tsx [Client Component SSR]
+    ./src/components/Navigation/ConditionalLayout.tsx [Server Component]
+    ./src/app/layout.tsx [Server Component]
+
+
+./src/components/UI/GlassPanel.module.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\jackw\Desktop\SwjshAlgoKnife\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import traces:
+  Client Component Browser:
+    ./src/components/UI/GlassPanel.module.css [Client Component Browser]
+    ./src/components/UI/GlassPanel.tsx [Client Component Browser]
+    ./src/app/scanner/page.tsx [Client Component Browser]
+    ./src/app/scanner/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/UI/GlassPanel.module.css [Client Component SSR]
+    ./src/components/UI/GlassPanel.tsx [Client Component SSR]
+    ./src/app/scanner/page.tsx [Client Component SSR]
+    ./src/app/scanner/page.tsx [Server Component]
+
+
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__6d51cb5d._.js:155:35])
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\build\chunks\[root-of-the-server]__44695d76._.js:429:26])
+    ... collapsed 38 duplicate lines matching above 2 lines 19 times...

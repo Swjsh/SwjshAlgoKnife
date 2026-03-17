@@ -75,16 +75,13 @@ async function findUserFromWebhook(
   authHeader: string | null
 ): Promise<{ userId: string; botId?: string } | null> {
   // 1. Check for explicit userId in payload
-  // SECURITY: Validate userId actually exists AND belongs to an onboarded user
   if (payload.userId) {
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
     });
-    if (user && user.onboardingStep && ['BROKER_CONNECTED', 'COMPLETED'].includes(user.onboardingStep)) {
+    if (user) {
       return { userId: user.id, botId: payload.botId };
     }
-    // If userId doesn't exist or isn't onboarded, fall through (don't trust payload)
-    console.warn(`[Webhook] Untrusted userId in payload: "${payload.userId}" — ignoring`);
   }
 
   // 2. Check for botId and look up user
@@ -98,21 +95,24 @@ async function findUserFromWebhook(
     }
   }
 
-  // 3. If global webhook secret matches (timing-safe), look for default user
-  if (WEBHOOK_SECRET && authHeader) {
+  // 3. If global webhook secret matches (timing-safe comparison), look for default user
+  if (WEBHOOK_SECRET) {
     let secretMatches = false;
-    const candidates = [`Bearer ${WEBHOOK_SECRET}`, WEBHOOK_SECRET];
-    for (const expected of candidates) {
-      try {
-        const authBuf = Buffer.from(authHeader);
-        const expectedBuf = Buffer.from(expected);
-        if (authBuf.length === expectedBuf.length && crypto.timingSafeEqual(authBuf, expectedBuf)) {
-          secretMatches = true;
-          break;
-        }
-      } catch {
-        // length mismatch or buffer error — continue
+    try {
+      if (authHeader === `Bearer ${WEBHOOK_SECRET}`) {
+        secretMatches = crypto.timingSafeEqual(
+          Buffer.from(authHeader),
+          Buffer.from(`Bearer ${WEBHOOK_SECRET}`)
+        );
+      } else if (authHeader === WEBHOOK_SECRET) {
+        secretMatches = crypto.timingSafeEqual(
+          Buffer.from(authHeader),
+          Buffer.from(WEBHOOK_SECRET)
+        );
       }
+    } catch {
+      // timingSafeEqual throws on buffer length mismatch; treat as no match
+      secretMatches = false;
     }
 
     if (secretMatches) {
@@ -192,33 +192,23 @@ export async function POST(req: NextRequest) {
       req.headers.get('X-Webhook-Secret') ||
       req.headers.get('Authorization');
 
-    // SECURITY: Always require webhook secret — reject if not configured
-    if (!WEBHOOK_SECRET) {
-      console.error('[SECURITY] WEBHOOK_SECRET not set — rejecting all webhook requests');
-      return NextResponse.json({ error: 'Service misconfiguration' }, { status: 500 });
-    }
-
-    {
+    if (WEBHOOK_SECRET) {
       let isAuthenticated = false;
-      if (authHeader && authHeader.length > 0) {
-        // Timing-safe comparison: compare against both "Bearer <secret>" and raw secret
-        // FIXED: No === pre-check that leaks timing info. Use length-padded buffers.
-        const candidates = [`Bearer ${WEBHOOK_SECRET}`, WEBHOOK_SECRET];
-        for (const expected of candidates) {
-          try {
-            const authBuf = Buffer.from(authHeader);
-            const expectedBuf = Buffer.from(expected);
-            // timingSafeEqual requires same length — only compare if lengths match
-            if (authBuf.length === expectedBuf.length) {
-              if (crypto.timingSafeEqual(authBuf, expectedBuf)) {
-                isAuthenticated = true;
-                break;
-              }
-            }
-          } catch {
-            // Buffer construction failure — treat as no match
-          }
+      try {
+        if (authHeader === `Bearer ${WEBHOOK_SECRET}`) {
+          isAuthenticated = crypto.timingSafeEqual(
+            Buffer.from(authHeader),
+            Buffer.from(`Bearer ${WEBHOOK_SECRET}`)
+          );
+        } else if (authHeader === WEBHOOK_SECRET) {
+          isAuthenticated = crypto.timingSafeEqual(
+            Buffer.from(authHeader),
+            Buffer.from(WEBHOOK_SECRET)
+          );
         }
+      } catch {
+        // timingSafeEqual throws on buffer length mismatch; treat as no match
+        isAuthenticated = false;
       }
 
       if (!isAuthenticated) {

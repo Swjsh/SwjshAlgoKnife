@@ -29,7 +29,6 @@ import requests
 import pandas as pd
 import numpy as np
 from agent_utils import log_message, get_random_quip, save_agent_state, load_agent_state, save_risk_state, load_risk_state
-from utils.retry import retry, retry_on_empty
 import pytz
 
 load_dotenv(os.path.join(os.getcwd(), '.env.local'))
@@ -87,15 +86,14 @@ class DataProvider:
             return self._fetch_alpaca(symbol, interval)
         raise ValueError(f"Unsupported provider: {self.provider}")
 
-    @retry(max_retries=3, base_delay=2.0)
     def _fetch_oanda(self, symbol: str, interval: str) -> pd.DataFrame:
-        api_key = os.getenv("OANDA_API_TOKEN")
+        api_key = os.getenv("OANDA_API_KEY") or os.getenv("OANDA_API_TOKEN")
         account_id = os.getenv("OANDA_ACCOUNT_ID")
         env = (os.getenv("OANDA_ENVIRONMENT") or "practice").lower()
         base_url = os.getenv("OANDA_BASE_URL") or ("https://api-fxpractice.oanda.com" if env == "practice" else "https://api-fxtrade.oanda.com")
 
         if not api_key or not account_id:
-            raise RuntimeError("Missing OANDA_API_TOKEN or OANDA_ACCOUNT_ID")
+            raise RuntimeError("Missing OANDA_API_KEY/OANDA_API_TOKEN or OANDA_ACCOUNT_ID")
 
         instrument = OANDA_SYMBOL_MAP.get(symbol)
         if not instrument:
@@ -138,7 +136,6 @@ class DataProvider:
         df = df.set_index("Datetime")
         return df
 
-    @retry(max_retries=3, base_delay=2.0)
     def _fetch_alpaca(self, symbol: str, interval: str) -> pd.DataFrame:
         api_key = os.getenv("APCA_API_KEY_ID")
         secret_key = os.getenv("APCA_API_SECRET_KEY")

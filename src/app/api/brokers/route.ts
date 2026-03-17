@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireUser, AuthError } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { encryptSecret } from '@/lib/encryption';
-import { brokerLimiter } from '@/lib/rateLimit';
 import { z } from 'zod';
 
 const CreateBrokerSchema = z.object({
@@ -66,16 +65,6 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const user = await requireUser();
-
-    // Rate limit: 10 broker operations per minute per user
-    const { allowed, retryAfter } = brokerLimiter.check(user.id);
-    if (!allowed) {
-      return NextResponse.json(
-        { error: 'Too many requests. Please wait before trying again.', code: 'RATE_LIMITED' },
-        { status: 429, headers: { 'Retry-After': String(retryAfter) } }
-      );
-    }
-
     const body = await req.json();
 
     // Validate input
