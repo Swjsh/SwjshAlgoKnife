@@ -207,6 +207,34 @@ after Jack fixes it → fix gets added to playbook → brain never forgets a fai
 | LOW | Add test cleanup to intel preflight system | code | intel_decision_log contains PREFLIGHT_CONTRA_, PREFLIGHT_FUND_, PREFLIGHT_CONF_ test rows leaking into production table. Add cleanup or write test rows to a separate test table. |
 | HIGH | Fix AGENTS_DB_PATH in dataPaths.ts | code | `dataPaths.ts` resolves AGENTS_DB_PATH to `cwd/agents_db.json` but file is at `src/app/api/agents/agents_db.json`. This is why `/api/control` returns `agents: {}`. Fix: change path to `path.join(DATA_DIR, 'src/app/api/agents/agents_db.json')` OR add `AGENTS_DB_PATH=./src/app/api/agents/agents_db.json` to `.env.local`. This single fix resolves GAP-001 AND GAP-008 simultaneously. |
 | MED | Confirm ORB Runner architecture | code | `run_orb_agent.ts` exists. `orb_engine.py` does NOT exist. `orb.ts` strategy file exists. Clarify: is ORB entirely TypeScript (use `orb.ts` strategy engine via agent_runner.ts) or does it need a Python process like the other agents? Document the answer and wire accordingly. |
+| LOW | Document `transactions` table in db.ts | brain/code | `transactions` table confirmed in journal.db schema but NOT documented in db.ts schema or system-architecture.md. Brain updated. Code: add table definition comment to db.ts. Purpose unclear — may be for multi-user billing (Phase 5) or general ledger. Jack should confirm. |
+| MED | Fix `/api/agents` staleness masking | code | `/api/agents` route injects live `last_updated` at read time, overwriting the frozen Feb 2026 timestamps from agents_db.json. This hides agent runner staleness from the dashboard. Fix: pass through raw `last_updated` from agents_db.json and add a separate `api_last_checked` field. Confirmed as of 2026-03-17 audit run #5. |
+
+---
+
+## Session Log — 2026-03-17 (03:02 PM ET)
+
+### System Builder Audit Run #5 (afternoon)
+- Audited 8 brain files, 9 agent memory files, 16 strategy files (+3 test files), full DB schema, APIs, .env.local
+- **Gaps found this run: 2 new (1 MED, 1 LOW) + 8 carry-forward**
+- **New finding #1 — API freshness masking (MED):** `/api/agents` injects a live `last_updated` at read time, overwriting raw agents_db.json Feb 2026 timestamps. Dashboard shows all agents as freshly updated. This masks the critical gap that Python agents are NOT writing live status. Chief must always read agents_db.json directly to verify staleness, NOT trust /api/agents last_updated.
+- **New finding #2 — `transactions` table undocumented (LOW):** 11th DB table `transactions` confirmed in journal.db schema. Not in db.ts docs or previous system-architecture.md. Purpose unclear (Phase 5 billing? general ledger?). Brain updated. Code doc task queued.
+- **Carry-forward confirmed open:**
+  1. HIGH: AGENTS_DB_PATH bug in dataPaths.ts → /api/control agents:{}
+  2. HIGH: Agent runner not writing live status (Feb 2026 timestamps)
+  3. HIGH: Wire agent_feedback_log (learning loops blocked)
+  4. HIGH: Broker links for futures, spx, orb, crypto (4 agents unlinked)
+  5. HIGH: accounts.current_balance=$100,000 (≠ $10k) — needs Jack confirm
+  6. MED: ORB Runner architecture ambiguous (run_orb_agent.ts exists, orb_engine.py does not)
+  7. MED: intel_decision_log routing bug (pivot_pete scoring BTCUSD)
+  8. LOW: Intel test rows in production table
+- **Brain fixes applied this run:**
+  - `system-architecture.md` — Full DB schema updated: all 11 tables documented. API freshness masking warning added.
+  - `master-tracker.md` — 2 new queue items added (transactions table doc, API staleness masking fix). Total queue: 13 items.
+- **DB state:** trades=0 | signals=0 | intel_decision_log=24 | agent_feedback_log=0 | accounts=$100,000 | transactions table confirmed
+- **APIs:** /api/control ✅ (agents:{} — GAP still open) | /api/agents ✅ (timestamps injected at read time — masking staleness)
+- **.env.local:** 21 keys present ✅
+- **Roadmap:** Phase 1 ✅ | Phase 2 IN PROGRESS — 5 blockers: AGENTS_DB_PATH bug, agent_runner not updating, broker links (4 agents), feedback log empty, API staleness masking
 
 ---
 
