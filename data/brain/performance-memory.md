@@ -10,7 +10,7 @@
 
 ## Lifetime Stats (Chief updates weekly)
 
-**Last updated:** 2026-03-17
+**Last updated:** 2026-03-17 (EOD Run #6)
 **Total trades:** 0
 **Total P&L:** $0.00
 **Overall win rate:** 0%
@@ -19,7 +19,15 @@
 **Max drawdown (single day):** $0.00
 **Longest win streak:** 0
 **Longest loss streak:** 0
-**Days active:** 1 (2026-03-17 — first full monitored trading day, 0 trades)
+**Days active:** 2 (2026-03-16 deploy day | 2026-03-17 first full monitored trading day — 0 trades)
+
+**System state as of EOD 2026-03-17:**
+- Agent runner not writing live status (GAP-002 — 6 consecutive audit runs, 18+ hours)
+- Learning loops all disabled (agent_feedback_log=0 rows, GAP-003)
+- 1 of 6 trading agents linked to broker (Sterling/OANDA)
+- Intel layer running (24 decisions logged, stable — no new market-hour Intel fires today)
+- No trades executed. No drawdown. No kill switch events.
+- Strategy "never fires" trigger ACTIVE for Sterling: 0 signals since deploy (threshold_pct=1.5 too wide — fix pending)
 
 ---
 

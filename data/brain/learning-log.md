@@ -70,6 +70,12 @@
 - Fix: Update AGENTS_DB_PATH in dataPaths.ts OR set env var to correct path.
 - Status: CONFIRMED — 2+ days of stale timestamps confirm path bug is not transient. Queued as HIGH in System Builder Queue.
 
+### [2026-03-17] intel_decision_log uses `timestamp` column, not `created_at`
+- Evidence: Direct PRAGMA table_info query confirmed columns: id, timestamp, agent_id, symbol, direction, decision, intel_score, size_multiplier, regime, source_breakdown, contrarian, funding_signal, confluence_bonus, adjustments. Column `created_at` does NOT exist.
+- Prior brain docs (system-architecture.md) incorrectly stated `created_at`. Any query using `created_at` will fail silently.
+- Fix applied: system-architecture.md corrected to show `timestamp` as the date column.
+- Status: RESOLVED (brain corrected)
+
 ### [2026-03-17] agent_feedback_log has 0 rows — Professor→Agent learning loop broken
 - Evidence: 24 intel_decision_log rows (Intel IS firing), 0 agent_feedback_log rows. Professor exists, runs EOD, but grades are not being written back to agent memory files.
 - Impact: Agents cannot learn from Professor grades. Behavioral evolution disabled.

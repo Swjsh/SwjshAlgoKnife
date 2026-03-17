@@ -212,6 +212,28 @@ after Jack fixes it → fix gets added to playbook → brain never forgets a fai
 
 ---
 
+## Session Log — 2026-03-17 (06:02 PM ET)
+
+### System Builder Audit Run #6 (evening EOD)
+- Audited 8 brain files, 9 agent memory files, 12 strategy files (+4 test files), full DB schema (11 tables), APIs, .env.local
+- **Gaps found this run: 0 new | 11 carry-forward confirmed open**
+- **intel_decision_log agent breakdown confirmed:** bitcoin_bob=3, pivot_pete=3 (scoring BTCUSD — routing bug), test=12, perf_test=3, SQL injection row=3. 18/24 are test/preflight rows. 6 are production-intent agent intel rows.
+- **intel_decision_log column correction:** Table uses `timestamp` field (NOT `created_at`). Prior brain docs had incorrect column name. Corrected in system-architecture.md.
+- **intel_decision_log counts STABLE:** Still 24 rows — no new Intel runs since last audit (5 hours ago). Intel system may only fire on market events or on-demand.
+- **agents_db.json:** Still frozen at Feb 2026 for all agents. Sixth consecutive audit with no live updates. GAP-002 persists.
+- **DB state:** trades=0 | signals=0 | intel=24 | agent_feedback_log=0 | accounts=$100,000 | transactions=0
+- **APIs:** /api/control ✅ (agents:{} — GAP-001) | /api/agents ✅ (timestamps injected at read time — GAP-006)
+- **Strategy files confirmed:** 12 files total in `src/lib/engine/strategies/` (+ 4 test files). All 12 now documented in strategies.md.
+- **Brain fixes applied this run:**
+  - `system-architecture.md` — DB schema expanded: full 11-table schema with row counts, column correction for intel_decision_log (`timestamp` not `created_at`), transactions table schema documented. Known Architecture Gaps section overhauled: GAP-001 through GAP-011 fully documented with root causes and fix options.
+  - `strategies.md` — Strategy table updated to show all 12 files with filenames, confirmed status, and test file notation.
+  - `master-tracker.md` — Session log updated (this entry). No new queue items — all gaps already tracked.
+- **Queue status:** 13 items total (5 HIGH, 4 MED, 4 LOW). No items closed since last run — Jack has not yet applied any code fixes.
+- **Roadmap:** Phase 1 ✅ | Phase 2 IN PROGRESS — 5 blockers unchanged
+- **⚠️ ESCALATION FLAG:** GAP-002 (agent runner not updating) has now persisted across 6 audit runs spanning ~18 hours. This is the most critical operational gap. No trades can be validated. Learning loops cannot begin. Recommend Jack manually verify `pm2 list` or agent_runner process status.
+
+---
+
 ## Session Log — 2026-03-17 (03:02 PM ET)
 
 ### System Builder Audit Run #5 (afternoon)
