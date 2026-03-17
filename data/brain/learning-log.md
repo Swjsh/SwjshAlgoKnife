@@ -62,6 +62,20 @@
 -->
 
 ### System & Operational Patterns
+
+### [2026-03-17] agents_db.json stale — agent runner not writing live status updates
+- Evidence: agents_db.json last_updated timestamps from 2026-02-15 to 2026-02-17. System deployed 2026-03-15. 30+ decision cycles run without any agent writing to agents_db.
+- Root Cause: AGENTS_DB_PATH in dataPaths.ts resolves to `cwd/agents_db.json` (project root) instead of `src/app/api/agents/agents_db.json`. One-line fix or one env var in .env.local.
+- Secondary: /api/agents injects live `last_updated` at read time — masks the staleness to the dashboard consumer.
+- Fix: Update AGENTS_DB_PATH in dataPaths.ts OR set env var to correct path.
+- Status: CONFIRMED — 2+ days of stale timestamps confirm path bug is not transient. Queued as HIGH in System Builder Queue.
+
+### [2026-03-17] agent_feedback_log has 0 rows — Professor→Agent learning loop broken
+- Evidence: 24 intel_decision_log rows (Intel IS firing), 0 agent_feedback_log rows. Professor exists, runs EOD, but grades are not being written back to agent memory files.
+- Impact: Agents cannot learn from Professor grades. Behavioral evolution disabled.
+- Recommendation: Wire Professor EOD output to write structured grade records into agent_feedback_log table.
+- Status: CONFIRMED — Corroborated across 5 audit runs. Queued as HIGH in System Builder Queue.
+
 <!-- Example:
 ### [2026-03-18] Agent runner crashes when yfinance rate-limited
 - Evidence: 3 crashes traced to yfinance 429 errors
