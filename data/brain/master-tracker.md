@@ -180,3 +180,34 @@ after Jack fixes it → fix gets added to playbook → brain never forgets a fai
 - Created roadmap.md — 5-phase plan from paper trading to scaled live, with exit criteria per phase
 - Updated master-tracker brain architecture table: 18 files total (7 core + 3 system knowledge + 8 agent memory)
 - Result: Brain is now the complete source of truth. Any Chief session can understand the full system from brain files alone.
+
+---
+
+## System Builder Queue
+> Tasks identified by System Builder that require code changes (Chief cannot modify .ts/.py directly).
+> Jack reviews and action these. Chief marks complete after code is committed.
+
+### Code Changes Needed
+
+| Priority | Task | Category | Details |
+|----------|------|----------|---------|
+| HIGH | Document 5 undiscovered strategies | brain | `emaCrossoverADX`, `gridTrading`, `liquidityScalper`, `rsiMeanReversion`, `setAndForget` — exist in code with no strategy docs. Add to strategies.md with params, logic, markets, avoid-when. |
+| HIGH | Wire 4 unlinked agents to brokers | config | `futures` (Pivot Pete), `spx` (SPX Sniper), `orb` (ORB Runner), `crypto` (Bitcoin Bob) all show broker=unlinked. Need Tradovate/IBKR for futures/options, Coinbase/Alpaca for crypto. |
+| MED | Add ORB Runner to brain agent roster | brain | `orb` key exists in agents_db.json + `orb-runner.md` in agents/ folder but ORB agent is NOT in master-tracker agent table or AGENTS.md. Add to agent roster. |
+| MED | Resolve agent key naming mismatch | code | agents_db.json uses `fx`, `crypto`, `futures`, `spx` but brain docs use `sterling`, `bitcoin-bob`, `pivot-pete`, `spx-sniper`. Keys should match or a mapping table should exist in the API. |
+| MED | Confirm universal_backtest.py sprint completion | roadmap | File updated 2026-03-16. Mark sprint item complete in roadmap.md. |
+| LOW | Add intel tables to db.ts docs | brain | `intel_signals`, `intel_preflight_log`, `agent_feedback_log`, `accounts`, `transactions` are in production DB but not in db.ts or brain schema docs. Document schema. |
+| LOW | CONTROL_API_KEY unset | config | /api/control is currently open (no auth). Fine for localhost but should be set before any remote access. Add to environment.md checklist. |
+
+---
+
+## Session Log — 2026-03-17
+
+### System Builder Audit Run (midnight ET)
+- Audited 8 brain files, 7 agents, 11 strategy files, DB schema, API endpoints, .env.local
+- Gaps found: 7 (2 HIGH, 3 MED, 2 LOW)
+- Brain fixes applied: system-architecture.md (DB schema + agent keys + 5 undocumented strategies), environment.md (8 Firebase vars + 3 Discord webhooks + 2 Alpaca/OANDA vars), strategies.md (strategy table updated, 5 undocumented strategies documented), master-tracker.md (System Builder Queue added)
+- Code changes queued: 5 (see System Builder Queue above)
+- Roadmap: Phase 1 ✅ complete. Phase 2 IN PROGRESS — broker connections needed for 4 agents. universal_backtest.py sprint item complete.
+- APIs responding: /api/control ✅ /api/agents ✅. All 7 agents ACTIVE. 0 trades in DB.
+- .env.local: All required credentials PRESENT ✅
