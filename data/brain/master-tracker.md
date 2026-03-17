@@ -201,6 +201,10 @@ after Jack fixes it → fix gets added to playbook → brain never forgets a fai
 | LOW | ~~Document 5 undiscovered strategies~~ | brain | ✅ COMPLETED 2026-03-17 — emaCrossoverADX, liquidityScalper, rsiMeanReversion, setAndForget, pivot.ts all documented in strategies.md |
 | LOW | ~~Add intel tables to db.ts docs~~ | brain | ✅ COMPLETED 2026-03-17 — Full DB schema with all 10 tables documented in system-architecture.md |
 | LOW | CONTROL_API_KEY unset | config | /api/control is currently open (no auth). Fine for localhost but should be set before any remote access. |
+| MED | Fix /api/control `agents` returning empty `{}` | code | GET /api/control returns agents={} while /api/agents returns correct 7-agent data. Control API has broken data binding to agents source. Review /api/control/route.ts. |
+| HIGH | Confirm agent_runner.ts is actually running | ops | agents_db.json `last_updated` for most agents is Feb 2026. No agent has updated since Feb 16. Agent runner may not be running. Verify PM2/supervisord processes. Intel system IS generating signals (confirms Node.js app is up) but Python agents are not reporting status. |
+| MED | Build or wire ORB Runner Python engine | code | agents_db.json has `orb` key ACTIVE. No `orb_engine.py` exists. `orb-runner.md` references `scripts/run_orb_agent.ts` which may not exist. Clarify: does ORB run via TypeScript strategy engine or needs its own Python process? |
+| LOW | Add test cleanup to intel preflight system | code | intel_decision_log contains PREFLIGHT_CONTRA_, PREFLIGHT_FUND_, PREFLIGHT_CONF_ test rows leaking into production table. Add cleanup or write test rows to a separate test table. |
 
 ---
 
@@ -217,6 +221,23 @@ after Jack fixes it → fix gets added to playbook → brain never forgets a fai
 - Broker gap: 4/7 trading agents unlinked | Phase 1 ✅ Phase 2 IN PROGRESS
 
 ---
+
+## Session Log — 2026-03-17 (09:02 AM ET)
+
+### System Builder Audit Run #3 (morning, market open)
+- Audited 8 brain files, 9 agent memory files, 16 strategy files, full DB schema, APIs, .env.local
+- **Gaps found this run: 5 new (2 HIGH, 2 MED, 1 LOW)**
+- **Brain fixes applied this run:**
+  - `strategies.md` — Strategy table updated: 7→12 strategies. All 6 undocumented files now listed with file references. Gap noted: 6 strategies still need full documentation (parameters, logic, avoid).
+  - `system-architecture.md` — New section: "Known Architecture Gaps" with all 8 open gaps documented in detail with root causes and fix actions. This section will be maintained by System Builder going forward.
+  - `master-tracker.md` — System Builder Queue updated: 4 new items added (control API fix, agent runner health, ORB engine, intel test cleanup).
+- **Key new findings vs prior run:**
+  - `agents_db.json` last_updated is **Feb 2026** for 5 of 7 agents — agent runner NOT currently writing live updates. Intel generating signals every 2 min (Node.js alive), but Python agents are silent. **This is the #1 operational gap right now.**
+  - `/api/control` returns `agents: {}` — different data path than `/api/agents`. Control API has a bug.
+  - `crypto` agent shows `broker_live=true` in /api/agents but raw agents_db.json says `unlinked` — API is masking actual broker state.
+  - Intel preflight test rows polluting production `intel_decision_log` table.
+- **Roadmap:** Phase 1 ✅ | Phase 2 IN PROGRESS — 4 blockers: (1) agent runner not updating, (2) broker links needed, (3) feedback log empty, (4) control API agents binding broken.
+- **.env.local:** All 13 required credentials PRESENT ✅ (CONTROL_API_KEY still unset intentionally)
 
 ## Session Log — 2026-03-17 (03:02 AM ET)
 
