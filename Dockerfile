@@ -1,72 +1,114 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# SwjshAK — Dockerfile
-# Single container: Next.js dashboard + Agent Runner (master orchestrator)
-# Process manager: supervisord (2 processes only)
-# Persistent data: /app/data (mount a GCP persistent disk or Docker volume here)
-#
-# The Agent Runner spawns and manages ALL trading agents (Python + TS) internally.
-# DO NOT run individual Python agents as separate processes.
+# SwjshAK — Production Dockerfile
+# Multi-stage build for Next.js + Python trading agents
 # ═══════════════════════════════════════════════════════════════════════════════
 
-FROM node:20-bullseye
+FROM node:20-bookworm-slim AS base
 
-# ── System deps ───────────────────────────────────────────────────────────────
-# python3 / pip3: for the trading bots (spawned by agent_runner.ts)
-# supervisor: process manager (runs Dashboard + Runner)
-# build-essential / python-is-python3: needed to compile better-sqlite3 native module
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# ── Stage 1: Dependencies ─────────────────────────────────────────────────────
+FROM base AS deps
+WORKDIR /app
+
+# Install build tools for native modules (better-sqlite3)
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY package.json package-lock.json* ./
+RUN npm ci && npm cache clean --force
+
+# ── Stage 2: Build ────────────────────────────────────────────────────────────
+FROM base AS builder
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+COPY . .
+
+# Build Next.js
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+RUN npm run build
+
+# ── Stage 3: Production Runtime ───────────────────────────────────────────────
+FROM base AS runner
+WORKDIR /app
+
+# Install runtime dependencies: Python + supervisor
+RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
-    python-is-python3 \
+    python3-venv \
     supervisor \
-    build-essential \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# ── Python deps ───────────────────────────────────────────────────────────────
-# All Python agents share these. Install before copying source for Docker cache.
-RUN pip3 install --no-cache-dir \
-    yfinance \
+# Create Python venv and install agent dependencies
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip install --no-cache-dir \
+    requests \
     pandas \
-    numpy \
-    requests
+    yfinance \
+    python-dotenv \
+    websocket-client
 
-# ── Node deps + build ─────────────────────────────────────────────────────────
-WORKDIR /app
+# Copy production deps from deps stage
+COPY --from=deps /app/node_modules ./node_modules
 
-# Copy manifests first (cache layer — only invalidated when deps change)
-COPY package.json package-lock.json ./
+# Copy built app from builder stage
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/next.config.ts ./next.config.ts
 
-# Install ALL deps including devDeps (needed for TypeScript build + tsx runtime)
-# better-sqlite3 compiles a native .node binary here for the Linux target
-RUN npm ci
+# Copy source files needed at runtime
+COPY scripts ./scripts
+COPY src ./src
+COPY docker-entrypoint.sh ./
+COPY ecosystem.config.js ./
 
-# Copy full source
-COPY . .
+# Create supervisord config
+RUN mkdir -p /etc/supervisor/conf.d /app/data/logs
 
-# Generate Prisma client (if using Prisma)
-RUN npx prisma generate 2>/dev/null || true
+COPY <<'EOF' /etc/supervisor/conf.d/swjsh.conf
+[supervisord]
+nodaemon=true
+logfile=/app/data/logs/supervisord.log
+pidfile=/var/run/supervisord.pid
+user=root
 
-# Build Next.js production bundle
-RUN npm run build
+[program:nextjs]
+command=node_modules/.bin/next start -p 3000
+directory=/app
+autostart=true
+autorestart=true
+stdout_logfile=/app/data/logs/nextjs.log
+stderr_logfile=/app/data/logs/nextjs.err
+environment=NODE_ENV="production"
 
-# ── Persistent data directory ─────────────────────────────────────────────────
-# /app/data is where GCP mounts the persistent disk.
-# On first boot the entrypoint seeds required files here.
-RUN mkdir -p /app/data/logs
+[program:watchdog]
+command=/opt/venv/bin/python3 scripts/watchdog.py
+directory=/app
+autostart=true
+autorestart=true
+stdout_logfile=/app/data/logs/watchdog.log
+stderr_logfile=/app/data/logs/watchdog.err
+EOF
 
-# ── Supervisor config ─────────────────────────────────────────────────────────
-COPY supervisord.conf /etc/supervisor/conf.d/swjsh.conf
+RUN chmod +x docker-entrypoint.sh
 
-# ── Entrypoint ────────────────────────────────────────────────────────────────
-COPY docker-entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# ── Health check ─────────────────────────────────────────────────────────────
-# GCP and Docker health checks — verifies both dashboard and runner are alive
-HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:3000/api/health || exit 1
-
+ENV NODE_ENV=production
+ENV PORT=3000
 EXPOSE 3000
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
