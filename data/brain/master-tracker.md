@@ -47,6 +47,7 @@
 | Pivot Pete | Daily pivots + VWAP. ES only for now. RTH 9:30-4PM. | 2 consecutive losses |
 | Boba | 15m S&D zones. SPY only. 9:30-11AM. ONE trade/day max. | 2 consecutive losses |
 | SPX Sniper | VWAP+EMA9+RSI. Entry after 10:30. 45min max. Never past 3:30. | 2 consecutive losses |
+| ORB Runner | 15m opening range on MNQ. Standard ORB + Inverse ORB + ES/NQ divergence. 15-min lockout between trades. Walk away after entry. | 2 consecutive losses |
 
 ---
 
@@ -191,13 +192,15 @@ after Jack fixes it → fix gets added to playbook → brain never forgets a fai
 
 | Priority | Task | Category | Details |
 |----------|------|----------|---------|
-| HIGH | Document 5 undiscovered strategies | brain | `emaCrossoverADX`, `gridTrading`, `liquidityScalper`, `rsiMeanReversion`, `setAndForget` — exist in code with no strategy docs. Add to strategies.md with params, logic, markets, avoid-when. |
+| HIGH | Verify accounts.current_balance discrepancy | config | `accounts` table shows `current_balance=$100,000`. Brain says $10,000 paper account. Is this intentional (multi-user scaling)? Or misconfiguration? Jack must confirm. |
 | HIGH | Wire 4 unlinked agents to brokers | config | `futures` (Pivot Pete), `spx` (SPX Sniper), `orb` (ORB Runner), `crypto` (Bitcoin Bob) all show broker=unlinked. Need Tradovate/IBKR for futures/options, Coinbase/Alpaca for crypto. |
-| MED | Add ORB Runner to brain agent roster | brain | `orb` key exists in agents_db.json + `orb-runner.md` in agents/ folder but ORB agent is NOT in master-tracker agent table or AGENTS.md. Add to agent roster. |
-| MED | Resolve agent key naming mismatch | code | agents_db.json uses `fx`, `crypto`, `futures`, `spx` but brain docs use `sterling`, `bitcoin-bob`, `pivot-pete`, `spx-sniper`. Keys should match or a mapping table should exist in the API. |
-| MED | Confirm universal_backtest.py sprint completion | roadmap | File updated 2026-03-16. Mark sprint item complete in roadmap.md. |
-| LOW | Add intel tables to db.ts docs | brain | `intel_signals`, `intel_preflight_log`, `agent_feedback_log`, `accounts`, `transactions` are in production DB but not in db.ts or brain schema docs. Document schema. |
-| LOW | CONTROL_API_KEY unset | config | /api/control is currently open (no auth). Fine for localhost but should be set before any remote access. Add to environment.md checklist. |
+| HIGH | Wire agent_feedback_log | code | Table exists, 0 rows. This table is the feedback loop from trade outcomes back to agent learning. Without data here, the learning loops cannot function. Wire trade close events to write to agent_feedback_log. |
+| MED | Add ORB Runner to brain agent roster | brain | `orb` key exists in agents_db.json + `orb-runner.md` in agents/ folder but ORB agent is NOT in master-tracker agent table or AGENTS.md. ✅ Add to agent roster below. |
+| MED | Resolve agent key naming mismatch | code | agents_db.json uses `fx`, `crypto`, `futures`, `spx` but brain docs use `sterling`, `bitcoin-bob`, `pivot-pete`, `spx-sniper`. Keys should match or a mapping table should exist in the API. intel_decision_log uses Python underscore style (pivot_pete, bitcoin_bob). |
+| MED | Investigate intel_decision_log data quality | code | 24 rows exist — most recent: pivot_pete scoring BTCUSD at intel_score=0.45. Pivot Pete is a futures agent, not crypto. Suggests agent_id routing may be wrong in the Intel system. |
+| LOW | ~~Document 5 undiscovered strategies~~ | brain | ✅ COMPLETED 2026-03-17 — emaCrossoverADX, liquidityScalper, rsiMeanReversion, setAndForget, pivot.ts all documented in strategies.md |
+| LOW | ~~Add intel tables to db.ts docs~~ | brain | ✅ COMPLETED 2026-03-17 — Full DB schema with all 10 tables documented in system-architecture.md |
+| LOW | CONTROL_API_KEY unset | config | /api/control is currently open (no auth). Fine for localhost but should be set before any remote access. |
 
 ---
 
@@ -211,3 +214,22 @@ after Jack fixes it → fix gets added to playbook → brain never forgets a fai
 - Roadmap: Phase 1 ✅ complete. Phase 2 IN PROGRESS — broker connections needed for 4 agents. universal_backtest.py sprint item complete.
 - APIs responding: /api/control ✅ /api/agents ✅. All 7 agents ACTIVE. 0 trades in DB.
 - .env.local: All required credentials PRESENT ✅
+- Broker gap: 4/7 trading agents unlinked | Phase 1 ✅ Phase 2 IN PROGRESS
+
+---
+
+## Session Log — 2026-03-17 (03:02 AM ET)
+
+### System Builder Audit Run #2 (early morning)
+- Audited 8 brain files, 9 agent memory files (incl. orb-runner.md), 16 strategy files, full DB schema (10 tables), API endpoints, .env.local
+- **New gaps found: 3 HIGH, 2 MED** (queue updated above)
+- **Brain fixes this run:**
+  - `strategies.md` — 5 undocumented strategies added with full docs: emaCrossoverADX, liquidityScalper, rsiMeanReversion, setAndForget, pivot.ts. Strategy count 7→12.
+  - `system-architecture.md` — All 10 DB tables documented. Agent key naming mismatch documented. accounts balance discrepancy flagged.
+  - `master-tracker.md` — Queue refreshed (2 items marked complete, 3 new HIGH items). ORB Runner added to agent directives table.
+- **New findings vs prior run:**
+  - `intel_decision_log`: 24 active rows (Intel layer IS running). `pivot_pete` scoring `BTCUSD` — routing bug suspected.
+  - `agent_feedback_log`: 0 rows — learning loops blocked until wired (HIGH priority).
+  - `accounts.current_balance` = $100,000 (≠ $10,000 stated in brain) — needs Jack confirmation.
+- **APIs:** /api/control ✅ /api/agents ✅ | 8 agents ACTIVE | 0 trades | 24 intel decisions
+- **Roadmap:** Phase 1 ✅ | Phase 2 IN PROGRESS — 3 blockers (broker links, feedback log, balance verify)
