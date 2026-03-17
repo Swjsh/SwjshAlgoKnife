@@ -205,6 +205,8 @@ after Jack fixes it → fix gets added to playbook → brain never forgets a fai
 | HIGH | Confirm agent_runner.ts is actually running | ops | agents_db.json `last_updated` for most agents is Feb 2026. No agent has updated since Feb 16. Agent runner may not be running. Verify PM2/supervisord processes. Intel system IS generating signals (confirms Node.js app is up) but Python agents are not reporting status. |
 | MED | Build or wire ORB Runner Python engine | code | agents_db.json has `orb` key ACTIVE. No `orb_engine.py` exists. `orb-runner.md` references `scripts/run_orb_agent.ts` which may not exist. Clarify: does ORB run via TypeScript strategy engine or needs its own Python process? |
 | LOW | Add test cleanup to intel preflight system | code | intel_decision_log contains PREFLIGHT_CONTRA_, PREFLIGHT_FUND_, PREFLIGHT_CONF_ test rows leaking into production table. Add cleanup or write test rows to a separate test table. |
+| HIGH | Fix AGENTS_DB_PATH in dataPaths.ts | code | `dataPaths.ts` resolves AGENTS_DB_PATH to `cwd/agents_db.json` but file is at `src/app/api/agents/agents_db.json`. This is why `/api/control` returns `agents: {}`. Fix: change path to `path.join(DATA_DIR, 'src/app/api/agents/agents_db.json')` OR add `AGENTS_DB_PATH=./src/app/api/agents/agents_db.json` to `.env.local`. This single fix resolves GAP-001 AND GAP-008 simultaneously. |
+| MED | Confirm ORB Runner architecture | code | `run_orb_agent.ts` exists. `orb_engine.py` does NOT exist. `orb.ts` strategy file exists. Clarify: is ORB entirely TypeScript (use `orb.ts` strategy engine via agent_runner.ts) or does it need a Python process like the other agents? Document the answer and wire accordingly. |
 
 ---
 
@@ -219,6 +221,29 @@ after Jack fixes it → fix gets added to playbook → brain never forgets a fai
 - APIs responding: /api/control ✅ /api/agents ✅. All 7 agents ACTIVE. 0 trades in DB.
 - .env.local: All required credentials PRESENT ✅
 - Broker gap: 4/7 trading agents unlinked | Phase 1 ✅ Phase 2 IN PROGRESS
+
+---
+
+## Session Log — 2026-03-17 (12:02 PM ET)
+
+### System Builder Audit Run #4 (midday)
+- Audited 8 brain files, 9 agent memory files, 16 strategy files, full DB schema, APIs, .env.local
+- **Gaps found this run: 2 new (1 HIGH, 1 MED) + 6 carry-forward**
+- **Root cause confirmed for `/api/control agents: {}` bug:**
+  - `dataPaths.ts` resolves `AGENTS_DB_PATH` to `cwd/agents_db.json`. File actually lives at `src/app/api/agents/agents_db.json`. The path constant is missing the subdirectory prefix. When no `DATA_DIR` env var is set, the fallback resolves to the wrong location. `/api/agents/route.ts` uses a hardcoded path (correct). `/api/control/route.ts` uses the dataPaths constant (wrong). Added to queue as HIGH priority.
+- **New findings vs prior run:**
+  - `gridTrading.ts` strategy file exists in `src/lib/engine/strategies/` but was NOT documented in strategies.md. Added to table (12 strategies total confirmed in codebase).
+  - ORB Runner: `run_orb_agent.ts` exists but `orb_engine.py` does NOT. Architecture ambiguous — TypeScript vs Python. Added to queue.
+  - `intel_decision_log` SQL injection test row confirmed: `agent_id = "'; DROP TABLE intel_preflight_log; --"` — harmless (prepared statement used) but cleanup still needed.
+  - `/api/agents` broker_live field for `crypto` shows `true` (API layer override). Raw `agents_db.json` shows `unlinked`. The API normalizes broker status using broker platform name, not the actual unlinked flag. This is a UI display discrepancy, not a trading risk.
+- **Brain fixes applied this run:**
+  - `strategies.md` — Strategy count: 7→12 (confirmed via codebase). All 12 files listed with file references. Full documentation added for strategies 8-12: emaCrossoverADX, liquidityScalper, rsiMeanReversion, setAndForget, pivot.
+  - `system-architecture.md` — "Known Architecture Gaps" section updated with GAP-001 through GAP-008, including root cause for AGENTS_DB_PATH mismatch.
+  - `master-tracker.md` — Queue updated: 2 new items (AGENTS_DB_PATH fix, ORB architecture confirm).
+- **DB state:** trades=0 | intel_decision_log=24 (same, no new intel runs) | agent_feedback_log=0 | accounts=1 ($100,000)
+- **APIs:** /api/control ✅ (agents:{} — GAP-001) | /api/agents ✅ (7 agents, correct data)
+- **.env.local:** 21 vars present ✅ (CONTROL_API_KEY unset intentionally)
+- **Roadmap:** Phase 1 ✅ | Phase 2 IN PROGRESS — 4 blockers: AGENTS_DB_PATH bug, agent_runner not updating, broker links needed (4 agents), agent_feedback_log empty
 
 ---
 
