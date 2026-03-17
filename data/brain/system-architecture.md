@@ -163,7 +163,88 @@ See: [[Strategies Overview]]
 
 ---
 
-### 6. API Routes
+### 6. Intel Layer (NEW - March 2026)
+**Location**: `src/lib/intel/`
+
+**Purpose**: Market intelligence aggregation from 18 data sources for trade gating and position sizing.
+
+**Architecture**:
+```mermaid
+graph TB
+    subgraph "Intel Bus"
+        BUS[Intel Bus] --> SCORE[Score Engine]
+        SCORE --> GATE[Trade Gate]
+    end
+
+    subgraph "Premium Sources (4)"
+        OF[Order Flow] --> BUS
+        SENT[Sentiment] --> BUS
+        ONCHAIN[On-Chain] --> BUS
+        WHALE[Whale Flow] --> BUS
+    end
+
+    subgraph "Free Sources (14)"
+        FG[Fear & Greed] --> BUS
+        FUND[Funding/OI] --> BUS
+        MKT[Market Data] --> BUS
+        ECON[Econ Calendar] --> BUS
+        SOCIAL[Social Feed] --> BUS
+        POL[Politician Trades] --> BUS
+        INS[Insider Flow] --> BUS
+        ANALYST[Analyst Ratings] --> BUS
+        ETF[ETF Flows] --> BUS
+        OPT[Unusual Options] --> BUS
+        DARK[Dark Pool] --> BUS
+        MACRO[Macro Sentiment] --> BUS
+        TECH[Technical Levels] --> BUS
+        VOL[Volatility/VIX] --> BUS
+    end
+```
+
+**Intel Sources** (18 total):
+| Source | Type | Data |
+|--------|------|------|
+| ORDER_FLOW | Premium | CVD, delta, absorption |
+| SENTIMENT | Premium | News sentiment scores |
+| ONCHAIN_CONFLUENCE | Premium | Blockchain analytics |
+| WHALE_FLOW | Premium | Large wallet tracking |
+| FEAR_GREED | Free | Crypto Fear & Greed Index |
+| FUNDING_OI | Free | Binance funding rates & OI |
+| MARKET_DATA | Free | CoinGecko prices/volume |
+| ECON_CALENDAR | Free | ForexFactory events |
+| SOCIAL_FEED | Free | Twitter tracking |
+| POLITICIAN_TRADES | Free | Congressional STOCK Act filings |
+| INSIDER_FLOW | Free | SEC Form 4 filings |
+| ANALYST_RATINGS | Free | Wall Street upgrades/downgrades |
+| ETF_FLOWS | Free | BTC/ETH ETF fund flows |
+| OPTIONS_UNUSUAL | Free | Unusual options activity |
+| DARK_POOL | Free | Dark pool prints |
+| MACRO_SENTIMENT | Free | AAII, PMI, sentiment surveys |
+| TECHNICAL_LEVELS | Free | Key S/R, pivots, MAs |
+| VOLATILITY | Free | VIX regime tracking |
+
+**Key Files**:
+- `intel/bus.ts` - Central message bus, dedup, TTL management
+- `intel/types.ts` - IntelSignal, IntelScore, weights, TTLs
+- `intel/adapter.ts` - Database persistence adapter
+- `intel/regime.ts` - Market regime detection
+- `intel/free/service.ts` - Zero-cost API aggregation
+- `intel/politicians/service.ts` - Congressional trade tracking
+- `intel/__tests__/` - Integration and pillar tests
+
+**Trade Gating**:
+```typescript
+// Intel score: +1.0 = strongly bullish, -1.0 = strongly bearish
+const score = await intelBus.score('BTCUSD', 'LONG');
+if (score.sizeMultiplier === 0) {
+    // VETO - intel strongly disagrees
+}
+const adjustedSize = baseSize * score.sizeMultiplier;
+```
+
+---
+
+### 7. API Routes
 **Location**: `src/app/api/`
 
 | Endpoint | Purpose |
