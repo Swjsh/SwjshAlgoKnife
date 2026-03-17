@@ -79,31 +79,7 @@ COPY ecosystem.config.js ./
 
 # Create supervisord config
 RUN mkdir -p /etc/supervisor/conf.d /app/data/logs
-
-COPY <<'EOF' /etc/supervisor/conf.d/swjsh.conf
-[supervisord]
-nodaemon=true
-logfile=/app/data/logs/supervisord.log
-pidfile=/var/run/supervisord.pid
-user=root
-
-[program:nextjs]
-command=node_modules/.bin/next start -p 3000
-directory=/app
-autostart=true
-autorestart=true
-stdout_logfile=/app/data/logs/nextjs.log
-stderr_logfile=/app/data/logs/nextjs.err
-environment=NODE_ENV="production"
-
-[program:watchdog]
-command=/opt/venv/bin/python3 scripts/watchdog.py
-directory=/app
-autostart=true
-autorestart=true
-stdout_logfile=/app/data/logs/watchdog.log
-stderr_logfile=/app/data/logs/watchdog.err
-EOF
+COPY supervisord.conf /etc/supervisor/conf.d/swjsh.conf
 
 RUN chmod +x docker-entrypoint.sh
 
