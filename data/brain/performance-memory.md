@@ -10,16 +10,16 @@
 
 ## Lifetime Stats (Chief updates weekly)
 
-**Last updated:** _not yet initialized_
+**Last updated:** 2026-03-17
 **Total trades:** 0
 **Total P&L:** $0.00
 **Overall win rate:** 0%
-**Best day:** _none_
-**Worst day:** _none_
+**Best day:** _none yet_
+**Worst day:** _none yet_
 **Max drawdown (single day):** $0.00
 **Longest win streak:** 0
 **Longest loss streak:** 0
-**Days active:** 0
+**Days active:** 1 (2026-03-17 — first full monitored trading day, 0 trades)
 
 ---
 
@@ -80,15 +80,15 @@ propose a change to strategies.md. Chief reviews and applies.
 
 | Trigger | Threshold | Current | Last Checked | Action |
 |---------|-----------|---------|--------------|--------|
-| Agent WR below floor | < 35% over 20+ trades | _no data_ | _never_ | Pause agent, review strategy |
-| Agent WR excelling | > 65% over 20+ trades | _no data_ | _never_ | Consider increasing position size |
-| Strategy never fires | 0 trades in 2 weeks | _no data_ | _never_ | Review signal conditions |
-| Strategy loss streak | 3+ consecutive losses | _no data_ | _never_ | Pause strategy, analyze |
-| Time-of-day clustering | >60% losses in same 2h window | _no data_ | _never_ | Add time filter |
-| News-day underperformance | WR < 30% on high-impact days | _no data_ | _never_ | Add news blackout |
-| Friction eating profits | Friction > 10% of gross PnL | _no data_ | _never_ | Review execution |
-| Drawdown approaching | > 50% of daily limit hit | _no data_ | _never_ | Reduce position sizes |
-| Correlation blow-up | Loss in 2+ correlated trades same day | _no data_ | _never_ | Tighten correlation limits |
+| Agent WR below floor | < 35% over 20+ trades | _no data_ | 2026-03-17 | Pause agent, review strategy |
+| Agent WR excelling | > 65% over 20+ trades | _no data_ | 2026-03-17 | Consider increasing position size |
+| Strategy never fires | 0 trades in 2 weeks | **Sterling: 0 trades since deploy** | 2026-03-17 | ⚠️ WATCH — threshold_pct fix pending (Priority 1A) |
+| Strategy loss streak | 3+ consecutive losses | _no data_ | 2026-03-17 | Pause strategy, analyze |
+| Time-of-day clustering | >60% losses in same 2h window | _no data_ | 2026-03-17 | Add time filter |
+| News-day underperformance | WR < 30% on high-impact days | _no data_ | 2026-03-17 | Add news blackout |
+| Friction eating profits | Friction > 10% of gross PnL | _no data_ | 2026-03-17 | Review execution |
+| Drawdown approaching | > 50% of daily limit hit | $0.00 / $1,000 limit = 0% | 2026-03-17 | Clear |
+| Correlation blow-up | Loss in 2+ correlated trades same day | _no data_ | 2026-03-17 | Tighten correlation limits |
 
 ---
 

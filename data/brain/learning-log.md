@@ -20,6 +20,14 @@
 ## Pattern Categories
 
 ### Strategy Performance Patterns
+
+### [2026-03-17] Sterling FX generating zero trades — threshold too wide
+- Evidence: 0 trades from Sterling since system deployment (deploy date ~2026-02-16). Sterling LINKED to OANDA, session windows correct (3AM-noon ET), but strategy generates no signals.
+- Root Cause: `threshold_pct: 1.5` in backtest_config.py = 150 pips. GBP/USD intraday range on 15m is only 30-80 pips. Threshold impossible to trigger.
+- Trades: None (0 trade IDs — absence is the pattern)
+- Recommendation: threshold_pct 1.5 → 0.4. Backtest pending. This is Priority 1A.
+- Status: CONFIRMED — 1+ day of 0 signals with functioning broker connection confirms signal logic blocked, not broker issue.
+
 <!-- Example:
 ### [2026-03-20] Sterling performs better in London-only sessions
 - Evidence: 8 trades London-only = 75% WR, 6 trades NY overlap = 33% WR
