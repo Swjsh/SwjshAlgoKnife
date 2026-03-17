@@ -178,10 +178,10 @@
 - **Jack's fix:** [to be filled in after resolution]
 - **Auto-fix added:** [ ] not yet — need Jack's resolution to build the auto-fix
 
-### [2026-03-17] Issue: /api/control returns `agents: {}` instead of agent data
+### [2026-03-17] Issue: /api/control returns `agents: {}` — ROOT CAUSE CONFIRMED 2026-03-17T16:02Z
 - **Symptoms:** GET /api/control returns `"agents": {}`. GET /api/agents returns correct 7-agent structure.
-- **Context:** Both routes should read from agents_db.json. Control API has diverged.
-- **Likely cause:** /api/control/route.ts does not import or read agents_db.json — it may only return system health metrics from DB, not agent state from the JSON file.
-- **Diagnostic steps for Jack:** Review `src/app/api/control/route.ts` — compare agents data source vs `src/app/api/agents/route.ts`.
+- **ROOT CAUSE:** `src/lib/dataPaths.ts` defines `AGENTS_DB_PATH = path.join(DATA_DIR, 'agents_db.json')`. `DATA_DIR` defaults to `process.cwd()` when env var not set. Resolves to `SwjshAlgoKnife/agents_db.json` — this file does not exist. Actual file: `SwjshAlgoKnife/src/app/api/agents/agents_db.json`. `readAgentsDB()` silently returns `{}` on file-not-found.
+- **Fix option A (1 line code change):** `dataPaths.ts` line: change `'agents_db.json'` to `'src/app/api/agents/agents_db.json'`
+- **Fix option B (no code change):** Add to `.env.local`: `AGENTS_DB_PATH=./src/app/api/agents/agents_db.json`
 - **Jack's fix:** [to be filled in after resolution]
-- **Auto-fix added:** [ ] not yet
+- **Auto-fix added:** [ ] not yet — requires code change or env var
