@@ -1,0 +1,34 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# SwjshAK — Docker Compose
+# Single command to run the entire trading platform:
+#   docker compose up -d
+#
+# Works on: local dev, GCP Compute Engine, any Linux VPS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+services:
+  swjshak:
+    build: .
+    container_name: swjshak
+    restart: unless-stopped
+    ports:
+      - "3000:3000"     # Dashboard + API
+    volumes:
+      - swjsh-data:/app/data    # Persistent: DB, agent state, logs
+      - ${HOME}/.openclaw:/root/.openclaw  # OpenClaw config (Chief gateway)
+    env_file:
+      - .env.local              # All secrets (API keys, broker creds, etc.)
+    environment:
+      - NODE_ENV=production
+      - DATA_DIR=/app/data
+      - DATABASE_PATH=/app/data/journal.db
+      - AGENTS_DB_PATH=/app/data/agents_db.json
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+volumes:
+  swjsh-data:
+    driver: local

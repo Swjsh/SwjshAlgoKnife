@@ -1,0 +1,38 @@
+{
+  "run_id": "2026-03-16_00-07-33",
+  "generated_at": "2026-03-16T00:07:33.137132",
+  "params": {
+    "symbol": "SPY",
+    "strategy": "liquidity",
+    "start": "2025-06-01",
+    "end": "2025-12-31",
+    "interval": "1d",
+    "balance": 100000.0,
+    "risk_pct": 0.01
+  },
+  "data": {
+    "source": "yfinance (REAL market data \u2014 never simulated)",
+    "candle_count": 147,
+    "first_candle": "2025-06-02 00:00:00-04:00",
+    "last_candle": "2025-12-30 00:00:00-05:00"
+  },
+  "results": {
+    "liquidity": {
+      "strategy": "Liquidity Pool Scalper",
+      "metrics": {
+        "total_trades": 0,
+        "win_rate": 0,
+        "total_pnl": 0,
+        "profit_factor": 0,
+        "max_drawdown": 0,
+        "sharpe": 0,
+        "avg_rr": 0,
+        "avg_duration_min": 0,
+        "return_pct": 0,
+        "signals_emitted": 0
+      },
+      "trades": []
+    }
+  },
+  "walk_forward": null
+}

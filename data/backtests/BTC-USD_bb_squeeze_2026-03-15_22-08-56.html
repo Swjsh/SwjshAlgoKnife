@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backtest Report - BTC-USD bb_squeeze</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        h1 {
+            color: #06b6d4;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .metric-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(6, 182, 212, 0.4);
+        }
+        .metric-label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .metric-value {
+            color: #06b6d4;
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+        .metric-value.positive { color: #10b981; }
+        .metric-value.negative { color: #ef4444; }
+        .section {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .section-title {
+            color: #06b6d4;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: rgba(6, 182, 212, 0.1);
+            color: #06b6d4;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        tr:hover {
+            background: rgba(6, 182, 212, 0.05);
+        }
+        .trade-win { color: #10b981; }
+        .trade-loss { color: #ef4444; }
+        .footer {
+            text-align: center;
+            color: #64748b;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        .chart {
+            width: 100%;
+            height: 400px;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BTC-USD - bb_squeeze</h1>
+            <div class="subtitle">
+                2026-01-24 → 2026-03-14 | 1h |
+                Balance: $100,000.00 | Risk: 1.0%
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Bollinger Band Squeeze & Breakout</div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Total Trades</div>
+                    <div class="metric-value">34</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Win Rate</div>
+                    <div class="metric-value">29.4%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Total P&L</div>
+                    <div class="metric-value negative">$-4,066.64</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Return</div>
+                    <div class="metric-value negative">-4.07%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Profit Factor</div>
+                    <div class="metric-value">0.83</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Max Drawdown</div>
+                    <div class="metric-value negative">11.50%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Sharpe Ratio</div>
+                    <div class="metric-value">-1.39</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Avg R:R</div>
+                    <div class="metric-value">-0.11</div>
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top: 2rem;">Recent Trades (Last 20)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Entry</th>
+                        <th>Exit</th>
+                        <th>Side</th>
+                        <th>Entry $</th>
+                        <th>Exit $</th>
+                        <th>P&L</th>
+                        <th>R:R</th>
+                        <th>Duration</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <td>2026-02-09 10:00</td>
+                        <td>2026-02-09 17:00</td>
+                        <td>SHORT</td>
+                        <td>$68,658.52</td>
+                        <td>$70,558.70</td>
+                        <td class="trade-loss">$-1,071.55</td>
+                        <td>-1.00</td>
+                        <td>420.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-02-11 04:00</td>
+                        <td>2026-02-13 15:00</td>
+                        <td>SHORT</td>
+                        <td>$67,539.96</td>
+                        <td>$68,815.20</td>
+                        <td class="trade-loss">$-1,062.59</td>
+                        <td>-1.01</td>
+                        <td>3540.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-02-14 11:00</td>
+                        <td>2026-02-15 13:00</td>
+                        <td>LONG</td>
+                        <td>$70,455.58</td>
+                        <td>$69,099.53</td>
+                        <td class="trade-loss">$-1,051.58</td>
+                        <td>-1.01</td>
+                        <td>1560.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-02-15 13:00</td>
+                        <td>2026-02-16 13:00</td>
+                        <td>SHORT</td>
+                        <td>$68,898.98</td>
+                        <td>$69,970.26</td>
+                        <td class="trade-loss">$-1,042.52</td>
+                        <td>-1.01</td>
+                        <td>1440.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-02-16 15:00</td>
+                        <td>2026-02-16 21:00</td>
+                        <td>SHORT</td>
+                        <td>$67,501.55</td>
+                        <td>$68,637.92</td>
+                        <td class="trade-loss">$-1,031.51</td>
+                        <td>-1.01</td>
+                        <td>360.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-02-17 14:00</td>
+                        <td>2026-02-18 08:00</td>
+                        <td>SHORT</td>
+                        <td>$66,909.77</td>
+                        <td>$68,284.26</td>
+                        <td class="trade-loss">$-1,020.04</td>
+                        <td>-1.00</td>
+                        <td>1080.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-02-18 18:00</td>
+                        <td>2026-02-20 05:00</td>
+                        <td>SHORT</td>
+                        <td>$66,295.10</td>
+                        <td>$67,480.92</td>
+                        <td class="trade-loss">$-1,010.52</td>
+                        <td>-1.01</td>
+                        <td>2100.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-02-20 05:00</td>
+                        <td>2026-02-20 13:00</td>
+                        <td>LONG</td>
+                        <td>$67,750.77</td>
+                        <td>$66,839.17</td>
+                        <td class="trade-loss">$-1,002.01</td>
+                        <td>-1.01</td>
+                        <td>480.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-02-21 14:00</td>
+                        <td>2026-02-21 22:00</td>
+                        <td>LONG</td>
+                        <td>$68,458.70</td>
+                        <td>$67,948.53</td>
+                        <td class="trade-loss">$-997.94</td>
+                        <td>-1.01</td>
+                        <td>480.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-02-22 14:00</td>
+                        <td>2026-02-23 01:00</td>
+                        <td>SHORT</td>
+                        <td>$67,426.08</td>
+                        <td>$66,268.53</td>
+                        <td class="trade-win">$1,905.13</td>
+                        <td>1.95</td>
+                        <td>660.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">TAKE_PROFIT</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-02-25 01:00</td>
+                        <td>2026-02-28 06:00</td>
+                        <td>LONG</td>
+                        <td>$65,932.85</td>
+                        <td>$63,838.28</td>
+                        <td class="trade-loss">$-996.75</td>
+                        <td>-1.00</td>
+                        <td>4620.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-02-28 06:00</td>
+                        <td>2026-02-28 18:00</td>
+                        <td>SHORT</td>
+                        <td>$63,099.76</td>
+                        <td>$65,625.34</td>
+                        <td class="trade-loss">$-986.31</td>
+                        <td>-1.00</td>
+                        <td>720.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-03-01 20:00</td>
+                        <td>2026-03-02 01:00</td>
+                        <td>SHORT</td>
+                        <td>$65,321.61</td>
+                        <td>$66,701.03</td>
+                        <td class="trade-loss">$-978.62</td>
+                        <td>-1.00</td>
+                        <td>300.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-03-02 15:00</td>
+                        <td>2026-03-03 14:00</td>
+                        <td>LONG</td>
+                        <td>$69,069.30</td>
+                        <td>$66,325.30</td>
+                        <td class="trade-loss">$-966.44</td>
+                        <td>-1.00</td>
+                        <td>1380.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-03-04 07:00</td>
+                        <td>2026-03-04 15:00</td>
+                        <td>LONG</td>
+                        <td>$69,563.42</td>
+                        <td>$72,484.69</td>
+                        <td class="trade-win">$1,890.67</td>
+                        <td>1.98</td>
+                        <td>480.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">TAKE_PROFIT</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-03-05 15:00</td>
+                        <td>2026-03-06 14:00</td>
+                        <td>SHORT</td>
+                        <td>$71,473.86</td>
+                        <td>$69,177.78</td>
+                        <td class="trade-win">$1,922.93</td>
+                        <td>1.98</td>
+                        <td>1380.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">TAKE_PROFIT</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-03-06 14:00</td>
+                        <td>2026-03-10 08:00</td>
+                        <td>SHORT</td>
+                        <td>$68,334.49</td>
+                        <td>$70,627.55</td>
+                        <td class="trade-loss">$-995.64</td>
+                        <td>-1.00</td>
+                        <td>5400.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-03-10 08:00</td>
+                        <td>2026-03-11 11:00</td>
+                        <td>LONG</td>
+                        <td>$70,662.25</td>
+                        <td>$69,313.29</td>
+                        <td class="trade-loss">$-987.69</td>
+                        <td>-1.01</td>
+                        <td>1620.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-03-11 14:00</td>
+                        <td>2026-03-12 01:00</td>
+                        <td>LONG</td>
+                        <td>$70,698.06</td>
+                        <td>$69,828.51</td>
+                        <td class="trade-loss">$-980.61</td>
+                        <td>-1.01</td>
+                        <td>660.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">STOP</td>
+                    </tr>
+
+                    <tr>
+                        <td>2026-03-13 00:00</td>
+                        <td>2026-03-13 23:00</td>
+                        <td>LONG</td>
+                        <td>$71,398.30</td>
+                        <td>$70,934.09</td>
+                        <td class="trade-loss">$-359.77</td>
+                        <td>-0.37</td>
+                        <td>1380.0m</td>
+                        <td style="font-size: 0.75rem; color: #94a3b8;">FORCE_CLOSE</td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+        </div>
+
+        <div class="footer">
+            Generated by SwjshAK Universal Backtester | 2026-03-15 22:08:56
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,65 @@
+# SwjshAK — Caddy Reverse Proxy for swjsh.app
+#
+# Domain: swjsh.app (managed via Cloudflare DNS)
+# Backend: Next.js on localhost:3000 (Docker container)
+# TLS: Let's Encrypt auto-provisioned (requires Cloudflare proxy OFF / grey cloud)
+#
+# CLOUDFLARE DNS SETUP:
+#   1. A record: swjsh.app → YOUR_GCP_EXTERNAL_IP (proxy OFF / grey cloud)
+#   2. AAAA record: delete if exists
+#   3. SSL/TLS mode: Off (Caddy handles TLS end-to-end)
+#
+# OPTIONAL: Enable Cloudflare proxy (orange cloud) later for DDoS protection:
+#   1. Change SSL/TLS mode to "Full (Strict)" in Cloudflare dashboard
+#   2. Generate Origin Certificate in Cloudflare → SSL/TLS → Origin Server
+#   3. Save cert to /etc/caddy/origin.pem and key to /etc/caddy/origin-key.pem
+#   4. Uncomment the tls line below and reload Caddy
+#
+# Caddy handles: HTTPS, auto-renewal, HTTP→HTTPS redirect, reverse proxy
+
+swjsh.app {
+	# TLS: Caddy auto-provisions Let's Encrypt certs (works with Cloudflare proxy OFF)
+	# If using Cloudflare Origin Certs (proxy ON), uncomment this line instead:
+	# tls /etc/caddy/origin.pem /etc/caddy/origin-key.pem
+
+	# ── Public routes (no auth) ──────────────────────────────────────────────
+	# TradingView webhooks must bypass any auth
+	@webhook path /api/webhook/*
+	handle @webhook {
+		reverse_proxy localhost:3000
+	}
+
+	# Health endpoint for monitoring (UptimeRobot, external healthcheck, etc.)
+	@health path /api/health
+	handle @health {
+		reverse_proxy localhost:3000
+	}
+
+	# ── All other routes → Next.js ───────────────────────────────────────────
+	handle {
+		reverse_proxy localhost:3000 {
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto https
+			header_up X-Forwarded-Host {host}
+
+			transport http {
+				dial_timeout 10s
+				read_timeout 60s
+				write_timeout 60s
+			}
+		}
+	}
+
+	# Security headers
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+}
+
+# HTTP → HTTPS redirect (automatic with Caddy, but explicit for clarity)
+http://swjsh.app {
+	redir https://swjsh.app{uri} permanent
+}

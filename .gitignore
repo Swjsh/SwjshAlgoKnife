@@ -39,3 +39,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+nul
+docs/boba_strategy/Supply_Demand_Strategy.mp4

@@ -1,0 +1,82 @@
+{
+  "test_run": "2026-03-15 22:08:56",
+  "test_date": "2026-03-15",
+  "agent": "Bitcoin Bob",
+  "strategy": "Bollinger Band Squeeze & Breakout",
+  "symbol": "BTC-USD",
+  "timeframe": "1h",
+  "data_source": "yfinance (REAL market data)",
+
+  "test_period": {
+    "from": "2026-01-24",
+    "to": "2026-03-14",
+    "duration_days": 50,
+    "candles": 1176
+  },
+
+  "account": {
+    "initial_balance": 100000,
+    "final_balance": 95933.37,
+    "total_loss": -4066.63,
+    "loss_pct": -4.07
+  },
+
+  "performance_metrics": {
+    "total_return_pct": -4.07,
+    "total_trades": 34,
+    "winning_trades": 10,
+    "losing_trades": 24,
+    "win_rate_pct": 29.4,
+    "profit_factor": 0.83,
+    "max_drawdown_pct": 11.5,
+    "sharpe_ratio": -1.39,
+    "avg_risk_reward_ratio": -0.11,
+    "avg_trade_duration_minutes": 1212.4
+  },
+
+  "signal_generation": {
+    "signals_emitted": 96,
+    "signals_to_trades_ratio": 0.354
+  },
+
+  "trade_analysis": {
+    "best_winning_trade": {
+      "pnl": 1922.93,
+      "side": "SHORT",
+      "entry_price": 71473.86,
+      "exit_price": 69177.78,
+      "entry_date": "2026-03-05",
+      "duration_hours": 23
+    },
+    "worst_losing_trade": {
+      "pnl": -1071.55,
+      "side": "SHORT",
+      "entry_price": 68658.52,
+      "exit_price": 70558.70,
+      "entry_date": "2026-02-09",
+      "duration_hours": 7
+    }
+  },
+
+  "strategy_params": {
+    "period": 20,
+    "squeeze_threshold": 0.04,
+    "risk_reward_target": 2.5,
+    "risk_per_trade_pct": 0.01
+  },
+
+  "comparison_to_previous_audit": {
+    "previous_return_pct": -32.79,
+    "current_return_pct": -4.07,
+    "improvement_pct_points": 28.72,
+    "improvement_status": "SIGNIFICANT IMPROVEMENT",
+    "note": "Current backtest shows -4.07% return vs -32.79% in previous audit. This represents 28.72 percentage point improvement."
+  },
+
+  "previous_win_rate": 30.7,
+  "current_win_rate": 29.4,
+  "win_rate_change_pct_points": -1.3,
+
+  "status": "COMPLETED",
+  "errors": "NONE"
+}

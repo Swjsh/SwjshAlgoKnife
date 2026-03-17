@@ -1,0 +1,1264 @@
+/* ═══════════════════════════════════════════════════════════
+   New User Onboarding Wizard - Unified Multi-Step Experience
+   ═══════════════════════════════════════════════════════════ */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(24px);
+    padding: 1.5rem;
+}
+
+/* Animated grid background */
+.gridBg {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(168, 85, 247, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(168, 85, 247, 0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    animation: gridPulse 12s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes gridPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+}
+
+/* Floating ambient orbs */
+.orbs {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.orb {
+    position: absolute;
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.25), transparent 70%);
+    filter: blur(80px);
+}
+
+/* ── Main wizard card ── */
+.wizardCard {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: linear-gradient(135deg, rgba(17, 17, 22, 0.95) 0%, rgba(10, 10, 14, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    backdrop-filter: blur(40px);
+    box-shadow:
+        0 25px 60px -12px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+        0 0 80px rgba(168, 85, 247, 0.08);
+    padding: 2rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+}
+
+.wizardCard::-webkit-scrollbar { width: 4px; }
+.wizardCard::-webkit-scrollbar-track { background: transparent; }
+.wizardCard::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.3); border-radius: 2px; }
+
+/* ── Header ── */
+.header {
+    text-align: center;
+    margin-bottom: 1.75rem;
+}
+
+.headerTop {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.header h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2d9f3 40%, #a855f7 80%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 0.5rem;
+    line-height: 1.2;
+}
+
+.header p {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.skipBtn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.4);
+    padding: 0.4rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.skipBtn:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.65);
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* ── Progress bar ── */
+.progressBar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 2rem;
+    padding: 0 0.5rem;
+}
+
+.progressStep {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+.stepDot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.3);
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.progressStep.active .stepDot {
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.5);
+}
+
+.progressStep.done .stepDot {
+    background: #22c55e;
+    color: white;
+    border-color: transparent;
+}
+
+.stepName {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.3);
+    white-space: nowrap;
+    display: none;
+}
+
+@media (min-width: 640px) {
+    .stepName { display: block; }
+}
+
+.progressStep.active .stepName { color: #c084fc; }
+.progressStep.done .stepName { color: #4ade80; }
+
+.stepLine {
+    flex: 1;
+    height: 1.5px;
+    background: rgba(255, 255, 255, 0.06);
+    margin: 0 0.35rem;
+    min-width: 12px;
+}
+
+.stepLineDone {
+    background: linear-gradient(90deg, #22c55e, rgba(34, 197, 94, 0.25));
+}
+
+/* ── Step content area ── */
+.stepContent {
+    min-height: 320px;
+    margin-bottom: 1.5rem;
+}
+
+.stepPanel {
+    padding: 0.5rem 0;
+}
+
+.stepPanel h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin: 0 0 0.4rem;
+}
+
+.stepPanel .subtitle {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 0 0 1.5rem;
+    line-height: 1.5;
+}
+
+/* ── Welcome step ── */
+.welcomeFeatures {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 540px) {
+    .welcomeFeatures { grid-template-columns: 1fr; }
+}
+
+.welcomeFeat {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 1.25rem 1rem;
+    text-align: center;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.welcomeFeat:hover {
+    border-color: rgba(168, 85, 247, 0.2);
+    background: rgba(168, 85, 247, 0.03);
+}
+
+.welcomeFeatIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.7rem;
+    font-size: 20px;
+}
+
+.welcomeFeat h3 {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0 0 0.25rem;
+}
+
+.welcomeFeat p {
+    font-size: 0.72rem;
+    color: #475569;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.welcomeTimeline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    font-size: 0.78rem;
+    color: #374151;
+}
+
+.welcomeTimeline svg { color: #a855f7; }
+
+/* ── Legal step ── */
+.warningCard {
+    background: rgba(234, 179, 8, 0.05);
+    border: 1px solid rgba(234, 179, 8, 0.18);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.warningTitle {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fbbf24;
+    margin: 0 0 0.6rem;
+}
+
+.warningBody {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    line-height: 1.6;
+}
+
+.warningBody p { margin: 0 0 0.5rem; }
+.warningBody p:last-child { margin-bottom: 0; }
+.warningBody strong { color: #e2e8f0; }
+
+.waiverBox {
+    background: rgba(17, 17, 22, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    max-height: 160px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+}
+
+.waiverBox::-webkit-scrollbar { width: 3px; }
+.waiverBox::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.3); border-radius: 2px; }
+
+.waiverBox p {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #94a3b8;
+    margin: 0 0 0.6rem;
+}
+
+.waiverList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.waiverList li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.75rem;
+    color: #64748b;
+    line-height: 1.45;
+}
+
+.waiverList li::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(168, 85, 247, 0.5);
+    flex-shrink: 0;
+    margin-top: 5px;
+}
+
+.checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.checkLabel {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 0.85rem 1rem;
+    border-radius: 11px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.015);
+    transition: all 0.2s;
+}
+
+.checkLabel:hover {
+    border-color: rgba(168, 85, 247, 0.18);
+    background: rgba(168, 85, 247, 0.025);
+}
+
+.checkLabel.checked {
+    border-color: rgba(168, 85, 247, 0.28);
+    background: rgba(168, 85, 247, 0.05);
+}
+
+.checkWrap {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.checkWrap input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    margin: 0;
+    z-index: 2;
+}
+
+.checkBox {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    pointer-events: none;
+}
+
+.checkWrap input:checked ~ .checkBox {
+    background: linear-gradient(135deg, #a855f7, #ec4899);
+    border-color: transparent;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.35);
+}
+
+.checkBox svg { display: none; }
+.checkWrap input:checked ~ .checkBox svg { display: block; }
+
+.checkText {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    line-height: 1.45;
+    flex: 1;
+}
+
+.checkText a {
+    color: #a855f7;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.15s;
+}
+
+.checkText a:hover { color: #c084fc; }
+
+/* ── Alpaca broker step ── */
+.brokerBadge {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1rem 1.15rem;
+    border-radius: 14px;
+    background: rgba(17, 17, 22, 0.7);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    margin-bottom: 1.25rem;
+    box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.05), 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.brokerLogo {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.brokerInfo { flex: 1; }
+
+.brokerInfo h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0 0 0.15rem;
+}
+
+.brokerInfo p {
+    font-size: 0.72rem;
+    color: #475569;
+    margin: 0;
+}
+
+.brokerTag {
+    padding: 0.25rem 0.6rem;
+    border-radius: 100px;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #4ade80;
+    white-space: nowrap;
+}
+
+.signupGuide {
+    background: rgba(17, 17, 22, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 1rem 1.15rem;
+    margin-bottom: 1.25rem;
+}
+
+.signupGuide h4 {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0 0 0.7rem;
+}
+
+.signupSteps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    counter-reset: signup;
+}
+
+.signupSteps li {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.75rem;
+    color: #64748b;
+    counter-increment: signup;
+}
+
+.signupSteps li::before {
+    content: counter(signup);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(168, 85, 247, 0.1);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    color: #a855f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.62rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.signupSteps a {
+    color: #a855f7;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.15s;
+}
+
+.signupSteps a:hover { color: #c084fc; }
+
+.signupCta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 9px;
+    background: rgba(168, 85, 247, 0.12);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    color: #c084fc;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    font-family: inherit;
+}
+
+.signupCta:hover {
+    background: rgba(168, 85, 247, 0.18);
+    border-color: rgba(168, 85, 247, 0.45);
+    color: #d8b4fe;
+}
+
+.apiFields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.field label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #94a3b8;
+}
+
+.inputWrap { position: relative; }
+
+.apiInput {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.035);
+    color: #f1f5f9;
+    font-size: 0.8rem;
+    font-family: 'SFMono-Regular', 'Cascadia Code', 'Courier New', monospace;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    box-sizing: border-box;
+}
+
+.apiInput::placeholder { color: #1e293b; }
+
+.apiInput:focus {
+    border-color: rgba(168, 85, 247, 0.45);
+    background: rgba(168, 85, 247, 0.04);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+}
+
+.apiInputPw { padding-right: 40px; }
+
+.pwToggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #475569;
+    padding: 3px;
+    display: flex;
+    align-items: center;
+    transition: color 0.15s;
+}
+
+.pwToggle:hover { color: #94a3b8; }
+
+.testRow {
+    display: flex;
+    gap: 0.65rem;
+    margin-top: 0.25rem;
+}
+
+.testBtn {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    border: 1.5px solid rgba(168, 85, 247, 0.35);
+    background: rgba(168, 85, 247, 0.06);
+    color: #c084fc;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.testBtn:hover:not(:disabled) {
+    background: rgba(168, 85, 247, 0.12);
+    border-color: rgba(168, 85, 247, 0.5);
+}
+
+.testBtn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.accountPreview {
+    border-radius: 12px;
+    background: rgba(34, 197, 94, 0.06);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    padding: 1rem 1.15rem;
+    margin-top: 0.75rem;
+}
+
+.previewHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.previewCheck {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.previewTitle {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4ade80;
+    margin: 0;
+}
+
+.previewGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+}
+
+.previewLabel {
+    font-size: 0.68rem;
+    color: #475569;
+    margin: 0 0 0.15rem;
+}
+
+.previewVal {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    font-family: monospace;
+    margin: 0;
+}
+
+.previewVal.cyan { color: #22d3ee; }
+.previewVal.green { color: #4ade80; }
+
+/* ── Agent selection step ── */
+.agentGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+@media (max-width: 540px) {
+    .agentGrid { grid-template-columns: 1fr; }
+}
+
+.agentCard {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.25rem 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-align: center;
+    font-family: inherit;
+}
+
+.agentCard:hover {
+    background: rgba(255, 255, 255, 0.045);
+    border-color: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+}
+
+.agentCard.selected {
+    border-color: var(--agent-color, #a855f7);
+    background: rgba(168, 85, 247, 0.07);
+    box-shadow: 0 0 24px rgba(168, 85, 247, 0.15);
+}
+
+.agentIcon {
+    font-size: 1.75rem;
+    margin-bottom: 0.15rem;
+}
+
+.agentCard h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin: 0;
+}
+
+.agentCard p {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.45);
+    margin: 0;
+    line-height: 1.35;
+}
+
+.agentQuote {
+    font-size: 0.7rem;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 0.2rem;
+    font-family: monospace;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+}
+
+.agentMarket {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 0.3rem;
+}
+
+.selectedCheck {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    width: 22px;
+    height: 22px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+/* ── Configure step ── */
+.configSection {
+    margin-bottom: 1.5rem;
+}
+
+.configSection h3 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0 0 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.marketGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+}
+
+@media (max-width: 540px) {
+    .marketGrid { grid-template-columns: 1fr; }
+}
+
+.marketCard {
+    padding: 0.85rem 1rem;
+    border-radius: 11px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(255, 255, 255, 0.02);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    font-family: inherit;
+}
+
+.marketCard:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.marketCard.selected {
+    border-color: var(--agent-color, #a855f7);
+    background: rgba(168, 85, 247, 0.06);
+}
+
+.marketCard h4 {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0 0 0.15rem;
+}
+
+.marketCard p {
+    font-size: 0.7rem;
+    color: #475569;
+    margin: 0;
+}
+
+.strategyGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+}
+
+@media (max-width: 540px) {
+    .strategyGrid { grid-template-columns: 1fr; }
+}
+
+.stratCard {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1rem;
+    border-radius: 11px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(255, 255, 255, 0.02);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    font-family: inherit;
+}
+
+.stratCard:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.stratCard.selected {
+    border-color: var(--agent-color, #a855f7);
+    background: rgba(168, 85, 247, 0.06);
+}
+
+.stratIcon { color: #a855f7; flex-shrink: 0; }
+
+.stratCard h4 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0 0 0.1rem;
+}
+
+.stratCard p {
+    font-size: 0.68rem;
+    color: #475569;
+    margin: 0;
+}
+
+.riskInputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 0.25rem;
+}
+
+@media (max-width: 540px) {
+    .riskInputs { grid-template-columns: 1fr; }
+}
+
+.riskGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.riskGroup label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.riskInputBox {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.2s;
+}
+
+.riskInputBox:focus-within {
+    border-color: rgba(168, 85, 247, 0.45);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+}
+
+.riskPrefix {
+    padding: 0.55rem 0.7rem;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 600;
+    font-size: 0.82rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.riskInputBox input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 0.55rem 0.7rem;
+    color: white;
+    font-size: 0.9rem;
+    outline: none;
+    font-family: inherit;
+}
+
+.riskInputBox input::placeholder { color: rgba(255, 255, 255, 0.2); }
+
+.riskHint {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.35);
+}
+
+/* ── Review / Deploy step ── */
+.reviewCard {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1.25rem;
+}
+
+.reviewHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 1.15rem;
+    padding-bottom: 1.15rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.reviewAvatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.reviewHeader h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin: 0;
+}
+
+.reviewHeader p {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.45);
+    margin: 0;
+}
+
+.reviewGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+}
+
+.reviewItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.reviewItem span {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.reviewItem strong {
+    font-size: 0.9rem;
+    color: #f1f5f9;
+}
+
+.brokerStatus {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.15rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    font-size: 0.75rem;
+}
+
+.brokerStatusDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    animation: livePulse 2s ease-in-out infinite;
+}
+
+.brokerStatusDot.connected { background: #22c55e; }
+.brokerStatusDot.skipped { background: #f59e0b; }
+
+@keyframes livePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
+}
+
+.brokerStatusText { color: #4ade80; }
+.brokerStatusText.skipped { color: #fbbf24; }
+
+/* ── Error message ── */
+.errorBox {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 9px;
+    background: rgba(239, 68, 68, 0.07);
+    border: 1px solid rgba(239, 68, 68, 0.22);
+    margin-top: 0.65rem;
+}
+
+.errorBox p {
+    margin: 0;
+    font-size: 0.78rem;
+    color: #fca5a5;
+    line-height: 1.4;
+    white-space: pre-line;
+}
+
+/* ── Footer nav ── */
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.prevBtn, .nextBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 11px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.prevBtn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.prevBtn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.prevBtn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+}
+
+.nextBtn {
+    background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+    border: none;
+    color: white;
+    box-shadow: 0 4px 16px rgba(168, 85, 247, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.nextBtn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+.nextBtn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(168, 85, 247, 0.45);
+    filter: brightness(1.06);
+}
+
+.nextBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.launchBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.75rem;
+    background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+    border: none;
+    border-radius: 11px;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.launchBtn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+.launchBtn:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 8px 28px rgba(34, 197, 94, 0.45);
+    transform: translateY(-2px);
+}
+
+/* ── Launch animation ── */
+.launchScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3.5rem 2rem;
+    text-align: center;
+}
+
+.launchIcon { color: #22c55e; margin-bottom: 1.25rem; }
+
+.launchScreen h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin: 0 0 0.4rem;
+}
+
+.launchScreen p {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin: 0 0 1.75rem;
+}
+
+.progressTrack {
+    width: 180px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 100%;
+    background: linear-gradient(90deg, #22c55e, #10b981);
+    border-radius: 2px;
+}
+
+/* ── Spinner ── */
+.spinner {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

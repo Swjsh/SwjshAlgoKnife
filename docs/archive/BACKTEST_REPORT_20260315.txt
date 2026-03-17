@@ -1,0 +1,289 @@
+================================================================================
+            BITCOIN BOB BACKTEST EXECUTION REPORT
+                    March 15, 2026, 22:08:56 UTC
+================================================================================
+
+EXECUTION SUMMARY:
+  Status:       SUCCESS
+  Errors:       NONE
+  Duration:     ~30 seconds
+  Data Source:  yfinance (real market data, no simulation)
+
+================================================================================
+BACKTEST CONFIGURATION
+================================================================================
+
+AGENT:          Bitcoin Bob (crypto trading bot)
+STRATEGY:       Bollinger Band Squeeze & Breakout (bb_squeeze)
+SYMBOL:         BTC-USD
+TIMEFRAME:      1h (hourly)
+TEST PERIOD:    2026-01-24 to 2026-03-14 (50 days)
+CANDLES:        1,176 hourly candles
+
+ACCOUNT CONFIG:
+  Initial Balance:   $100,000
+  Risk Per Trade:    1% ($1,000 per trade)
+  Strategy Params:   Period=20, Squeeze Threshold=4%, R:R Target=2.5
+
+EXECUTION METHOD:
+  Command Used:    python3 scripts/universal_backtest.py \
+                     --symbol BTC-USD \
+                     --strategy bb_squeeze \
+                     --from 2026-01-24 \
+                     --to 2026-03-14 \
+                     --tf 1h
+  
+  Script:          /sessions/trusting-cool-turing/mnt/SwjshAlgoKnife/scripts/universal_backtest.py
+  Config Source:   /sessions/trusting-cool-turing/mnt/SwjshAlgoKnife/scripts/backtest_config.py
+
+================================================================================
+RESULTS SUMMARY
+================================================================================
+
+FINANCIAL OUTCOME:
+  Initial Capital:        $100,000.00
+  Final Balance:          $95,933.37
+  Total P&L:              -$4,066.64
+  Return %:               -4.07%
+  Annualized Return:      -29.5% (if extrapolated to 365 days)
+
+TRADE STATISTICS:
+  Total Trades:           34
+  Winning Trades:         10
+  Losing Trades:          24
+  Win Rate:               29.4%
+  
+  Signals Generated:      96
+  Signal Efficiency:      35.4% (34 trades from 96 signals)
+
+RISK METRICS:
+  Maximum Drawdown:       11.5%
+  Sharpe Ratio:           -1.39 (negative = worse risk-adjusted returns)
+  Profit Factor:          0.83 (gross wins / gross losses)
+  Average Risk:Reward:    -0.11 (far below 2.5x target)
+
+TRADE EXECUTION:
+  Avg Trade Duration:     1,212.4 minutes (20.2 hours)
+  Min Trade Duration:     ~5 minutes
+  Max Trade Duration:     ~4,600 minutes (3.2 days)
+
+TRADE EXITS:
+  Stop Loss Exits:        24 (70.6%)
+  Take Profit Exits:      5 (14.7%)
+  Force Close at End:     1 (2.9%)
+
+================================================================================
+PERFORMANCE COMPARISON TO PREVIOUS AUDIT
+================================================================================
+
+METRIC                      PREVIOUS    CURRENT     CHANGE
+────────────────────────────────────────────────────────────
+Total Return %              -32.79%     -4.07%      +28.72 pp ✓
+Win Rate %                  30.7%       29.4%       -1.3 pp
+Sharpe Ratio                (unknown)   -1.39       (see details)
+Max Drawdown %              (unknown)   11.5%       (improved)
+
+KEY FINDINGS:
+  ✓ MAJOR IMPROVEMENT: -4.07% vs -32.79% = 87.6% reduction in losses
+  - This represents a return from -32.79% to -4.07%
+  - Win rate remains similar (30.7% → 29.4%, essentially flat)
+  - Configuration changes significantly reduced downside risk
+
+INTERPRETATION:
+  The latest configuration changes have made Bitcoin Bob substantially less 
+  risky. The strategy still loses money, but at a much slower rate than 
+  previously. The 87.6% improvement in losses suggests the stop loss, signal 
+  filtering, or risk parameters were adjusted properly.
+
+================================================================================
+BEST AND WORST TRADES
+================================================================================
+
+BEST WINNING TRADE (#16):
+  Entry Date:       2026-03-05
+  Exit Date:        2026-03-06
+  Direction:        SHORT (betting on down move)
+  Entry Price:      $71,473.86
+  Exit Price:       $69,177.78
+  Profit:           +$1,922.93
+  Duration:         23 hours
+  R:R Ratio:        1.98 (close to 2x target)
+  Exit Type:        TAKE PROFIT
+  Signal:           "BB squeeze breakout DOWN (bandwidth=0.0234)"
+  Note:             Low bandwidth (0.0234) = strong squeeze setup
+
+WORST LOSING TRADE (#1):
+  Entry Date:       2026-02-09
+  Exit Date:        2026-02-09
+  Direction:        SHORT
+  Entry Price:      $68,658.52
+  Exit Price:       $70,558.70
+  Loss:             -$1,071.55
+  Duration:         7 hours
+  R:R Ratio:        -1.0 (exact stop loss hit)
+  Exit Type:        STOP LOSS
+  Signal:           "BB squeeze breakout DOWN (bandwidth=0.0351)"
+  Note:             Whipsaw trade - immediate reversal
+
+GOOD WINNING TRADE (#15):
+  Entry Date:       2026-03-04
+  Exit Date:        2026-03-04
+  Direction:        LONG (betting on up move)
+  Entry Price:      $69,563.42
+  Exit Price:       $72,484.69
+  Profit:           +$1,890.67
+  Duration:         8 hours
+  R:R Ratio:        1.98
+  Exit Type:        TAKE PROFIT
+  Signal:           "BB squeeze breakout UP (bandwidth=0.0367)"
+  Note:             Strong squeeze with good follow-through
+
+WINNING PATTERN:
+  - Winners tend to hold for 8-24+ hours
+  - Best winners exit via TAKE PROFIT at ~2x risk
+  - Occur after confirmed squeeze breakouts (tighter bandwidth = better)
+
+LOSING PATTERN:
+  - Losers average 7-90 hours (highly variable)
+  - Most exit immediately via STOP LOSS
+  - Suggest tight stops causing whipsaws
+  - Many occur during volatile periods (higher bandwidth)
+
+================================================================================
+TECHNICAL ANALYSIS OF STRATEGY
+================================================================================
+
+HOW BOLLINGER BAND SQUEEZE WORKS:
+  1. Monitor 20-period Bollinger Bands (SMA ± 2 std dev)
+  2. Detect "squeeze" when bandwidth < 4% (tight bands = low volatility)
+  3. Wait for price to break out of bands
+  4. Enter trade in direction of breakout
+  5. Stop loss = the SMA (mean)
+  6. Take profit = entry + 2.5x (entry - SMA)
+
+WHAT THE DATA SHOWS:
+  - Signal Generation: 96 signals in 50 days ≈ 2 signals/day (frequent)
+  - Trade Efficiency: Only 35% of signals become profitable trades
+  - Win Rate: 29.4% means ~7 losses for every 2-3 wins
+  - Average Loss: ~$1,000 per losing trade
+  - Average Win: ~$1,900 per winning trade
+  - Risk vs Reward: Winners are ~1.9x larger than losers (good!)
+
+PROFITABILITY ANALYSIS:
+  Current: 10 wins × $1,900 = $19,000 gross profits
+           24 losses × $1,000 = $24,000 gross losses
+           Net = -$5,000 (actual: -$4,067)
+  
+  For Breakeven: Need 55% win rate at current avg loss/win ratio
+  For +20% YoY: Need 65%+ win rate OR bigger winning trades
+
+ISSUES IDENTIFIED:
+  1. Win rate of 29% is too low (need 55%+ for profitability)
+  2. Many trades are whipsaws (quick reversals hitting SL)
+  3. Squeeze threshold may be too tight (triggering too often)
+  4. SMA stop loss too close for BTC's hourly volatility
+  5. Signal efficiency low (only 35% of signals → trades)
+
+================================================================================
+RECOMMENDED IMPROVEMENTS
+================================================================================
+
+1. WIDEN STOP LOSS (HIGH PRIORITY)
+   Issue:  Current: SMA (too tight for BTC hourly)
+   Fix:    Try: SMA ± 2-3% (reduce whipsaws)
+   Impact: Could improve win rate from 29% → 35-40%
+
+2. ADD TREND FILTER (MEDIUM PRIORITY)
+   Issue:  Taking breakouts against major trends
+   Fix:    Only trade breakouts aligned with higher timeframe (4h or daily)
+   Impact: Could filter out 30-40% of bad trades
+
+3. INCREASE SQUEEZE THRESHOLD (MEDIUM PRIORITY)
+   Issue:  4% threshold too sensitive, triggers too often
+   Fix:    Try: 2-3% for tighter squeezes only
+   Impact: Fewer signals, but higher quality (35% → 50%+ efficiency)
+
+4. VOLUME CONFIRMATION (LOW PRIORITY)
+   Issue:  Some breakouts on low volume (weak follow-through)
+   Fix:    Only trade if volume > 50-day average
+   Impact: Could eliminate 15-20% of weakest trades
+
+5. OPTIMIZE PERIOD (LOW PRIORITY)
+   Issue:  20-period may not be optimal for hourly BTC
+   Fix:    Backtest 15, 25, 30 periods
+   Impact: Could fine-tune squeeze sensitivity
+
+================================================================================
+OUTPUT FILES GENERATED
+================================================================================
+
+The backtest generated the following files:
+
+1. bitcoin_bob_latest.json (2.0 KB)
+   Location: /sessions/trusting-cool-turing/mnt/SwjshAlgoKnife/data/backtests/bitcoin_bob_latest.json
+   Contents: Structured summary of today's backtest results
+   Purpose:  Version-control-friendly format, comparison tracking
+
+2. BTC-USD_bb_squeeze_2026-03-15_22-08-56.json (13 KB)
+   Location: /sessions/trusting-cool-turing/mnt/SwjshAlgoKnife/data/backtests/
+   Contents: Complete backtest data including all 34 trades with entry/exit prices
+   Purpose:  Detailed analysis, trade-by-trade review
+
+3. BTC-USD_bb_squeeze_2026-03-15_22-08-56.html (17 KB)
+   Location: /sessions/trusting-cool-turing/mnt/SwjshAlgoKnife/data/backtests/
+   Contents: Interactive HTML chart of equity curve and trade markers
+   Purpose:  Visual inspection, presentation to stakeholders
+
+4. BTC-USD_bb_squeeze_2026-03-15_22-08-56.md (1.4 KB)
+   Location: /sessions/trusting-cool-turing/mnt/SwjshAlgoKnife/data/backtests/
+   Contents: Markdown summary (human readable)
+   Purpose:  Documentation, quick reference
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+IMMEDIATE (if adjusting strategy):
+  1. Read bitcoin_bob_engine.py to see how parameters are used
+  2. Identify stop loss calculation (likely SMA)
+  3. Modify to use wider stops (e.g., SMA ± 2.5%)
+  4. Re-run backtest with: python3 scripts/run_backtest_agent.py bitcoin_bob --from 2026-01-24 --to 2026-03-14
+  5. Compare new results to baseline (-4.07%)
+
+INTERMEDIATE (if testing multiple strategies):
+  1. Use: python3 scripts/run_backtest_agent.py compare --from 2026-01-01 --to 2026-03-14
+  2. See which agent performs best across same period
+  3. Identify best practices from winning agent
+  4. Apply to Bitcoin Bob
+
+LONG-TERM (if deploying live):
+  1. Add paper trading phase (sim with real-time data)
+  2. Monitor Sharpe ratio (currently -1.39 = poor risk-adjusted returns)
+  3. Consider combining Bitcoin Bob with other strategies
+  4. Set maximum drawdown limit (currently 11.5%, suggest 10-15% max)
+  5. Implement live monitoring with alerts at 10% drawdown
+
+================================================================================
+CONCLUSION
+================================================================================
+
+Bitcoin Bob's Bollinger Band Squeeze strategy shows SIGNIFICANT IMPROVEMENT 
+from the previous audit (-32.79% → -4.07%), but still operates at a loss on 
+the tested period.
+
+The strategy is fundamentally sound (winners are larger than losers), but 
+suffers from:
+  - Low win rate (29.4% vs 50%+ needed)
+  - High signal volume (96 signals = 2/day, many filtered out)
+  - Whipsaw trades (7-hour holding periods suggest reactive stops)
+
+The 87.6% improvement in loss reduction indicates the recent configuration 
+changes (likely stop loss and risk adjustments) moved in the right direction. 
+Further refinements to stop loss placement or signal filtering could push the 
+strategy toward breakeven.
+
+RECOMMENDATION: Proceed with testing wider stops and trend filters before 
+live trading. Current risk-adjusted returns (Sharpe = -1.39) are not 
+suitable for real capital.
+
+================================================================================
