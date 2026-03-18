@@ -1,0 +1,26 @@
+.skeletonContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.skeletonLine {
+  background: linear-gradient(
+    90deg,
+    hsla(222, 47%, 20%, 0.5) 0%,
+    hsla(222, 47%, 30%, 0.8) 50%,
+    hsla(222, 47%, 20%, 0.5) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 4px;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

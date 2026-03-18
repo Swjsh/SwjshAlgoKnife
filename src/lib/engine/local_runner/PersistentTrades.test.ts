@@ -31,7 +31,7 @@ describe('Persistent Trades Implementation', () => {
       pending_orders: [],
       active_trades: [],
       closed_trades: [],
-      meta: { name: 'Swjsh FX', type: 'Forex' }
+      meta: { name: 'Sterling', type: 'Forex' }
     };
   });
 
@@ -244,7 +244,7 @@ describe('Persistent Trades Implementation', () => {
 
   describe('Multi-Agent Support', () => {
     it('should support active trades for multiple agents', () => {
-      const fxAgent = JSON.parse(JSON.stringify({ ...mockAgentState, meta: { name: 'Swjsh FX', type: 'Forex' } }));
+      const fxAgent = JSON.parse(JSON.stringify({ ...mockAgentState, meta: { name: 'Sterling', type: 'Forex' } }));
       const cryptoAgent = JSON.parse(JSON.stringify({ ...mockAgentState, meta: { name: 'Bitcoin Bob', type: 'Crypto' } }));
 
       fxAgent.active_trades.push({

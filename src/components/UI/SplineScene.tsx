@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, lazy } from 'react'
+import { ErrorBoundary } from '@/components/UI/ErrorBoundary'
 const Spline = lazy(() => import('@splinetool/react-spline'))
 
 interface SplineSceneProps {
@@ -21,11 +22,13 @@ export function SplineScene({ scene, className, onLoad }: SplineSceneProps) {
                 </div>
             }
         >
-            <Spline
-                scene={scene}
-                className={className}
-                onLoad={onLoad}
-            />
+            <ErrorBoundary fallback={<div className="w-full h-full flex items-center justify-center text-muted-foreground/50 text-sm">Scene Unavailable</div>}>
+                <Spline
+                    scene={scene}
+                    className={className}
+                    onLoad={onLoad}
+                />
+            </ErrorBoundary>
         </Suspense>
     )
 }

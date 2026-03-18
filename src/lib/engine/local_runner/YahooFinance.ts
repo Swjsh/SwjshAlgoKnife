@@ -17,10 +17,8 @@ export class YahooFinance extends EventEmitter {
         const pairList = this.symbols.map(s => s.normalized).join(', ');
         console.log(`🌍 [YahooFinance] Starting Multi-Pair Poller for ${pairList}...`);
 
-        // Initial Fetch
-        this.fetchAllPrices();
-
         // Poll every 10 seconds
+        // (No immediate fetch here; keeps start/stop deterministic and avoids overlapping in tests.)
         this.interval = setInterval(() => {
             this.fetchAllPrices();
         }, 10000);
@@ -28,7 +26,10 @@ export class YahooFinance extends EventEmitter {
 
     stop() {
         this.isRunning = false;
-        if (this.interval) clearInterval(this.interval);
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
     }
 
     private async fetchAllPrices() {
@@ -36,6 +37,7 @@ export class YahooFinance extends EventEmitter {
 
         // Fetch all pairs sequentially to avoid rate limiting
         for (const symbol of this.symbols) {
+            if (!this.isRunning) break;
             await this.fetchPrice(symbol.yahoo, symbol.normalized);
             // Small delay between requests
             await new Promise(resolve => setTimeout(resolve, 200));
@@ -51,16 +53,16 @@ export class YahooFinance extends EventEmitter {
             const res = await fetch(url);
             const data = await res.json();
 
-            const result = data.chart.result[0];
-            const meta = result.meta;
-            const price = meta.regularMarketPrice;
-            const timestamp = meta.regularMarketTime * 1000;
+            const result = data?.chart?.result?.[0];
+            const meta = result?.meta;
+            const price = meta?.regularMarketPrice;
+            const ts = typeof meta?.regularMarketTime === 'number' ? meta.regularMarketTime * 1000 : Date.now();
 
-            if (price) {
+            if (typeof price === 'number') {
                 this.emit('price', {
                     ticker: normalizedTicker,
-                    price: price,
-                    timestamp: timestamp || Date.now(),
+                    price,
+                    timestamp: ts,
                     source: 'YAHOO'
                 });
             }

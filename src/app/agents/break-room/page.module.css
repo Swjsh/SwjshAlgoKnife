@@ -704,3 +704,102 @@
         /* Auto wrap */
     }
 }
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+   ═══════════════════════════════════════════════════════════════ */
+:global([data-theme='light']) .container {
+    background: var(--bg-main);
+}
+
+:global([data-theme='light']) .bgOverlay {
+    background: radial-gradient(circle at 80% 0%, rgba(124, 58, 237, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 20% 80%, rgba(219, 39, 119, 0.04) 0%, transparent 50%);
+}
+
+:global([data-theme='light']) .bgOverlay::before {
+    display: none;
+}
+
+:global([data-theme='light']) .header {
+    border-bottom-color: var(--border-base);
+}
+
+:global([data-theme='light']) .title {
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .subtitle {
+    color: var(--text-muted);
+}
+
+:global([data-theme='light']) .employeeSection,
+:global([data-theme='light']) .leaderboardSection,
+:global([data-theme='light']) .waterCoolerSection,
+:global([data-theme='light']) .growthSection,
+:global([data-theme='light']) .quickStatsSection {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-base);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+:global([data-theme='light']) .tableHeader {
+    color: var(--text-muted);
+    border-bottom-color: var(--border-base);
+}
+
+:global([data-theme='light']) .tableRow {
+    background: var(--bg-subtle);
+    color: var(--text-primary);
+    border-color: var(--border-subtle);
+}
+
+:global([data-theme='light']) .tableRow:hover {
+    background: var(--bg-surface);
+    border-color: var(--border-bright);
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.08);
+}
+
+:global([data-theme='light']) .rank {
+    color: var(--text-muted);
+}
+
+:global([data-theme='light']) .waterCoolerMessage {
+    background: var(--bg-subtle);
+}
+
+:global([data-theme='light']) .messageText {
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .quickStat {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-subtle);
+}
+
+:global([data-theme='light']) .quickStat:hover {
+    background: var(--bg-surface);
+}
+
+:global([data-theme='light']) .quickStatValue {
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .quickStatLabel {
+    color: var(--text-muted);
+}
+
+:global([data-theme='light']) .sectionHeader {
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .sectionHeader svg {
+    color: var(--brand-primary);
+}
+
+:global([data-theme='light']) .backLink {
+    color: var(--text-secondary);
+}
+
+:global([data-theme='light']) .backLink:hover {
+    color: var(--text-primary);
+}

@@ -1,0 +1,420 @@
+/* ── Loading / Error ── */
+.loadingWrap,
+.errorWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 300px;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.95rem;
+}
+.errorWrap { color: #f87171; }
+.spinner { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.retryBtn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: rgba(6,182,212,0.15);
+  color: #06b6d4;
+  border: 1px solid rgba(6,182,212,0.3);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* ── Container ── */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px 32px;
+  max-width: 1200px;
+}
+
+/* ── Page Header ── */
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.pageTitle {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--text-primary, #e2e8f0);
+  letter-spacing: -0.02em;
+}
+.pageSubtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted, #64748b);
+  margin-top: 2px;
+}
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lastUpdated {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: var(--text-dim, #475569);
+}
+.refreshBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: rgba(6,182,212,0.1);
+  color: #06b6d4;
+  border: 1px solid rgba(6,182,212,0.25);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.refreshBtn:hover { background: rgba(6,182,212,0.2); }
+.refreshBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Summary Cards ── */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+.summaryCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  background: var(--bg-surface, rgba(30,41,59,0.6));
+  border: 1px solid var(--border-primary, rgba(100,116,139,0.15));
+  border-radius: 14px;
+  transition: border-color 0.2s;
+}
+.summaryCard:hover {
+  border-color: rgba(100,116,139,0.3);
+}
+.cardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  flex-shrink: 0;
+}
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cardLabel {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #64748b);
+}
+.cardValue {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* ── Panels ── */
+.panel {
+  background: var(--bg-surface, rgba(30,41,59,0.6));
+  border: 1px solid var(--border-primary, rgba(100,116,139,0.15));
+  border-radius: 14px;
+  padding: 22px 24px;
+}
+.panelTitle {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-primary, #e2e8f0);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Main Grid (donut + bars) ── */
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 16px;
+}
+@media (max-width: 768px) {
+  .mainGrid { grid-template-columns: 1fr; }
+}
+
+/* ── Donut ── */
+.donutWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.donutSvg {
+  width: 180px;
+  height: 180px;
+}
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+.legendSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.legendLabel {
+  color: var(--text-secondary, #94a3b8);
+  flex: 1;
+}
+.legendValue {
+  font-weight: 700;
+  color: var(--text-primary, #e2e8f0);
+}
+.legendPct {
+  font-size: 0.7rem;
+  color: var(--text-dim, #475569);
+  width: 32px;
+  text-align: right;
+}
+
+/* ── Bar Chart ── */
+.barList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.barRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.barMeta {
+  width: 180px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+.barName {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary, #e2e8f0);
+}
+.barDesc {
+  font-size: 0.65rem;
+  color: var(--text-dim, #475569);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+.barTrack {
+  flex: 1;
+  height: 22px;
+  background: rgba(30,41,59,0.5);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.barFill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.6s ease;
+  min-width: 4px;
+}
+.barAmount {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary, #e2e8f0);
+  width: 70px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Optimizations ── */
+.optGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+.optCard {
+  background: rgba(15,23,42,0.5);
+  border: 1px solid rgba(100,116,139,0.12);
+  border-radius: 10px;
+  padding: 16px;
+  transition: border-color 0.2s;
+}
+.optCard:hover {
+  border-color: rgba(34,197,94,0.3);
+}
+.optHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.optTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary, #e2e8f0);
+}
+.optSavings {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #22c55e;
+}
+.optDesc {
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+.optFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.effortBadge {
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 5px;
+}
+.effort_low {
+  background: rgba(34,197,94,0.12);
+  color: #22c55e;
+}
+.effort_medium {
+  background: rgba(245,158,11,0.12);
+  color: #f59e0b;
+}
+.effort_high {
+  background: rgba(239,68,68,0.12);
+  color: #ef4444;
+}
+.optAnnual {
+  font-size: 0.68rem;
+  color: var(--text-dim, #475569);
+}
+
+/* ── Collapsible Sections ── */
+.collapseBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--text-primary, #e2e8f0);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+.collapseBtn:hover { opacity: 0.8; }
+
+/* Free services grid */
+.serviceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+.freeChip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(34,197,94,0.04);
+  border: 1px solid rgba(34,197,94,0.1);
+  border-radius: 8px;
+}
+.freeChip svg { margin-top: 2px; flex-shrink: 0; }
+.chipName {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary, #e2e8f0);
+}
+.chipDesc {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--text-dim, #475569);
+  margin-top: 1px;
+}
+
+/* Future costs */
+.futureList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+.futureRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(245,158,11,0.04);
+  border: 1px solid rgba(245,158,11,0.1);
+  border-radius: 8px;
+}
+.futureName {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary, #e2e8f0);
+}
+.futureDesc {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--text-dim, #475569);
+}
+.futureCost {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #f59e0b;
+  white-space: nowrap;
+}
+
+/* ── API Info Bar ── */
+.apiInfoBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(100,116,139,0.06);
+  border: 1px solid rgba(100,116,139,0.12);
+  border-radius: 10px;
+  font-size: 0.72rem;
+  color: var(--text-dim, #475569);
+}
+.apiInfoBar code {
+  background: rgba(6,182,212,0.1);
+  color: #06b6d4;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-family: var(--font-mono, monospace);
+}

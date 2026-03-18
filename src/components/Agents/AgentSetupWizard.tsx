@@ -29,7 +29,7 @@ const STRATEGIES = [
 ];
 
 const PERSONAS = [
-    { id: 'fx', name: 'Swjsh FX', market: 'FOREX', voice: 'Professional' },
+    { id: 'fx', name: 'Sterling', market: 'FOREX', voice: 'Calm & Deliberate' },
     { id: 'crypto', name: 'Bitcoin Bob', market: 'CRYPTO', voice: 'Chill HODL' },
     { id: 'spx', name: 'SPX Sniper', market: 'OPTIONS', voice: 'Tactical Elite' },
     { id: 'futures', name: 'Pivot Pete', market: 'FUTURES', voice: 'Methodical' },

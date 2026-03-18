@@ -1,0 +1,43 @@
+[
+  {
+    "id": "TC001",
+    "title": "get_latest_trading_signals",
+    "description": "Test the GET /api/signals endpoint to ensure it retrieves the 10 most recent trading signals ordered by timestamp, returns a 200 status on success, and handles server errors with a 500 status."
+  },
+  {
+    "id": "TC002",
+    "title": "get_all_trade_journal_entries",
+    "description": "Test the GET /api/journal endpoint to verify it returns all trade journal entries ordered by entry date descending, responds with 200 on success, and handles server errors with a 500 status."
+  },
+  {
+    "id": "TC003",
+    "title": "create_new_trade_journal_entry_with_validation",
+    "description": "Test the POST /api/journal endpoint to create a new trade journal entry with required fields (symbol, direction, entry_price, size), validate input data, return 200 on successful creation, 400 on validation errors, and 500 on server errors."
+  },
+  {
+    "id": "TC004",
+    "title": "receive_and_process_tradingview_webhook_alerts",
+    "description": "Test the POST /api/webhook/tradingview endpoint to receive TradingView alerts with secret authentication, validate required fields (symbol, action), process the webhook correctly, return 200 on success, 400 on invalid requests, 401 on unauthorized access, and 500 on server errors."
+  },
+  {
+    "id": "TC005",
+    "title": "get_killswitch_status",
+    "description": "Test the GET /api/killswitch endpoint to retrieve the current KillSwitch status, ensuring it returns 200 on success and 500 on error."
+  },
+  {
+    "id": "TC006",
+    "title": "trigger_and_reset_killswitch",
+    "description": "Test the POST /api/killswitch endpoint to trigger or reset the KillSwitch with valid actions ('trigger', 'reset'), validate input, return 200 on success, 400 on invalid action, and 500 on server errors."
+  },
+  {
+    "id": "TC007",
+    "title": "get_all_autonomous_trading_agents",
+    "description": "Test the GET /api/agents endpoint to retrieve all autonomous trading agents, ensuring a 200 response on success and 500 on error."
+  },
+  {
+    "id": "TC008",
+    "title": "create_new_autonomous_trading_agent",
+    "description": "Test the POST /api/agents endpoint to create a new autonomous trading agent with optional fields (name, market, strategy), verify successful creation with 200 response, and handle server errors with 500."
+  }
+]
+

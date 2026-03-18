@@ -1,0 +1,43 @@
+/* ═══════════════════════════════════════════════════════════════
+   COMMAND CENTER GRID LAYOUT
+   Sidebar | Main Content | (Order Panel handled in page)
+   ═══════════════════════════════════════════════════════════════ */
+.container {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    grid-template-rows: 64px 1fr;
+    grid-template-areas:
+        "sidebar header"
+        "sidebar content";
+    min-height: 100vh;
+    gap: 0;
+}
+
+.mainWrapper {
+    grid-area: header / header / content / content;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.content {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Responsive: Collapse sidebar on smaller screens */
+@media (max-width: 1024px) {
+    .container {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "header"
+            "content";
+    }
+
+    .content {
+        padding: 16px;
+    }
+}

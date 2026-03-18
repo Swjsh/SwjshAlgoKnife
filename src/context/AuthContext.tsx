@@ -21,6 +21,10 @@ interface UserPreferences {
     agents_view: string;
     accountBalance?: number;
     riskPerTrade?: number;
+    maxDailyLoss?: number;
+    maxOpenPositions?: number;
+    tradingHoursStart?: string;
+    tradingHoursEnd?: string;
     onboardingComplete?: boolean;
     agentSetupComplete?: boolean;
     firstAgentConfig?: any;
@@ -28,12 +32,14 @@ interface UserPreferences {
 
 interface AuthContextType {
     user: User | null;
+    isGuest: boolean;
     loading: boolean;
     authLoading: boolean;
     authError: string | null;
     userPreferences: UserPreferences | null;
     loginWithGoogle: () => Promise<void>;
     loginWithEmail: (email: string, password: string) => Promise<void>;
+    loginAsGuest: () => void;
     signUpWithEmail: (email: string, password: string) => Promise<void>;
     resetPassword: (email: string) => Promise<boolean>;
     updatePreferences: (prefs: Partial<UserPreferences>) => Promise<void>;
@@ -43,8 +49,19 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const GUEST_USER = {
+    uid: 'guest-user',
+    email: 'guest@lab.access',
+    displayName: 'Lab Guest',
+    isAnonymous: true,
+    emailVerified: true,
+    metadata: {},
+    providerData: [],
+} as unknown as User;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
+    const [isGuest, setIsGuest] = useState(false);
     const [loading, setLoading] = useState(true);
     const [authLoading, setAuthLoading] = useState(false);
     const [authError, setAuthError] = useState<string | null>(null);
@@ -92,9 +109,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             clearTimeout(timeout);
             console.log('[AuthContext] Auth state changed:', firebaseUser ? 'Authenticated' : 'Unauthenticated');
-            setUser(firebaseUser);
 
             if (firebaseUser) {
+                setUser(firebaseUser);
+                setIsGuest(false);
                 // Race profile loading with a 4-second timeout so we don't block the app indefinitely
                 const profilePromise = loadOrCreateUserProfile(firebaseUser);
                 const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 4000));
@@ -106,7 +124,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     // Non-fatal: User is authenticated but preferences might be default
                 }
             } else {
-                setUserPreferences(null);
+                // Check local storage for guest session
+                const guestSession = localStorage.getItem('swjsh_guest_mode') === 'true';
+                if (guestSession) {
+                    console.log('[AuthContext] Resuming guest session');
+                    setUser(GUEST_USER);
+                    setIsGuest(true);
+                } else {
+                    setUser(null);
+                    setIsGuest(false);
+                    setUserPreferences(null);
+                }
             }
             setLoading(false);
         });
@@ -194,6 +222,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const loginAsGuest = () => {
+        console.log('[AuthContext] Logging in as guest');
+        setIsGuest(true);
+        setUser(GUEST_USER);
+        localStorage.setItem('swjsh_guest_mode', 'true');
+    };
+
     const signUpWithEmail = async (email: string, password: string) => {
         setAuthLoading(true);
         setAuthError(null);
@@ -225,6 +260,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const logout = async () => {
         try {
             await signOut(auth);
+            setIsGuest(false);
+            localStorage.removeItem('swjsh_guest_mode');
             setAuthError(null);
             setUserPreferences(null);
         } catch (error) {
@@ -270,12 +307,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return (
         <AuthContext.Provider value={{
             user,
+            isGuest,
             loading,
             authLoading,
             authError,
             userPreferences,
             loginWithGoogle,
             loginWithEmail,
+            loginAsGuest,
             signUpWithEmail,
             resetPassword,
             updatePreferences,

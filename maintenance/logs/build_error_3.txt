@@ -1,0 +1,30 @@
+
+> dark-rosette@0.1.0 build
+> next build
+
+▲ Next.js 16.1.1 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.9s
+  Running TypeScript ...
+  Collecting page data using 15 workers ...
+⚠️ WEBHOOK_SECRET is missing. Webhook route will return 500 in production.
+  Generating static pages using 15 workers (0/19) ...
+  Generating static pages using 15 workers (4/19) 
+Error occurred prerendering page "/_not-found". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [FirebaseError]: Firebase: Error (auth/invalid-api-key).
+    at v (C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\server\chunks\ssr\[root-of-the-server]__905f56da._.js:3:295666)
+    at w (C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\server\chunks\ssr\[root-of-the-server]__905f56da._.js:3:295714)
+    at am.instanceFactory (C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\server\chunks\ssr\[root-of-the-server]__905f56da._.js:3:345610)
+    at aP (C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\server\chunks\ssr\[root-of-the-server]__905f56da._.js:3:333684)
+    at bq (C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\server\chunks\ssr\[root-of-the-server]__905f56da._.js:3:346342)
+    at module evaluation (C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\server\chunks\ssr\[root-of-the-server]__905f56da._.js:7:33899)
+    at instantiateModule (C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\server\chunks\ssr\[turbopack]_runtime.js:740:9)
+    at getOrInstantiateModuleFromParent (C:\Users\jackw\Desktop\SwjshAlgoKnife\.next\server\chunks\ssr\[turbopack]_runtime.js:763:12) {
+  code: 'auth/invalid-api-key',
+  customData: [Object],
+  digest: '2252164175'
+}
+Export encountered an error on /_not-found/page: /_not-found, exiting the build.
+⨯ Next.js build worker exited with code: 1 and signal: null

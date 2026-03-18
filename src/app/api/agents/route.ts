@@ -1,47 +1,167 @@
-import { NextResponse } from 'next/server';
-import fs from 'fs';
+import { NextRequest, NextResponse } from 'next/server';
+import fs from 'fs/promises';
 import path from 'path';
-import db from '@/lib/db';
+import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth';
+import { AGENTS_DB_PATH } from '@/lib/dataPaths';
+import { decryptSecret } from '@/lib/encryption';
+import { withCacheHeaders } from '@/lib/api-utils';
 
-// Load static metadata
+// Load static metadata — strip UTF-8 BOM if present
 const PERSONAS_PATH = path.join(process.cwd(), 'scripts', 'agent_personas.json');
-const PERSONAS = JSON.parse(fs.readFileSync(PERSONAS_PATH, 'utf8'));
+let PERSONAS: Record<string, Record<string, unknown>> = {};
+try {
+    const data = await fs.readFile(PERSONAS_PATH, 'utf8');
+    PERSONAS = JSON.parse(data.replace(/^\uFEFF/, ''));
+} catch {
+    console.warn('Could not load agent personas');
+}
 
-export async function GET() {
+// Strategy to Agent mapping
+const STRATEGY_AGENT_MAP: Record<string, string> = {
+    'S&R Rejection': 'crypto',
+    'BB Squeeze & Breakout': 'crypto',
+    'ORB 15m': 'fx',
+    'NeverStoppedOut ORB': 'fx',
+    'Three Ducks': 'fx',
+    'Grid Trading': 'futures'
+};
+
+// Type definitions
+interface AgentState {
+    id?: string;
+    last_updated: string;
+    status: string;
+    active_pairs: number;
+    total_zones_found: number;
+    performance: {
+        win_rate: number;
+        total_pnl: number;
+        trades: number;
+    };
+    pending_orders: Array<Record<string, unknown>>;
+    closed_trades: Array<Record<string, unknown>>;
+    meta?: {
+        name: string;
+        avatar?: string;
+        profile_path?: string;
+        type?: string;
+        strategy?: string;
+        isUserBot?: boolean;
+    };
+    broker?: string;
+    broker_live?: boolean;
+    live_signals?: Array<Record<string, unknown>>;
+}
+
+// Runtime broker status
+async function getBrokerStatus(userId?: string) {
+    // If user is authenticated, check their broker configs
+    if (userId) {
+        const brokerConfigs = await prisma.brokerConfig.findMany({
+            where: { userId, isActive: true, connectionStatus: 'CONNECTED' },
+        });
+
+        const alpacaConfig = brokerConfigs.find(c => c.broker === 'ALPACA');
+        // TODO: Add OANDA to BrokerType enum when OANDA broker integration is implemented
+        // const oandaConfig = brokerConfigs.find(c => c.broker === 'OANDA');
+
+        return {
+            alpaca: !!alpacaConfig,
+            alpacaEnvironment: alpacaConfig?.environment,
+            oanda: false,
+            discord: !!(process.env.DISCORD_CHIEF_WEBHOOK),
+        };
+    }
+
+    // Fallback to env vars for backward compatibility
+    return {
+        alpaca: !!(process.env.APCA_API_KEY_ID && process.env.APCA_API_SECRET_KEY),
+        oanda: !!(process.env.OANDA_API_TOKEN && process.env.OANDA_ACCOUNT_ID),
+        discord: !!(process.env.DISCORD_CHIEF_WEBHOOK),
+    };
+}
+
+export async function GET(req: NextRequest) {
     try {
-        // 1. Fetch all trades from SQL
-        const trades = db.prepare('SELECT * FROM trades').all();
-        const signals = db.prepare('SELECT * FROM signals ORDER BY timestamp DESC LIMIT 50').all();
+        const user = await getCurrentUser();
 
-        // 2. Load the base agent state (status/active_pairs) from the JSON store
-        // We use the JSON store for "user-toggled" state like status
-        const DB_PATH = path.join(process.cwd(), 'src', 'app', 'api', 'agents', 'agents_db.json');
-        let agentsBase = {};
-        if (fs.existsSync(DB_PATH)) {
-            agentsBase = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+        // 1. Fetch user's bots from database
+        let userBots: Array<Record<string, unknown>> = [];
+        if (user) {
+            userBots = await prisma.bot.findMany({
+                where: { userId: user.id },
+                include: {
+                    brokerConfig: { select: { broker: true, environment: true } },
+                },
+            });
         }
 
-        // 3. Map strategies to Agent IDs
-        // Mapping: Strategy Name (from Engine) -> Agent ID (from PERSONAS)
-        const stratMap: Record<string, string> = {
-            'S&R Rejection': 'crypto',
-            'BB Squeeze & Breakout': 'crypto',
-            'ORB 15m': 'fx',
-            'NeverStoppedOut ORB': 'fx',
-            'Three Ducks': 'fx',
-            'Grid Trading': 'futures'
-        };
+        // 2. Fetch user's trades from database
+        const trades = user
+            ? await prisma.trade.findMany({
+                where: { userId: user.id },
+                orderBy: { entryTime: 'desc' },
+            })
+            : [];
 
-        // 4. Aggregate Performance from SQLite
-        const processedAgents: any = { ...agentsBase };
+        const signals = user
+            ? await prisma.signal.findMany({
+                where: { userId: user.id },
+                orderBy: { createdAt: 'desc' },
+                take: 50,
+            })
+            : [];
 
-        // Ensure all personas have an entry
+        // 3. Load legacy agent state from JSON (for backward compatibility)
+        let agentsBase: Record<string, AgentState> = {};
+        try {
+            const data = await fs.readFile(AGENTS_DB_PATH, 'utf8');
+            agentsBase = JSON.parse(data);
+        } catch {
+            // Ignore - file may not exist
+        }
+
+        // 4. Build processed agents
+        const processedAgents: Record<string, AgentState> = { ...agentsBase };
+
+        // Add database bots as agents
+        userBots.forEach((bot: any) => {
+            const botId = `bot_${bot.id}`;
+            processedAgents[botId] = {
+                id: bot.id,
+                last_updated: bot.updatedAt.toISOString(),
+                status: bot.status,
+                active_pairs: 1,
+                total_zones_found: 0,
+                performance: {
+                    win_rate: bot.winningTrades > 0 && bot.totalTrades > 0
+                        ? Math.round((bot.winningTrades / bot.totalTrades) * 100)
+                        : 0,
+                    total_pnl: bot.totalPnl.toNumber(),
+                    trades: bot.totalTrades,
+                },
+                pending_orders: [],
+                closed_trades: [],
+                meta: {
+                    name: bot.name,
+                    type: 'Custom',
+                    strategy: bot.strategy,
+                    isUserBot: true,
+                },
+                broker: bot.brokerConfig?.broker || 'Paper Only',
+                broker_live: bot.brokerConfig?.environment === 'LIVE',
+            };
+        });
+
+        // Ensure all personas have an entry (for backward compat display)
         Object.keys(PERSONAS).forEach(id => {
+            const persona = PERSONAS[id];
             if (!processedAgents[id]) {
                 processedAgents[id] = {
                     last_updated: new Date().toISOString(),
                     status: 'ACTIVE',
-                    active_pairs: PERSONAS[id].market === 'Crypto' ? 1 : 0,
+                    active_pairs: (persona.market as string) === 'Crypto' ? 1 : 0,
                     total_zones_found: 0,
                     performance: { win_rate: 0, total_pnl: 0, trades: 0 },
                     pending_orders: [],
@@ -49,113 +169,209 @@ export async function GET() {
                 };
             }
 
-            // Sync metadata
             processedAgents[id].meta = {
-                name: PERSONAS[id].name,
-                avatar: PERSONAS[id].avatar,
-                profile_path: PERSONAS[id].profile_path,
-                type: PERSONAS[id].market
+                name: persona.name as string,
+                avatar: persona.avatar as string | undefined,
+                profile_path: persona.profile_path as string | undefined,
+                type: persona.market as string | undefined
             };
         });
 
-        // Loop through trades to calculate stats
-        trades.forEach((trade: any) => {
-            const agentId = stratMap[trade.strategy] || 'fx'; // Default to fx if unknown
+        // 5. Aggregate trades into agents
+        trades.forEach((trade) => {
+            // Try to match to a user bot first
+            if (trade.botId) {
+                const botId = `bot_${trade.botId}`;
+                if (processedAgents[botId]) {
+                    const agent = processedAgents[botId];
+                    if (trade.status === 'OPEN') {
+                        agent.pending_orders.push({
+                            created_at: trade.entryTime.toISOString(),
+                            type: trade.direction === 'LONG' ? 'DEMAND' : 'SUPPLY',
+                            ticker: trade.symbol,
+                            entry: trade.entryPrice.toNumber(),
+                            status: 'ACTIVE'
+                        });
+                    } else {
+                        agent.closed_trades.push({
+                            closed_at: trade.exitTime?.toISOString(),
+                            type: trade.direction === 'LONG' ? 'DEMAND' : 'SUPPLY',
+                            ticker: trade.symbol,
+                            entry: trade.entryPrice.toNumber(),
+                            exit: trade.exitPrice?.toNumber(),
+                            pnl: trade.realizedPnl?.toNumber(),
+                            status: trade.status
+                        });
+                    }
+                    return;
+                }
+            }
+
+            // Fallback to strategy mapping
+            const agentId = STRATEGY_AGENT_MAP[trade.strategy || ''] || 'fx';
             const agent = processedAgents[agentId];
             if (!agent) return;
 
             agent.performance.trades += 1;
-            agent.performance.total_pnl += trade.pnl || 0;
+            agent.performance.total_pnl += trade.realizedPnl?.toNumber() || 0;
 
-            if (trade.status === 'WIN') {
+            if ((trade.realizedPnl?.toNumber() || 0) > 0) {
                 const wins = Math.round((agent.performance.win_rate / 100) * (agent.performance.trades - 1)) + 1;
                 agent.performance.win_rate = Math.round((wins / agent.performance.trades) * 100);
-            } else if (trade.status === 'LOSS') {
+            } else if ((trade.realizedPnl?.toNumber() || 0) < 0) {
                 const wins = Math.round((agent.performance.win_rate / 100) * (agent.performance.trades - 1));
                 agent.performance.win_rate = Math.round((wins / agent.performance.trades) * 100);
             }
 
             if (trade.status === 'OPEN') {
                 agent.pending_orders.push({
-                    created_at: trade.entry_date,
+                    created_at: trade.entryTime.toISOString(),
                     type: trade.direction === 'LONG' ? 'DEMAND' : 'SUPPLY',
                     ticker: trade.symbol,
-                    entry: trade.entry_price,
+                    entry: trade.entryPrice.toNumber(),
                     status: 'ACTIVE'
                 });
             } else {
                 agent.closed_trades.push({
-                    closed_at: trade.exit_date,
+                    closed_at: trade.exitTime?.toISOString(),
                     type: trade.direction === 'LONG' ? 'DEMAND' : 'SUPPLY',
                     ticker: trade.symbol,
-                    entry: trade.entry_price,
-                    exit: trade.exit_price,
-                    pnl: trade.pnl,
+                    entry: trade.entryPrice.toNumber(),
+                    exit: trade.exitPrice?.toNumber(),
+                    pnl: trade.realizedPnl?.toNumber(),
                     status: trade.status
                 });
             }
         });
 
-        // Add raw signals for "Tactical Live Signals" table
-        // We can inject these into the response for the frontend to consume
+        // 6. Add signals
         Object.keys(processedAgents).forEach(id => {
-            // Filter signals that might belong to this agent's strategy or market
-            processedAgents[id].live_signals = signals.filter((s: any) => {
-                if (stratMap[s.strategy] === id) return true;
+            processedAgents[id].live_signals = signals.filter((s) => {
+                if (STRATEGY_AGENT_MAP[s.strategy || ''] === id) return true;
                 if (id === 'crypto' && (s.symbol.includes('BTC') || s.symbol.includes('ETH'))) return true;
                 return false;
-            });
+            }).map(s => ({
+                ...s,
+                price: s.price?.toNumber(),
+                confidence: s.confidence?.toNumber(),
+            }));
         });
 
-        return NextResponse.json(processedAgents);
+        // 7. Broker status
+        const brokers = await getBrokerStatus(user?.id);
+
+        Object.keys(processedAgents).forEach(id => {
+            const agent = processedAgents[id];
+
+            // Skip if already set (user bots)
+            if (agent.meta?.isUserBot) return;
+
+            const marketType = (agent.meta?.type || '').toLowerCase();
+            if (marketType === 'forex') {
+                agent.broker = brokers.oanda ? 'OANDA Practice' : 'Paper Only';
+                agent.broker_live = brokers.oanda;
+            } else if (['crypto', 'equity'].includes(marketType)) {
+                agent.broker = brokers.alpaca
+                    ? `Alpaca ${brokers.alpacaEnvironment || 'Paper'}`
+                    : 'Paper Only';
+                agent.broker_live = brokers.alpaca;
+            } else {
+                agent.broker = 'Paper Only';
+                agent.broker_live = false;
+            }
+        });
+
+        const response = NextResponse.json({
+            agents: processedAgents,
+            system: {
+                brokers,
+                webhook_secret_set: !!process.env.WEBHOOK_SECRET,
+                trading_mode: brokers.alpaca && brokers.alpacaEnvironment === 'LIVE' ? 'LIVE' : 'PAPER',
+                last_checked: new Date().toISOString(),
+                authenticated: !!user,
+                userId: user?.id,
+            }
+        });
+
+        return withCacheHeaders(response, 15);
+
     } catch (error) {
-        console.error("API Error:", error);
-        return NextResponse.json({ error: "Failed to fetch dynamic agent data" }, { status: 500 });
+        console.error("Agents API Error:", error);
+        return NextResponse.json({ error: "Failed to fetch agent data" }, { status: 500 });
     }
 }
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
     try {
-        const body = await request.json();
-        const DB_PATH = path.join(process.cwd(), 'src', 'app', 'api', 'agents', 'agents_db.json');
+        const user = await getCurrentUser();
 
-        let agents = {};
-        if (fs.existsSync(DB_PATH)) {
-            agents = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+        if (!user) {
+            return NextResponse.json(
+                { error: 'Authentication required', code: 'AUTH_REQUIRED' },
+                { status: 401 }
+            );
         }
 
-        const agentId = body.id || `custom_${Date.now()}`;
+        const body = await req.json();
 
-        const newAgent = {
-            last_updated: new Date().toISOString(),
-            status: 'ACTIVE',
-            active_pairs: 1,
-            total_zones_found: 0,
-            performance: {
-                win_rate: 0,
-                total_pnl: 0,
-                trades: 0
+        // Get user's primary broker config
+        const brokerConfig = await prisma.brokerConfig.findFirst({
+            where: {
+                userId: user.id,
+                isActive: true,
+                connectionStatus: 'CONNECTED',
             },
-            pending_orders: [],
-            active_trades: [],
-            closed_trades: [],
-            meta: {
-                name: body.name,
-                type: body.market,
-                strategy: body.strategy,
-                capital: body.capital,
-                risk: body.risk
-            }
-        };
+            orderBy: { isPrimary: 'desc' },
+        });
 
-        // @ts-ignore
-        agents[agentId] = newAgent;
-        fs.writeFileSync(DB_PATH, JSON.stringify(agents, null, 2));
+        if (!brokerConfig) {
+            return NextResponse.json({
+                error: 'No broker connected. Please connect a broker first.',
+                code: 'NO_BROKER'
+            }, { status: 400 });
+        }
 
-        return NextResponse.json({ success: true, agentId });
+        // Create bot in database
+        const bot = await prisma.bot.create({
+            data: {
+                userId: user.id,
+                brokerConfigId: brokerConfig.id,
+                name: body.name || `Bot ${Date.now()}`,
+                strategy: body.strategy || 'Manual',
+                strategyConfig: body.strategyConfig || {},
+                maxPositionSize: body.capital || 1000,
+                maxDailyLoss: body.maxDailyLoss,
+                maxOpenPositions: body.maxOpenPositions || 1,
+                status: 'STOPPED',
+            },
+        });
+
+        // Audit log
+        await prisma.auditLog.create({
+            data: {
+                userId: user.id,
+                action: 'bot.create',
+                resourceType: 'Bot',
+                resourceId: bot.id,
+                status: 'SUCCESS',
+                metadata: { name: bot.name, strategy: bot.strategy },
+            },
+        });
+
+        return NextResponse.json({
+            success: true,
+            botId: bot.id,
+            bot: {
+                id: bot.id,
+                name: bot.name,
+                strategy: bot.strategy,
+                status: bot.status,
+                maxPositionSize: bot.maxPositionSize.toNumber(),
+            },
+        });
+
     } catch (error) {
-        console.error("POST Error:", error);
-        return NextResponse.json({ error: "Failed to create agent" }, { status: 500 });
+        console.error("Bot creation error:", error);
+        return NextResponse.json({ error: "Failed to create bot" }, { status: 500 });
     }
 }
-

@@ -55,14 +55,22 @@ export class NeverStoppedOutStrategy extends BaseStrategy {
     }
 
     private get wideRangeThreshold(): number {
-        return this.config.params.wideRangeThreshold ?? 400; // Points for inverse ORB
+        const base = this.config.params.wideRangeThreshold ?? 400;
+        // Intel adapts: HIGH_VOL raises threshold (more caution), LOW_VOL lowers it
+        return this.adaptParam(base, this.intelContext?.adaptations.wideRangeThresholdAdj ?? 0);
     }
 
     private get cooldownMinutes(): number {
-        return this.config.params.cooldownMinutes ?? 15; // Platform lockout
+        const base = this.config.params.cooldownMinutes ?? 15;
+        // Intel adapts: HIGH_VOL adds cooldown, trending reduces it
+        return Math.max(5, this.adaptParam(base, this.intelContext?.adaptations.cooldownAdj ?? 0));
     }
 
     private get htfBias(): 'BULLISH' | 'BEARISH' | 'NEUTRAL' {
+        // Intel-derived HTF bias overrides when confidence is sufficient
+        if (this.intelContext && this.intelContext.confidence >= 0.4) {
+            return this.intelContext.htfBias;
+        }
         return this.config.params.htfBias ?? 'NEUTRAL';
     }
 
@@ -162,11 +170,13 @@ export class NeverStoppedOutStrategy extends BaseStrategy {
     private checkStandardORB(candle: Candle): Signal | null {
         // Breakout above ORB High
         if (candle.close > this.state.orbHigh && this.state.lastSignal !== 'LONG') {
+            if (this.isDirectionVetoed('LONG')) return null; // Intel veto
             return this.generateSignal(candle, 'LONG', 'Standard ORB Breakout Long');
         }
 
         // Breakout below ORB Low
         if (candle.close < this.state.orbLow && this.state.lastSignal !== 'SHORT') {
+            if (this.isDirectionVetoed('SHORT')) return null; // Intel veto
             return this.generateSignal(candle, 'SHORT', 'Standard ORB Breakout Short');
         }
 

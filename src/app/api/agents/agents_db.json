@@ -1,100 +1,279 @@
 {
   "fx": {
-    "last_updated": "2026-01-01T21:10:00Z",
+    "last_updated": "2026-02-16T02:11:43.599Z",
     "status": "ACTIVE",
-    "active_pairs": 5,
-    "total_zones_found": 12,
+    "active_pairs": 0,
+    "total_zones_found": 0,
     "performance": {
-      "win_rate": 68,
-      "total_pnl": 1245.50,
-      "trades": 42
+      "win_rate": 0,
+      "total_pnl": 0,
+      "trades": 0
     },
-    "pending_orders": [
-      {
-        "created_at": "2026-01-01 20:30:00",
-        "type": "DEMAND",
-        "ticker": "SOLUSD",
-        "entry": 145.50,
-        "stop_loss": 142.30,
-        "status": "PENDING"
-      }
-    ],
+    "pending_orders": [],
     "active_trades": [],
     "closed_trades": [],
     "meta": {
-      "name": "Satoshi Sprinter",
-      "type": "Crypto Scalper"
+      "name": "Sterling",
+      "type": "Forex",
+      "description": "Multi-timeframe S&D zone trading on forex majors. Weekly\u00e2\u2020\u2019Daily\u00e2\u2020\u20194H top-down analysis, limit orders at fresh zones, 1:3+ RR. Based on FXAlexG methodology.",
+      "market": "forex",
+      "assets": [
+        "EUR/USD",
+        "GBP/USD",
+        "USD/JPY",
+        "AUD/USD",
+        "USD/CAD"
+      ],
+      "timeframes": [
+        "Weekly",
+        "Daily",
+        "4H",
+        "1H",
+        "30m",
+        "15m"
+      ],
+      "strategy_doc": "docs/strategies/swjsh_fx.md",
+      "strategy_spec": "docs/fxalexg/STRATEGY_SPEC.md",
+      "risk_per_trade": "1-2%",
+      "target_rr": "1:3 to 1:6",
+      "sessions": [
+        "London",
+        "New York"
+      ],
+      "broker": {
+        "platform": "OANDA",
+        "account_type": "practice",
+        "account_id": "101-001-38356376-001",
+        "endpoint": "https://api-fxpractice.oanda.com",
+        "status": "linked"
+      }
     }
   },
   "crypto": {
-    "last_updated": "2026-01-01T21:10:00Z",
+    "last_updated": "2026-02-16T02:11:43.599Z",
     "status": "ACTIVE",
-    "active_pairs": 3,
-    "total_zones_found": 8,
+    "active_pairs": 0,
+    "total_zones_found": 0,
     "performance": {
-      "win_rate": 72,
-      "total_pnl": 3450.20,
-      "trades": 24
+      "win_rate": 0,
+      "total_pnl": 0,
+      "trades": 0
     },
-    "pending_orders": [
-      {
-        "created_at": "2026-01-01 20:45:00",
-        "type": "DEMAND",
-        "ticker": "BTCUSD",
-        "entry": 94250,
-        "stop_loss": 93800,
-        "status": "PENDING"
-      },
-      {
-        "created_at": "2026-01-01 21:00:00",
-        "type": "SUPPLY",
-        "ticker": "ETHUSD",
-        "entry": 2750,
-        "stop_loss": 2800,
-        "status": "PENDING"
-      }
-    ],
+    "pending_orders": [],
     "active_trades": [],
     "closed_trades": [],
     "meta": {
       "name": "Bitcoin Bob",
-      "type": "BTC Specialist"
+      "type": "Volume Impulse & HODL-Zone Analyst",
+      "description": "Crypto-native agent specializing in volume profile analysis, liquidation cascade detection, and deep-discount entries at massive historical S/R levels. Survived three bear markets.",
+      "market": "crypto",
+      "assets": [
+        "BTC",
+        "ETH",
+        "SOL",
+        "Top Altcoins"
+      ],
+      "timeframes": [
+        "Daily",
+        "4H",
+        "1H",
+        "15m"
+      ],
+      "strategy_doc": "docs/agents/crypto/profile.md",
+      "risk_per_trade": "1-3%",
+      "target_rr": "1:2+",
+      "sessions": [
+        "24/7"
+      ],
+      "broker": {
+        "platform": "unlinked",
+        "account_type": null,
+        "account_id": null,
+        "endpoint": null,
+        "status": "unlinked",
+        "notes": "Needs crypto exchange integration (Coinbase, Binance, or Bybit). Currently analysis-only."
+      }
     }
   },
-  "futures": {
-    "last_updated": "2026-01-01T21:10:00Z",
+  "boba": {
+    "last_updated": "2026-02-17T16:05:08.653232",
     "status": "ACTIVE",
-    "active_pairs": 4,
-    "total_zones_found": 208,
+    "active_pairs": 1,
+    "total_zones_found": 3,
     "performance": {
-      "win_rate": 60,
-      "total_pnl": 750.00,
-      "trades": 15
+      "win_rate": 65,
+      "total_pnl": 0,
+      "trades": 0
     },
-    "pending_orders": [
-      {
-        "created_at": "2026-01-01 22:00:00",
-        "type": "DEMAND",
-        "ticker": "XRPUSD",
-        "entry": 2.45,
-        "stop_loss": 2.30,
-        "status": "PENDING"
-      }
-    ],
-    "active_trades": [],
+    "pending_orders": [],
     "closed_trades": [],
     "meta": {
-      "name": "Altcoin Al",
-      "type": "Alt Swing"
-    }
+      "name": "Boba",
+      "type": "Options"
+    },
+    "active_trades": []
   },
-  "professor": {
-    "last_updated": "2026-01-01T21:10:00Z",
-    "status": "ONLINE",
+  "futures": {
+    "last_updated": "2026-02-15T04:22:53.633Z",
+    "status": "ACTIVE",
     "active_pairs": 0,
     "total_zones_found": 0,
     "performance": {
-      "win_rate": 100,
+      "win_rate": 0,
+      "total_pnl": 0,
+      "trades": 0
+    },
+    "pending_orders": [],
+    "active_trades": [],
+    "closed_trades": [],
+    "meta": {
+      "name": "Pivot Pete",
+      "type": "Multi-Timeframe Pivot Point Rejection Trader",
+      "description": "30-year pit veteran methodology. Waits for price at key pivot levels (Monthly/Weekly/Daily PP, S1-S3, R1-R3) with volume confirmation and candle rejection. Strict 2-consecutive-loss daily shutoff. Based on Socrates Investments methodology.",
+      "market": "futures",
+      "assets": [
+        "ES",
+        "NQ",
+        "GC"
+      ],
+      "timeframes": [
+        "Weekly",
+        "Daily",
+        "4H",
+        "1H",
+        "30m",
+        "5m"
+      ],
+      "strategy_doc": "docs/agents/pivot-pete.md",
+      "risk_per_trade": "1-2%",
+      "target_rr": "Next pivot level",
+      "max_daily_loss": "$4,000",
+      "max_trades_per_day": 4,
+      "hard_rules": [
+        "2 consecutive losses = done for day",
+        "Never exceed daily loss limit",
+        "Volume confirmation required"
+      ],
+      "gold_correlations": [
+        "DXY (inverse)",
+        "Silver (positive)",
+        "Platinum (positive)"
+      ],
+      "sessions": [
+        "London",
+        "New York"
+      ],
+      "broker": {
+        "platform": "unlinked",
+        "account_type": null,
+        "account_id": null,
+        "endpoint": null,
+        "status": "unlinked",
+        "notes": "Needs futures broker (Tradovate, NinjaTrader, or AMP Futures). Currently using yfinance delayed data for analysis."
+      }
+    }
+  },
+  "spx": {
+    "last_updated": "2026-02-15T04:22:54.122Z",
+    "status": "ACTIVE",
+    "active_pairs": 0,
+    "total_zones_found": 0,
+    "performance": {
+      "win_rate": 0,
+      "total_pnl": 0,
+      "trades": 0
+    },
+    "pending_orders": [],
+    "active_trades": [],
+    "closed_trades": [],
+    "meta": {
+      "name": "SPX Sniper",
+      "type": "0DTE SPX Options VWAP + Momentum Scalper",
+      "description": "Tactical precision agent for 0DTE SPX options. Uses VWAP as primary trend filter, detects momentum bursts via tick data, and exploits rapid theta decay for high-leverage plays. Seconds-to-minutes hold time.",
+      "market": "options",
+      "assets": [
+        "SPX 0DTE Options"
+      ],
+      "timeframes": [
+        "1m",
+        "5m",
+        "Tick"
+      ],
+      "strategy_doc": "docs/agents/spx/profile.md",
+      "risk_per_trade": "Dynamic (high per trade, low duration)",
+      "target_rr": "1:2+",
+      "sessions": [
+        "NY Session (9:30 AM - 4:00 PM EST)"
+      ],
+      "broker": {
+        "platform": "unlinked",
+        "account_type": null,
+        "account_id": null,
+        "endpoint": null,
+        "status": "unlinked",
+        "notes": "Needs options broker with 0DTE support and fast execution (TastyTrade, ThinkorSwim, or IBKR)."
+      }
+    }
+  },
+  "orb": {
+    "last_updated": "2026-02-17T21:08:18.913Z",
+    "status": "ACTIVE",
+    "active_pairs": 1,
+    "total_zones_found": 1,
+    "performance": {
+      "win_rate": 0,
+      "total_pnl": 0,
+      "trades": 0
+    },
+    "pending_orders": [],
+    "active_trades": [],
+    "closed_trades": [],
+    "meta": {
+      "name": "ORB Runner",
+      "type": "Opening Range Breakout Trader (NeverStoppedout Method)",
+      "description": "15-minute Opening Range Breakout on MNQ with three setups: Standard ORB (breakout/retest), Inverse ORB (range trading on wide ranges >400pts), and ES/NQ Divergence plays. Enforces 15-min platform lockout and walk-away rule. 54+ consecutive green days proven.",
+      "market": "futures",
+      "assets": [
+        "MNQ"
+      ],
+      "timeframes": [
+        "15m",
+        "Daily",
+        "4H"
+      ],
+      "strategy_doc": "theories/NeverStoppedout-ORB.md",
+      "risk_per_trade": "1:1 RR minimum (ORB range = target)",
+      "target_rr": "1:1+",
+      "sessions": [
+        "NY Open (9:30-9:45 AM ORB, then trades)"
+      ],
+      "setups": {
+        "standard_orb": "Breakout above/below 15m ORB high/low, enter on breakout or retest",
+        "inverse_orb": "Range >400pts \u00e2\u2020\u2019 trade ORB as range, bias from HTF",
+        "es_nq_divergence": "When one index returns inside ORB, short/long the lagging index"
+      },
+      "discipline_rules": [
+        "15-min lockout after each trade",
+        "Walk away 3-10 min after entry",
+        "SL/TP set immediately"
+      ],
+      "broker": {
+        "platform": "unlinked",
+        "account_type": null,
+        "account_id": null,
+        "endpoint": null,
+        "status": "unlinked",
+        "notes": "Needs futures broker with MNQ access (Tradovate, NinjaTrader, or AMP Futures)."
+      }
+    }
+  },
+  "professor": {
+    "last_updated": "2026-02-16T02:11:43.599Z",
+    "status": "ACTIVE",
+    "active_pairs": 0,
+    "total_zones_found": 0,
+    "performance": {
+      "win_rate": 0,
       "total_pnl": 0,
       "trades": 0
     },
@@ -105,25 +284,54 @@
     "audits": [],
     "meta": {
       "name": "The Professor",
-      "type": "Auditor"
+      "type": "Trade Auditor & Performance Grader",
+      "description": "Retired economics professor turned system critic. Grades every closed trade A+ to F on entry, exit, and risk management adherence. Assigns homework after bad days. Monitors system health and suggests risk adjustments when win rates drop.",
+      "market": "oversight",
+      "assets": [
+        "All (monitors FX, Boba, Pete, Sniper, ORB)"
+      ],
+      "strategy_doc": "docs/agents/professor/profile.md",
+      "broker": {
+        "platform": "none",
+        "status": "not_required",
+        "notes": "Non-trading agent. Reviews and grades trades from all other agents."
+      }
     }
   },
-  "boba": {
-    "last_updated": "2026-01-01T21:10:00Z",
+  "auditor": {
+    "last_updated": "2026-02-15T04:22:45.954Z",
     "status": "ACTIVE",
-    "active_pairs": 1,
-    "total_zones_found": 7,
+    "active_pairs": 0,
+    "total_zones_found": 0,
     "performance": {
-      "win_rate": 65,
+      "win_rate": 0,
       "total_pnl": 0,
       "trades": 0
     },
     "pending_orders": [],
     "active_trades": [],
     "closed_trades": [],
+    "verifications": [],
     "meta": {
-      "name": "Boba",
-      "type": "Meme Trends"
+      "name": "The Auditor",
+      "type": "Independent Fact-Checker & Validator",
+      "description": "Former forensic accountant. Independently verifies The Professor's grades by cross-referencing market data, news, and historical prices. Issues VERIFIED/DISPUTED/REQUIRES REVIEW verdicts. Zero tolerance for inaccuracy.",
+      "market": "oversight",
+      "assets": [
+        "All (verifies Professor's analysis)"
+      ],
+      "strategy_doc": "docs/agents/auditor/profile.md",
+      "capabilities": [
+        "Financial news APIs",
+        "Market data verification",
+        "Economic calendar checks",
+        "Social sentiment analysis"
+      ],
+      "broker": {
+        "platform": "none",
+        "status": "not_required",
+        "notes": "Non-trading agent. Fact-checks and validates The Professor's trade audits."
+      }
     }
   }
 }

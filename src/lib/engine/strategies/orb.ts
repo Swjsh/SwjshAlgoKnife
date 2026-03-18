@@ -53,11 +53,12 @@ export class ORBStrategy extends BaseStrategy {
         // After range is set, look for breakout
         if (this.isRangeSet && this.openingHigh && this.openingLow) {
             if (candle.close > this.openingHigh && this.openingHigh !== -Infinity) {
+                if (this.isDirectionVetoed('LONG')) return null; // Intel veto
                 // Breakout High -> LONG
                 this.openingHigh = Infinity; // Single trigger per session for this example
                 return {
                     timestamp: candle.timestamp,
-                    symbol: 'DYNAMIC', // Should be passed in
+                    symbol: 'DYNAMIC',
                     action: 'BUY',
                     price: candle.close,
                     strategy: this.name,
@@ -66,6 +67,7 @@ export class ORBStrategy extends BaseStrategy {
             }
 
             if (candle.close < this.openingLow && this.openingLow !== Infinity) {
+                if (this.isDirectionVetoed('SHORT')) return null; // Intel veto
                 // Breakout Low -> SHORT
                 this.openingLow = -Infinity; // Single trigger
                 return {

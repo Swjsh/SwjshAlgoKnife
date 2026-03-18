@@ -1,0 +1,73 @@
+{
+  "runId": "2026-02-22T22-41-32-087Z",
+  "generated_at": "2026-02-22T22:41:34.403Z",
+  "args": {
+    "symbol": "ES",
+    "from": "2025-12-01",
+    "to": "2026-02-01",
+    "tf": "5Min",
+    "source": "synthetic"
+  },
+  "data": {
+    "sourceUsed": "synthetic",
+    "candleCount": 12960,
+    "first": "2025-12-01T00:00:00.000Z",
+    "last": "2026-01-30T23:55:00.000Z"
+  },
+  "signals": {
+    "count": 4874,
+    "latest": {
+      "timestamp": "2026-01-30T23:55:00.000Z",
+      "symbol": "ES",
+      "action": "SELL",
+      "price": 4835.61,
+      "strategy": "pivot_pete",
+      "notes": "Pivot rejection confluence=1 tol=3.87",
+      "stopLoss": 4850.12,
+      "takeProfit": 4806.6
+    }
+  },
+  "pivots": {
+    "daily": {
+      "P": 4876.84,
+      "R1": 4897.56,
+      "R2": 4920.17,
+      "R3": 4940.89,
+      "S1": 4854.23,
+      "S2": 4833.51,
+      "S3": 4810.9
+    },
+    "lastComputed": "2026-01-30T00:00:00.000Z",
+    "weekly": {
+      "P": 4909.57,
+      "R1": 4967.49,
+      "R2": 5012.45,
+      "R3": 5070.37,
+      "S1": 4864.61,
+      "S2": 4806.69,
+      "S3": 4761.73
+    },
+    "monthly": {
+      "P": 4875.35,
+      "R1": 4962.39,
+      "R2": 5046.86,
+      "R3": 5133.9,
+      "S1": 4790.88,
+      "S2": 4703.84,
+      "S3": 4619.37
+    }
+  },
+  "performance": {
+    "totalTrades": 78,
+    "winRate": 0.32051282051282054,
+    "totalPnL": -4672.000000000935,
+    "sharpeRatio": 0,
+    "maxDrawdown": 0.18488208456208988
+  },
+  "account": {
+    "balance": 95327.99999999904,
+    "equity": 95356.99999999904,
+    "openPositions": 1,
+    "dailyPnL": 0
+  }
+}

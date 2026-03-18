@@ -233,3 +233,21 @@
 :global([data-theme='nature']) .triggerInner {
     color: #334155;
 }
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .trigger {
+    background: var(--bg-subtle);
+    border-color: var(--border-base);
+    color: var(--text-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+:global([data-theme='light']) .trigger:hover {
+    background: var(--bg-main);
+    border-color: rgba(124, 58, 237, 0.35);
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.1);
+}
+
+:global([data-theme='light']) .trigger:hover .triggerInner {
+    color: var(--brand-primary);
+    text-shadow: none;
+}

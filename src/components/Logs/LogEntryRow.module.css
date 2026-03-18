@@ -198,3 +198,13 @@
     color: #fff;
     font-family: var(--font-mono);
 }
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .rowContainer {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}
+
+:global([data-theme='light']) .rowContainer:hover {
+    background: var(--bg-subtle);
+    border-color: var(--border-bright);
+}

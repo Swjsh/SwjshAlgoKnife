@@ -1,0 +1,332 @@
+[
+  {
+    "jobId": "chief-decision-loop",
+    "agentId": "chief",
+    "name": "Chief Autonomous Decision Loop (every 30 min market hours)",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "*/30 9-16 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "You are Chief. This is your autonomous decision cycle. You have FULL AUTHORITY to act within the safety guardrails.\n\nProject: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\nBrain: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\data\\brain\\\n\n== STEP 1: READ THE BRAIN ==\nRead these files:\n- data\\brain\\master-tracker.md — your priorities and directives\n- data\\brain\\strategies.md — strategy rules and adjustment triggers\n- data\\brain\\decisions-log.md — your recent decisions (don't repeat yourself)\n- data\\brain\\learning-log.md — CONFIRMED patterns to enforce\n- data\\brain\\performance-memory.md — cumulative stats and trigger thresholds\n\n== STEP 2: READ SYSTEM STATE ==\n- Read C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\src\\app\\api\\agents\\agents_db.json — all agent statuses\n- Query C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db:\n  Today's trades: SELECT symbol, direction, strategy, status, pnl, entry_date, exit_date FROM trades WHERE date(entry_date) = date('now') OR (status='OPEN') ORDER BY entry_date DESC\n  Today's P&L: SELECT ROUND(SUM(pnl),2) as pnl, COUNT(*) as trades, SUM(CASE WHEN status='WIN' THEN 1 ELSE 0 END) as wins FROM trades WHERE date(exit_date) = date('now') AND status IN ('WIN','LOSS')\n\n== STEP 3: EVALUATE & DECIDE ==\nCheck each agent against the directives in master-tracker.md:\n- Any agent violating its kill switch rules? → Issue pause via Control API\n- Any agent stale (no update in 10 min during market hours)? → Flag it\n- Daily drawdown approaching limit? → Reduce position sizes or pause agents\n- Strategy adjustment triggers met (from strategies.md)? → Note for next cycle\n- Any pending actions from the brain? → Execute them\n- Any CONFIRMED patterns from learning-log being violated right now? → Enforce them\n- Any evolution triggers from performance-memory approaching threshold? → Preemptive action\n\nAvailable actions (via HTTP to localhost:3000/api/control):\n- POST {\"command\":\"pause\",\"agentId\":\"<id>\",\"reason\":\"...\"}\n- POST {\"command\":\"resume\",\"agentId\":\"<id>\",\"reason\":\"...\"}\n- POST {\"command\":\"killswitch\",\"reason\":\"...\"}\n\n== STEP 4: LOG DECISION ==\nAppend to data\\brain\\decisions-log.md:\n[ISO timestamp] DECISION: <what> | REASON: <why> | ACTION: <what was done>\n\nIf no action needed, log: DECISION: No action | REASON: All systems nominal | ACTION: Monitoring\n\n== STEP 5: DISCORD UPDATE ==\nPost to #chief-main ONLY if:\n- An action was taken (pause, resume, killswitch)\n- A warning threshold was hit (>50% daily loss limit)\n- A notable pattern was detected\nIf everything is normal, DO NOT post. No noise.\n\n== SAFETY GUARDRAILS (IMMUTABLE) ==\n- Paper trading ONLY\n- Max daily loss $1,000 → killswitch\n- Max per-trade risk $100\n- Max 3 concurrent trades\n- Kill switch requires manual override to resume\n- You CANNOT increase risk or position sizes\n- You CANNOT start new strategies not in the brain\n- You CAN pause agents, reduce risk, trigger killswitch",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "silent",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  },
+  {
+    "jobId": "system-builder",
+    "agentId": "chief",
+    "name": "System Builder — Audit brain vs code, identify gaps, build next",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 */3 * * *",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "You are Chief operating as the SYSTEM BUILDER. Your job is to continuously improve the SwjshAK platform by auditing the brain against the actual codebase, identifying gaps, and filling them.\n\nProject: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\nBrain: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\data\\brain\\\n\n== STEP 1: READ THE MASTER PLAN ==\nRead ALL brain files in order:\n1. data\\brain\\master-tracker.md — priorities, what needs to happen next\n2. data\\brain\\roadmap.md — 5-phase plan, what's checked off, what's pending\n3. data\\brain\\system-architecture.md — how components connect\n4. data\\brain\\strategies.md — strategy rules\n5. data\\brain\\environment.md — deployment config\n6. data\\brain\\self-healing.md — known issues\n7. data\\brain\\performance-memory.md — stats + evolution triggers\n8. data\\brain\\learning-log.md — patterns learned\n\n== STEP 2: AUDIT CODEBASE VS BRAIN ==\nFor each claim in the brain, verify it against reality:\n\n2a. AGENT STATUS AUDIT:\n- Read src\\app\\api\\agents\\agents_db.json — are all 8 agents listed? Status correct?\n- Does agents_db.json structure match what system-architecture.md describes?\n- Are agent runner scripts present? Check scripts\\*_engine.py exist\n- Do agent memory files exist for each agent? Check data\\brain\\agents\\*.md\n\n2b. DATABASE AUDIT:\n- Query journal.db: SELECT name FROM sqlite_master WHERE type='table' — do all 4 tables exist?\n- SELECT COUNT(*) FROM trades — how many trades total?\n- SELECT COUNT(*) FROM signals — signal pipeline active?\n- Compare schema against what system-architecture.md documents\n\n2c. API AUDIT:\n- Test GET http://localhost:3000/api/control — does it respond?\n- Test GET http://localhost:3000/api/agents — does it respond?\n- Compare available endpoints against system-architecture.md\n\n2d. STRATEGY AUDIT:\n- List files in src\\lib\\engine\\strategies\\ — compare against strategies.md\n- Any strategies in code but NOT in brain? → Document gap\n- Any strategies in brain but NOT in code? → Flag for implementation\n\n2e. CONFIG AUDIT:\n- Check .env.local for required vars (presence only, never read values)\n- Check openclaw config matches what environment.md describes\n- Check package.json dependencies are current\n\n== STEP 3: IDENTIFY GAPS ==\nCreate a gap list. For each gap found:\n- GAP: [what's missing or inconsistent]\n- SEVERITY: HIGH/MEDIUM/LOW\n- CATEGORY: code|brain|config|testing|documentation\n- FIX: [specific action to resolve]\n\nPrioritize: HIGH severity first, then by category (code > config > brain > docs)\n\n== STEP 4: FILL GAPS (WITHIN AUTHORITY) ==\nYou have authority to:\n- UPDATE brain files (fix stale docs, add missing info, correct inaccuracies)\n- UPDATE master-tracker.md (add new tasks, update progress percentages)\n- UPDATE roadmap.md (check off completed items)\n- UPDATE self-healing.md (add new known issues discovered)\n- UPDATE performance-memory.md (correct stats)\n- CREATE missing brain files if needed\n- WRITE to decisions-log.md what you changed and why\n\nYou do NOT have authority to:\n- Modify source code files (.ts, .tsx, .py, .js)\n- Modify configuration files (.env, package.json, openclaw.json)\n- Delete any files\n- Change safety guardrails in master-tracker.md\nFor these: log them as tasks in master-tracker.md under 'System Builder Queue'\n\n== STEP 5: ADVANCE THE ROADMAP ==\nRead roadmap.md. For each unchecked Phase 1 item:\n- Can it be verified as complete? → Check it off, update master-tracker\n- Is it partially done? → Update progress notes\n- Is it blocked? → Document what's blocking it\n- Does it need a code change? → Add to 'System Builder Queue' in master-tracker\n\nFor Phase 2+ items: identify any that became achievable and flag them.\n\n== STEP 6: BUILD NEXT PRIORITIES ==\nBased on gaps found and roadmap state, update master-tracker.md:\n- Reorder priorities if evidence supports it\n- Add new tasks discovered during audit\n- Remove tasks that are actually complete\n- Update 'What Chief Should Work On Next' with the highest-impact action\n\n== STEP 7: LOG & REPORT ==\nAppend to data\\brain\\decisions-log.md:\n[ISO timestamp] SYSTEM_BUILDER: Audited [N] components | Found [N] gaps | Fixed [N] brain gaps | Queued [N] code changes | Roadmap: Phase 1 [X/Y] complete\n\nPost to Discord #chief-main ONLY if:\n- A critical gap was found (system component broken/missing)\n- A roadmap milestone was completed\n- A new high-priority task was added\nIf routine audit with minor findings: STAY SILENT.\n\nThis is how the system builds itself. Each cycle, the brain gets more accurate, the roadmap advances, and gaps get smaller.",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "silent",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  },
+  {
+    "jobId": "brain-integrity-check",
+    "agentId": "chief",
+    "name": "Daily brain integrity check 7 AM ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 7 * * *",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "You are Chief. Daily brain integrity check. Ensure the brain is healthy before the trading day.\n\nBrain: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\data\\brain\\\n\n== STEP 1: VERIFY ALL 18 FILES EXIST ==\nCheck each file exists and is non-empty:\n\nCore (7):\n- data\\brain\\master-tracker.md\n- data\\brain\\strategies.md\n- data\\brain\\decisions-log.md\n- data\\brain\\daily-log.md\n- data\\brain\\learning-log.md\n- data\\brain\\performance-memory.md\n- data\\brain\\self-healing.md\n\nSystem Knowledge (3):\n- data\\brain\\system-architecture.md\n- data\\brain\\environment.md\n- data\\brain\\roadmap.md\n\nAgent Memory (8):\n- data\\brain\\agents\\sterling.md\n- data\\brain\\agents\\bitcoin-bob.md\n- data\\brain\\agents\\pivot-pete.md\n- data\\brain\\agents\\boba.md\n- data\\brain\\agents\\spx-sniper.md\n- data\\brain\\agents\\professor.md\n- data\\brain\\agents\\auditor.md\n- data\\brain\\agents\\overseer.md\n\n== STEP 2: CHECK FRESHNESS ==\nFor each file, check the last modified date or last entry date.\n- master-tracker.md — was it updated in the last 7 days?\n- daily-log.md — does it have an entry for yesterday (or last trading day)?\n- decisions-log.md — does it have entries from this week?\n- performance-memory.md — are cumulative stats current?\n- Agent memory files — do they have recent Professor feedback?\n\nFlag any file that's stale (>7 days without update).\n\n== STEP 3: VALIDATE CROSS-REFERENCES ==\n- master-tracker.md lists agents → do all agent memory files exist?\n- strategies.md lists strategies → do they match code in src\\lib\\engine\\strategies\\?\n- roadmap.md items → are completed items actually done?\n- self-healing.md known issues → any new remediation log entries?\n\n== STEP 4: SYNC CHECK ==\nCompare brain files against Obsidian vault source (if accessible):\n- Are data\\brain files in sync with the Obsidian vault?\n- Flag any drift between brain and Obsidian\n\n== STEP 5: REPORT ==\nBrain Health Score: [18/18 files present, N/18 fresh, N cross-ref issues]\n\nIf ALL HEALTHY: Log to decisions-log.md only. No Discord.\nIf ISSUES FOUND: Post to #chief-main: 'Brain integrity: [N] issues. [LIST]. Auto-fixing [X]. Escalating [Y].'\n\nAuto-fix what you can (create missing sections, update stale entries with current data).\nEscalate what you can't (missing source files, broken cross-references needing code changes).",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "silent",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  },
+  {
+    "jobId": "eod-brain-update",
+    "agentId": "chief",
+    "name": "EOD Brain Update — Chief writes daily log + updates brain",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "45 16 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "4:45 PM ET. You are Chief. End-of-day brain update.\n\nThis is the FEEDBACK LOOP. The brain learns from today. Tomorrow's Chief will be smarter.\n\nProject: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\nBrain: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\data\\brain\\\n\n== STEP 1: GATHER TODAY'S DATA ==\nQuery C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db:\n  All trades: SELECT id, symbol, direction, strategy, status, pnl, entry_date, exit_date FROM trades WHERE date(exit_date) = date('now') AND status IN ('WIN','LOSS') ORDER BY exit_date\n  Summary: SELECT ROUND(SUM(pnl),2) as pnl, COUNT(*) as trades, SUM(CASE WHEN status='WIN' THEN 1 ELSE 0 END) as wins FROM trades WHERE date(exit_date) = date('now') AND status IN ('WIN','LOSS')\n  Per-strategy: SELECT strategy, COUNT(*) trades, SUM(CASE WHEN status='WIN' THEN 1 ELSE 0 END) wins, ROUND(SUM(pnl),2) pnl FROM trades WHERE date(exit_date) = date('now') AND status IN ('WIN','LOSS') GROUP BY strategy\n  Time analysis: SELECT CAST(strftime('%H', entry_date) AS INTEGER) as hour, status, COUNT(*) as cnt FROM trades WHERE date(exit_date) = date('now') AND status IN ('WIN','LOSS') GROUP BY hour, status\nRead C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\src\\app\\api\\agents\\agents_db.json\nRead data\\brain\\decisions-log.md for today's decisions\n\n== STEP 2: WRITE DAILY LOG ==\nPrepend to data\\brain\\daily-log.md:\n  ## YYYY-MM-DD (Day)\n  Agents: N active / N total | Trades: X (YW/ZL) | P&L: $X | WR: X%\n  Best: [agent] [strategy] +$X | Worst: [agent] [strategy] -$X\n  Decisions made: [list from decisions-log]\n  Patterns noticed: [anything recurring — time of day, strategy, agent]\n  System Builder: [any gaps found/fixed by system-builder heartbeat today]\n  Tomorrow: [what to watch, any pending actions]\n\n== STEP 3: UPDATE PERFORMANCE MEMORY ==\nRead data\\brain\\performance-memory.md. Update:\n  - Per-agent cumulative stats (add today's numbers to running totals)\n  - Per-strategy cumulative stats\n  - Lifetime stats (total trades, total P&L, overall WR)\n  - Best/worst day records if today set a new one\n  - Check each Evolution Trigger threshold — update 'Current' column\n\n== STEP 4: DETECT PATTERNS → LEARNING LOG ==\nRead data\\brain\\learning-log.md. Look for patterns in today's data:\n  - Did losses cluster in a time window? → Write HYPOTHESIS\n  - Did a strategy underperform again? → Upgrade existing hypothesis or create new one\n  - Did a pattern from the log get more evidence today? → Update its data points\n  - Any HYPOTHESIS now has 3+ data points? → Upgrade to CONFIRMED\n  Only write if there's real evidence. No hunches. Cite trade IDs.\n\n== STEP 5: UPDATE MASTER TRACKER ==\nRead data\\brain\\master-tracker.md:\n  - Check off completed priority items\n  - Update trade counts toward goals\n  - If a CONFIRMED pattern exists in learning-log that affects priorities → add note\n  - Update 'What Chief Should Work On Next' if evidence warrants it\n  - Process any items in 'System Builder Queue' that were added today\n\n== STEP 6: SILENT ==\nDo NOT post to Discord. Professor and Overseer already posted their EOD.",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "silent",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  },
+  {
+    "jobId": "morning-briefing",
+    "agentId": "chief",
+    "name": "Pre-market morning brief 8 AM ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 8 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "You are Chief. 8 AM ET pre-market. Full morning startup.\n\nProject: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\nBrain: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\data\\brain\\\n\n1. Read data\\brain\\master-tracker.md — what are today's priorities?\n2. Read data\\brain\\daily-log.md — what happened yesterday?\n3. Read data\\brain\\decisions-log.md — any pending actions?\n4. Read src\\app\\api\\agents\\agents_db.json — list all agents and status.\n5. Query journal.db:\n   Yesterday: SELECT COUNT(*) as trades, ROUND(SUM(pnl),2) as total_pnl, SUM(CASE WHEN status='WIN' THEN 1 ELSE 0 END) as wins FROM trades WHERE date(exit_date) = date('now','-1 day') AND status IN ('WIN','LOSS')\n   Open positions: SELECT symbol, strategy, entry_date FROM trades WHERE status='OPEN'\n6. Check .env.local — confirm presence of: WEBHOOK_SECRET, APCA_API_KEY_ID, OANDA_API_TOKEN, DISCORD_CHIEF_WEBHOOK\n7. From your knowledge — any major US/UK/EU events today?\n\nSend ONE Discord embed to #chief-main: title='Morning brief — [DAY, DATE]', color=394452, fields: Priorities (from brain), Agents (status), Yesterday (PnL/WR), Open Positions, Calendar, System, Brain Health (from last integrity check).\nOne line: what to watch today.",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  },
+  {
+    "jobId": "london-open",
+    "agentId": "sterling",
+    "name": "London session open 3 AM ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 3 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "London just opened. You are Sterling.\n\n== READ YOUR MEMORY FIRST ==\nRead C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\data\\brain\\agents\\sterling.md — your parameters, Professor feedback, learned patterns.\nIMPORTANT: Check 'Professor Feedback Queue' for recent lessons. Apply them today.\nCheck 'Current Parameters' for your live settings.\nCheck 'Behavioral Patterns' for rules you've learned from experience.\n\n== THEN CHECK STATE ==\nRead C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\src\\app\\api\\agents\\agents_db.json for your status.\nRead C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\data\\brain\\strategies.md for global strategy rules.\n\n== ASSESS ==\n1. GBP/USD — daily trend direction? Key H4 levels?\n2. EUR/USD — daily bias?\n3. HIGH-IMPACT news today for GBP, EUR, or USD?\n4. Any lessons from Professor I should apply today?\n\nPost to Discord #forex: 'London open. [2-line assessment]. [Applying lesson: X / No adjustments].'\n3 lines max. If nothing notable: 'London open. No clean structure. Monitoring.'",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1467174412615942186"
+    }
+  },
+  {
+    "jobId": "ny-overlap",
+    "agentId": "sterling",
+    "name": "NY-London overlap 8:30 AM ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "30 8 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "8:30 AM ET. NY-London overlap. You are Sterling.\n\nRead C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\data\\brain\\agents\\sterling.md for your current parameters.\nQuery C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db:\nSELECT symbol, direction, ROUND(entry_price,5) as entry, status, entry_date FROM trades WHERE status='OPEN' AND (symbol LIKE '%USD%' OR symbol LIKE '%GBP%' OR symbol LIKE '%EUR%' OR symbol LIKE '%JPY%') AND date(entry_date) = date('now')\n\nPost to Discord #forex: 'NY overlap active. [Open position status or watching key level].'\n2-3 lines max.",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1467174412615942186"
+    }
+  },
+  {
+    "jobId": "market-open-check",
+    "agentId": "chief",
+    "name": "NYSE market open 9:30 AM ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "30 9 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "Market just opened. You are Chief. Quick check:\n1. Read C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\src\\app\\api\\agents\\agents_db.json — all agents ACTIVE?\n2. Query C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db for signals in last 30 min.\n3. Any open FX positions from Sterling's overnight session?\n4. Read data\\brain\\master-tracker.md — any priority items that need attention at market open?\nSend to #chief-main: 'Market open. [N] agents watching. [Sterling status]. Priorities: [top item]. Standing by.'\n2-3 lines. Jack is watching charts.",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  },
+  {
+    "jobId": "midday-check",
+    "agentId": "chief",
+    "name": "Midday check noon ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 12 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "Noon ET. You are Chief.\n1. Read C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\src\\app\\api\\agents\\agents_db.json\n2. Query C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db: today's trades and P&L\n3. Check consecutive losses per agent\n4. Sterling's window closing — any FX positions?\n5. Read data\\brain\\master-tracker.md — progress on today's priorities?\n\nSend to #chief-main: 'Midday. [N trades, +/-$X]. [Sterling: position status]. [Flags or ALL CLEAR]. Priority progress: [brief].'",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  },
+  {
+    "jobId": "sterling-session-close",
+    "agentId": "sterling",
+    "name": "Sterling closes set-and-forget window noon ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 12 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "Noon ET. You are Sterling. 4-hour window closing.\nRead C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\data\\brain\\agents\\sterling.md for your parameters.\nQuery C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\journal.db for today's FX trades:\nSELECT id, symbol, direction, ROUND(entry_price,5) as entry, ROUND(exit_price,5) as exit, ROUND(pnl,2) as pnl, status, entry_date, exit_date FROM trades WHERE (symbol LIKE '%USD%' OR symbol LIKE '%GBP%' OR symbol LIKE '%EUR%' OR symbol LIKE '%JPY%' OR symbol LIKE '%AUD%' OR symbol LIKE '%NZD%' OR symbol LIKE '%CAD%' OR symbol LIKE '%CHF%') AND date(entry_date) = date('now')\n\nIf open at noon: 'Sterling: Open FX position past window — [SYMBOL] [DIRECTION] @ [ENTRY]. Should be closed.'\nPost to #forex: 'Sterling — Session close. [N trades: W/L]. [PnL]. Done for today.'",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1467174412615942186"
+    }
+  },
+  {
+    "jobId": "eod-professor-grade",
+    "agentId": "professor",
+    "name": "EOD trade grading + agent feedback 4:15 PM ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "15 16 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "Market closed. You are The Professor. Grade trades AND feed lessons back to agents.\n\nProject: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\nBrain: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\data\\brain\\\nAgent Memories: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\data\\brain\\agents\\\n\n== STEP 1: READ YOUR OWN MEMORY ==\nRead data\\brain\\agents\\professor.md — your rubric, weights, calibration data.\n\n== STEP 2: GET TODAY'S TRADES ==\nQuery journal.db:\n  SELECT id, symbol, direction, entry_price, exit_price, stop_loss, pnl, strategy, status, entry_date, exit_date FROM trades WHERE status IN ('WIN','LOSS') AND date(exit_date) = date('now') ORDER BY exit_date ASC\n\nIf zero rows: 'Professor: No trades to grade today.' Stop.\n\n== STEP 3: GRADE EACH TRADE ==\nApply your rubric (weights from professor.md):\n- R:R execution (30%), Entry quality (25%), Exit discipline (20%), Rule compliance (15%), Timing (10%)\nGrade A through F. Write 1-line critique + 1-line lesson.\n\n== STEP 4: WRITE FEEDBACK TO AGENT MEMORY FILES ==\nFor each graded trade, identify the agent and append to their memory file:\nUnder 'Professor Feedback Queue':\n[today's date] Trade #ID SYMBOL DIRECTION | Grade: X | Feedback: [critique] | Lesson: [what to do differently]\n\nAgent mapping:\n- FX symbols → agents\\sterling.md\n- BTC/ETH → agents\\bitcoin-bob.md\n- ES/NQ → agents\\pivot-pete.md\n- SPY options → agents\\boba.md\n- SPX 0DTE → agents\\spx-sniper.md\n\n== STEP 5: UPDATE PROFESSOR MEMORY ==\nUpdate data\\brain\\agents\\professor.md with common feedback patterns and calibration data.\n\n== STEP 6: DETECT SYSTEMIC ISSUES ==\nIf same feedback in 3+ trades → Write HYPOTHESIS to data\\brain\\learning-log.md\n\n== STEP 7: DISCORD ==\nSend to #chief-main: embed per trade (grade + 1-line), then summary.",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  },
+  {
+    "jobId": "eod-overseer-audit",
+    "agentId": "overseer",
+    "name": "EOD risk audit 4:30 PM ET",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "30 16 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "Market closed. You are The Overseer.\n\nRead C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\data\\brain\\agents\\overseer.md — your risk parameters.\n\n1. Read agents_db.json — any HALTED agents?\n2. Query journal.db:\n   SELECT ROUND(SUM(pnl),2) as daily_pnl, COUNT(*) as total, SUM(CASE WHEN status='WIN' THEN 1 ELSE 0 END) as wins, SUM(CASE WHEN status='LOSS' THEN 1 ELSE 0 END) as losses FROM trades WHERE date(exit_date) = date('now') AND status IN ('WIN','LOSS')\n3. Check thresholds: daily_pnl<=-1000=KILL SWITCH, strategy 3+ losses=KILL SWITCH\n4. Any open positions still held?\n\nSend to #chief-main:\n- CLEAR: 'Overseer EOD. Drawdown [X]%. Parameters met. Tomorrow.'\n- WARNING: 'Overseer WARNING — [FLAG]. Recommend [ACTION].'\n- BREACH: 'KILL SWITCH: [REASON]. Manual override required.'",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  },
+  {
+    "jobId": "bitcoin-bob-watch",
+    "agentId": "bitcoin-bob",
+    "name": "Bitcoin Bob 4-hour crypto scan",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 */4 * * *",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "You are Bitcoin Bob. 4-hour scan.\n\n== READ YOUR MEMORY ==\nRead C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\data\\brain\\agents\\bitcoin-bob.md — parameters, Professor feedback, patterns.\nCheck 'Current Parameters' for ATR multiplier, freshness rules.\nCheck 'Professor Feedback Queue' — any lessons?\nCheck 'Behavioral Patterns' — conditions to avoid?\n\n== CHECK STATE ==\nRead agents_db.json for crypto status.\nQuery journal.db: SELECT symbol, direction, status, ROUND(pnl,2) as pnl, entry_date, ROUND(entry_price,2) as entry FROM trades WHERE (symbol LIKE '%BTC%' OR symbol LIKE '%ETH%') AND entry_date >= datetime('now','-24 hours') ORDER BY entry_date DESC\n\n== ASSESS ==\n1. BTC — clean impulse or choppy?\n2. Impulse zones forming on 1H?\n3. Professor flagged anything? Adjust accordingly.\n\nPost to #crypto ONLY if high-confidence setup. If nothing: STAY QUIET.",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1467174512377200640"
+    }
+  },
+  {
+    "jobId": "sterling-forex-scan",
+    "agentId": "sterling",
+    "name": "Sterling FX scan every 2 hours weekdays",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 */2 * * 1-5",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "You are Sterling. 2-hour FX scan.\n\n== READ MEMORY ==\nRead C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\data\\brain\\agents\\sterling.md — parameters, feedback, patterns.\nApply any active Behavioral Patterns and recent Professor lessons.\n\n== CHECK STATE ==\nRead agents_db.json for active FX signals.\nQuery journal.db for open FX positions.\n\nPost to #forex ONLY if:\n- Fresh zone forming\n- High-impact news within 30 min\n- Open position hit target or stop\n- Professor lesson applies to current setup\nIf nothing changed: STAY QUIET.",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1467174412615942186"
+    }
+  },
+  {
+    "jobId": "weekly-evolution-engine",
+    "agentId": "chief",
+    "name": "Sunday 6PM Evolution Engine — brain self-improvement",
+    "enabled": true,
+    "schedule": {
+      "kind": "cron",
+      "expr": "0 18 * * 0",
+      "tz": "America/New_York"
+    },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "Sunday evening. You are Chief. This is the EVOLUTION ENGINE — the brain's weekly self-improvement cycle.\n\nProject: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\nBrain: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\data\\brain\\\n\n== PHASE 1: GATHER ALL DATA ==\nRead ALL brain files:\n- data\\brain\\daily-log.md — full week of daily entries\n- data\\brain\\performance-memory.md — cumulative stats\n- data\\brain\\learning-log.md — all patterns (HYPOTHESIS + CONFIRMED)\n- data\\brain\\decisions-log.md — all decisions this week\n- data\\brain\\strategies.md — current strategy rules\n- data\\brain\\master-tracker.md — current priorities\n- data\\brain\\roadmap.md — long-term plan\n- ALL agent memory files in data\\brain\\agents\\\n\nQuery journal.db:\n  Weekly: SELECT strategy, COUNT(*) trades, ROUND(SUM(pnl),2) total_pnl, SUM(CASE WHEN status='WIN' THEN 1 ELSE 0 END) wins FROM trades WHERE status IN ('WIN','LOSS') AND entry_date >= datetime('now','-7 days') GROUP BY strategy ORDER BY total_pnl DESC\n  Per-agent: SELECT symbol, direction, strategy, status, pnl, entry_date FROM trades WHERE status IN ('WIN','LOSS') AND entry_date >= datetime('now','-7 days') ORDER BY entry_date\n  Time distribution: SELECT CAST(strftime('%H', entry_date) AS INTEGER) as hour, status, COUNT(*) FROM trades WHERE status IN ('WIN','LOSS') AND entry_date >= datetime('now','-7 days') GROUP BY hour, status\n\n== PHASE 2: EVALUATE EVOLUTION TRIGGERS ==\nCheck each trigger in performance-memory.md:\n  - Agent WR below 35% over 20+ trades? → Propose PAUSE\n  - Agent WR above 65% over 20+ trades? → Propose size increase (needs Jack)\n  - Strategy 0 trades in 2 weeks? → Propose REMOVE or fix signals\n  - Time-of-day loss clustering? → Propose time filter\n  - News-day underperformance? → Propose news blackout rule\n  - Friction > 10% gross? → Propose execution review\n\n== PHASE 3: PROMOTE PATTERNS ==\nReview learning-log.md:\n  - HYPOTHESIS with 3+ data points → CONFIRMED\n  - CONFIRMED with 2+ weeks → Ready for APPLIED\n  - APPLIED contradicted by new data → INVALIDATED\n\n== PHASE 4: MUTATE STRATEGIES ==\nFor each CONFIRMED pattern ready to be APPLIED:\n  1. Write the exact change to strategies.md\n  2. Log mutation in performance-memory.md\n  3. Update learning-log.md status to APPLIED\n  4. Include rollback plan\n\nONLY DEFENSIVE mutations (reduce risk, add filters). AGGRESSIVE needs Jack.\n\n== PHASE 5: UPDATE ALL BRAIN FILES ==\n  - performance-memory.md: weekly stats\n  - master-tracker.md: priority progress, 'What to Work On Next'\n  - learning-log.md: pattern statuses\n  - strategies.md: approved defensive mutations\n  - roadmap.md: check off completed phase items\n\n== PHASE 6: SYSTEM BUILDER WEEKLY SUMMARY ==\nReview what the system-builder heartbeat accomplished this week:\n  - How many gaps were found and fixed?\n  - What new tasks were queued?\n  - What roadmap items progressed?\n  Add this to the weekly Discord report.\n\n== PHASE 7: DISCORD REPORT ==\nPost to #chief-main embed:\n  Title: 'Brain Evolution — Week of [DATE]'\n  Fields: Performance, Learnings, Mutations, Triggers, Brain Growth, System Builder Progress, Next Week\n\nThis is how the brain evolves. Each week it gets smarter. Each mutation is logged and reversible.",
+      "lightContext": true
+    },
+    "delivery": {
+      "mode": "announce",
+      "channel": "discord",
+      "to": "channel:1465522015095099549"
+    }
+  }
+]

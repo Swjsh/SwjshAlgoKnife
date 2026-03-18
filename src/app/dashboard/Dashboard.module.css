@@ -1,0 +1,567 @@
+.container {
+    min-height: 100vh;
+    padding: 24px 32px;
+    background: linear-gradient(180deg, #0a0a0f 0%, #0d0d14 100%);
+}
+
+/* Loader */
+.loader {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--brand-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+}
+
+.systemStatus {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.systemStatus.operational {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--status-success);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.systemStatus.degraded {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--status-warning);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.systemStatus.offline {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--status-danger);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.statusDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 8px currentColor;
+}
+
+/* Stats Bar */
+.statsBar {
+    display: flex;
+    gap: 24px;
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+}
+
+.stat svg {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.stat > div {
+    display: flex;
+    flex-direction: column;
+}
+
+.statValue {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    font-family: var(--font-mono, monospace);
+}
+
+.statLabel {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.positive { color: var(--status-success) !important; }
+.negative { color: var(--status-danger) !important; }
+
+/* Section Titles */
+.sectionTitle {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+}
+
+/* Agent Section */
+.agentSection {
+    margin-bottom: 40px;
+}
+
+.agentGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+/* Agent Card */
+.agentCard {
+    position: relative;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.agentCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--agent-color, #8b5cf6);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.agentCard:hover::before,
+.agentCard.active::before {
+    opacity: 1;
+}
+
+.agentCard:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.agentCard.inactive {
+    opacity: 0.5;
+}
+
+.agentCard.inactive:hover {
+    opacity: 0.7;
+}
+
+/* Card Status Badges */
+.cardStatus {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 6px;
+}
+
+.inTrade {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--status-success);
+    text-transform: uppercase;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.watching {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: rgba(251, 191, 36, 0.15);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--status-warning);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Agent Identity */
+.agentIdentity {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.avatarWrapper {
+    position: relative;
+}
+
+.avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.avatarFallback {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--agent-color, #8b5cf6), #3b82f6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+}
+
+.onlineIndicator {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #64748b;
+    border: 3px solid #0d0d14;
+}
+
+.onlineIndicator.online {
+    background: var(--status-success);
+    box-shadow: 0 0 8px var(--status-success);
+}
+
+.agentInfo {
+    flex: 1;
+}
+
+.agentName {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 4px 0;
+}
+
+.agentType {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Performance Stats */
+.perfStats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.perfStat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.perfLabel {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.perfValue {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: white;
+    font-family: var(--font-mono, monospace);
+}
+
+/* Click Hint */
+.clickHint {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    text-align: center;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.3);
+    transform: translateY(100%);
+    transition: transform 0.3s;
+}
+
+.agentCard:hover .clickHint {
+    transform: translateY(0);
+}
+
+/* Support Section */
+.supportSection {
+    margin-top: 40px;
+}
+
+.supportGrid {
+    display: flex;
+    gap: 16px;
+}
+
+.supportCard {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1;
+    max-width: 300px;
+}
+
+.supportCard:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.supportAvatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    overflow: hidden;
+}
+
+.supportAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.supportInfo {
+    flex: 1;
+}
+
+.supportInfo h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: white;
+    margin: 0 0 2px 0;
+}
+
+.supportInfo span {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+}
+
+.supportStatus {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    background: rgba(100, 116, 139, 0.2);
+    color: #64748b;
+}
+
+.supportStatus.active {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--status-success);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .statsBar {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .stat {
+        flex: 1;
+        min-width: 140px;
+    }
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding: 16px;
+    }
+
+    .agentGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .supportGrid {
+        flex-direction: column;
+    }
+
+    .supportCard {
+        max-width: none;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+   ═══════════════════════════════════════════════════════════════ */
+:global([data-theme='light']) .container {
+    background: var(--bg-main);
+}
+
+:global([data-theme='light']) .loader {
+    color: var(--text-muted);
+}
+
+:global([data-theme='light']) .header {
+    border-bottom-color: var(--border-base);
+}
+
+:global([data-theme='light']) .title {
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .stat {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}
+
+:global([data-theme='light']) .stat svg {
+    color: var(--text-secondary);
+}
+
+:global([data-theme='light']) .statValue {
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .statLabel {
+    color: var(--text-muted);
+}
+
+:global([data-theme='light']) .sectionTitle {
+    color: var(--text-secondary);
+}
+
+:global([data-theme='light']) .agentCard {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}
+
+:global([data-theme='light']) .agentCard:hover {
+    background: var(--bg-subtle);
+    border-color: var(--border-bright);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+}
+
+:global([data-theme='light']) .agentName {
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .agentType {
+    color: var(--text-muted);
+}
+
+:global([data-theme='light']) .perfLabel {
+    color: var(--text-muted);
+}
+
+:global([data-theme='light']) .perfValue {
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .perfStats {
+    border-top-color: var(--border-subtle);
+}
+
+:global([data-theme='light']) .onlineIndicator {
+    border-color: var(--bg-surface);
+}
+
+:global([data-theme='light']) .supportCard {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}
+
+:global([data-theme='light']) .supportCard:hover {
+    background: var(--bg-subtle);
+    border-color: var(--border-bright);
+}
+
+:global([data-theme='light']) .supportInfo h4 {
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .supportInfo span {
+    color: var(--text-muted);
+}
+
+:global([data-theme='light']) .clickHint {
+    background: linear-gradient(transparent, rgba(241, 245, 249, 0.9));
+    color: var(--text-muted);
+}

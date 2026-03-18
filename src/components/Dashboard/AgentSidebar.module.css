@@ -56,6 +56,37 @@
     /* Ensure header appears above Spline background */
 }
 
+/* Cafe Link */
+.cafeLink {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 0 16px 16px;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.1));
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 14px;
+    color: #fbbf24;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.cafeLink:hover {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(245, 158, 11, 0.2));
+    border-color: rgba(251, 191, 36, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(251, 191, 36, 0.2);
+}
+
+.cafeLink svg {
+    opacity: 0.9;
+}
+
 .title {
     font-size: 0.75rem;
     text-transform: uppercase;
@@ -347,4 +378,11 @@
 
 .value-negative {
     color: #ef4444;
+}
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .splineOverlay {
+    background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0.5) 100%);
 }

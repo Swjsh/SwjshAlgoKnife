@@ -1,0 +1,18 @@
+{
+  "name": "Sterling FX",
+  "market": "forex",
+  "symbols": [
+    "GBPUSD=X",
+    "EURUSD=X",
+    "USDJPY=X"
+  ],
+  "primary_symbol": "GBPUSD=X",
+  "strategy": "vwap",
+  "timeframe": "15m",
+  "initial_capital": 50000,
+  "risk_per_trade": 0.01,
+  "strategy_params": {
+    "threshold_pct": 1.5,
+    "rr": 2.0
+  }
+}

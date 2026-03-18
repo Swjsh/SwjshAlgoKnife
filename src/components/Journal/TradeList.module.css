@@ -209,3 +209,9 @@
     background: var(--accent-gold);
     box-shadow: 0 0 6px rgba(201, 162, 39, 0.3);
 }
+
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .panelOverride {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}

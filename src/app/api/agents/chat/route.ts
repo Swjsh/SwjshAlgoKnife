@@ -8,7 +8,7 @@ export async function GET() {
 
     // Base personas (matching the scripts)
     const personas: any = {
-        'fx': { name: 'Swjsh FX', avatar: '/avatars/fx.png' },
+        'fx': { name: 'Sterling', avatar: '/avatars/fx.png' },
         'crypto': { name: 'Bitcoin Bob', avatar: '/avatars/crypto.png' },
         'spx': { name: 'SPX Sniper', avatar: '/avatars/spx.png' },
         'futures': { name: 'Pivot Pete', avatar: '/avatars/futures.png' }

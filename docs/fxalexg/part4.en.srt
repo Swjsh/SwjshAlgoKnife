@@ -1,0 +1,3665 @@
+1
+00:00:05,080 --> 00:00:07,430
+
+bodies. So again this is telling you
+
+2
+00:00:07,430 --> 00:00:07,440
+bodies. So again this is telling you
+ 
+
+3
+00:00:07,440 --> 00:00:10,230
+bodies. So again this is telling you
+right here if buying at weekly area of
+
+4
+00:00:10,230 --> 00:00:10,240
+right here if buying at weekly area of
+ 
+
+5
+00:00:10,240 --> 00:00:12,230
+right here if buying at weekly area of
+interest your take profit is at the
+
+6
+00:00:12,230 --> 00:00:12,240
+interest your take profit is at the
+ 
+
+7
+00:00:12,240 --> 00:00:14,709
+interest your take profit is at the
+weekly. This is a side note. And again,
+
+8
+00:00:14,709 --> 00:00:14,719
+weekly. This is a side note. And again,
+ 
+
+9
+00:00:14,719 --> 00:00:16,590
+weekly. This is a side note. And again,
+same thing for
+
+10
+00:00:16,590 --> 00:00:16,600
+same thing for
+ 
+
+11
+00:00:16,600 --> 00:00:21,550
+same thing for
+here. If
+
+12
+00:00:21,550 --> 00:00:21,560
+
+ 
+
+13
+00:00:21,560 --> 00:00:25,550
+
+buying at a
+
+14
+00:00:25,550 --> 00:00:25,560
+
+ 
+
+15
+00:00:25,560 --> 00:00:31,150
+
+daily area of interest and aiming for
+
+16
+00:00:31,150 --> 00:00:31,160
+
+ 
+
+17
+00:00:31,160 --> 00:00:32,910
+
+a
+
+18
+00:00:32,910 --> 00:00:32,920
+a
+ 
+
+19
+00:00:32,920 --> 00:00:35,990
+a
+daily higher high take profit is to be
+
+20
+00:00:35,990 --> 00:00:36,000
+daily higher high take profit is to be
+ 
+
+21
+00:00:36,000 --> 00:00:38,030
+daily higher high take profit is to be
+at the structure point. Does that make
+
+22
+00:00:38,030 --> 00:00:38,040
+at the structure point. Does that make
+ 
+
+23
+00:00:38,040 --> 00:00:42,630
+at the structure point. Does that make
+sense? Simple.
+
+24
+00:00:42,630 --> 00:00:42,640
+
+ 
+
+25
+00:00:42,640 --> 00:00:46,430
+
+Not really, Jonathan. Not really. Not at
+
+26
+00:00:46,430 --> 00:00:46,440
+Not really, Jonathan. Not really. Not at
+ 
+
+27
+00:00:46,440 --> 00:00:50,110
+Not really, Jonathan. Not really. Not at
+all. Is this simple? Does this make any
+
+28
+00:00:50,110 --> 00:00:50,120
+all. Is this simple? Does this make any
+ 
+
+29
+00:00:50,120 --> 00:00:53,510
+all. Is this simple? Does this make any
+sense? Perfect. So, for this example
+
+30
+00:00:53,510 --> 00:00:53,520
+sense? Perfect. So, for this example
+ 
+
+31
+00:00:53,520 --> 00:00:57,150
+sense? Perfect. So, for this example
+right here, what are we doing? We are
+
+32
+00:00:57,150 --> 00:00:57,160
+right here, what are we doing? We are
+ 
+
+33
+00:00:57,160 --> 00:00:59,750
+right here, what are we doing? We are
+rejecting daily area of interest. If you
+
+34
+00:00:59,750 --> 00:00:59,760
+rejecting daily area of interest. If you
+ 
+
+35
+00:00:59,760 --> 00:01:02,470
+rejecting daily area of interest. If you
+notice, we are buying at a daily area of
+
+36
+00:01:02,470 --> 00:01:02,480
+notice, we are buying at a daily area of
+ 
+
+37
+00:01:02,480 --> 00:01:05,270
+notice, we are buying at a daily area of
+interest. So, buying at a daily area of
+
+38
+00:01:05,270 --> 00:01:05,280
+interest. So, buying at a daily area of
+ 
+
+39
+00:01:05,280 --> 00:01:07,350
+interest. So, buying at a daily area of
+interest. Buying at a daily area of
+
+40
+00:01:07,350 --> 00:01:07,360
+interest. Buying at a daily area of
+ 
+
+41
+00:01:07,360 --> 00:01:09,830
+interest. Buying at a daily area of
+interest. Holy That means I must
+
+42
+00:01:09,830 --> 00:01:09,840
+interest. Holy That means I must
+ 
+
+43
+00:01:09,840 --> 00:01:13,550
+interest. Holy That means I must
+set my takerit at a daily area of
+
+44
+00:01:13,550 --> 00:01:13,560
+set my takerit at a daily area of
+ 
+
+45
+00:01:13,560 --> 00:01:16,230
+set my takerit at a daily area of
+interest. Holy this is gave me so
+
+46
+00:01:16,230 --> 00:01:16,240
+interest. Holy this is gave me so
+ 
+
+47
+00:01:16,240 --> 00:01:18,390
+interest. Holy this is gave me so
+much anxiety. We're going to fix it now.
+
+48
+00:01:18,390 --> 00:01:18,400
+much anxiety. We're going to fix it now.
+ 
+
+49
+00:01:18,400 --> 00:01:20,390
+much anxiety. We're going to fix it now.
+So then this right here, we would place
+
+50
+00:01:20,390 --> 00:01:20,400
+So then this right here, we would place
+ 
+
+51
+00:01:20,400 --> 00:01:23,749
+So then this right here, we would place
+it at our daily structure point, which
+
+52
+00:01:23,749 --> 00:01:23,759
+it at our daily structure point, which
+ 
+
+53
+00:01:23,759 --> 00:01:25,670
+it at our daily structure point, which
+would be this point right here. You guys
+
+54
+00:01:25,670 --> 00:01:25,680
+would be this point right here. You guys
+ 
+
+55
+00:01:25,680 --> 00:01:27,190
+would be this point right here. You guys
+are seeing how that makes sense. You
+
+56
+00:01:27,190 --> 00:01:27,200
+are seeing how that makes sense. You
+ 
+
+57
+00:01:27,200 --> 00:01:29,030
+are seeing how that makes sense. You
+guys are seeing how that's simple. And
+
+58
+00:01:29,030 --> 00:01:29,040
+guys are seeing how that's simple. And
+ 
+
+59
+00:01:29,040 --> 00:01:30,710
+guys are seeing how that's simple. And
+then what do you do after that? You take
+
+60
+00:01:30,710 --> 00:01:30,720
+then what do you do after that? You take
+ 
+
+61
+00:01:30,720 --> 00:01:32,230
+then what do you do after that? You take
+it. You just set and forget. And then
+
+62
+00:01:32,230 --> 00:01:32,240
+it. You just set and forget. And then
+ 
+
+63
+00:01:32,240 --> 00:01:34,149
+it. You just set and forget. And then
+boom, your gets hit. It's literally
+
+64
+00:01:34,149 --> 00:01:34,159
+boom, your gets hit. It's literally
+ 
+
+65
+00:01:34,159 --> 00:01:37,350
+boom, your gets hit. It's literally
+that simple.
+
+66
+00:01:37,350 --> 00:01:37,360
+that simple.
+ 
+
+67
+00:01:37,360 --> 00:01:40,069
+that simple.
+Do you guys have any questions as of
+
+68
+00:01:40,069 --> 00:01:40,079
+Do you guys have any questions as of
+ 
+
+69
+00:01:40,079 --> 00:01:42,630
+Do you guys have any questions as of
+right now with everything we have done
+
+70
+00:01:42,630 --> 00:01:42,640
+right now with everything we have done
+ 
+
+71
+00:01:42,640 --> 00:01:44,149
+right now with everything we have done
+here? I'm going to put everything here
+
+72
+00:01:44,149 --> 00:01:44,159
+here? I'm going to put everything here
+ 
+
+73
+00:01:44,159 --> 00:01:46,710
+here? I'm going to put everything here
+right now for you guys so you guys have
+
+74
+00:01:46,710 --> 00:01:46,720
+right now for you guys so you guys have
+ 
+
+75
+00:01:46,720 --> 00:01:48,469
+right now for you guys so you guys have
+screenshots of everything because this
+
+76
+00:01:48,469 --> 00:01:48,479
+screenshots of everything because this
+ 
+
+77
+00:01:48,479 --> 00:01:51,590
+screenshots of everything because this
+is the whole entire strategy right here.
+
+78
+00:01:51,590 --> 00:01:51,600
+is the whole entire strategy right here.
+ 
+
+79
+00:01:51,600 --> 00:01:53,990
+is the whole entire strategy right here.
+Like this is everything we've explained
+
+80
+00:01:53,990 --> 00:01:54,000
+Like this is everything we've explained
+ 
+
+81
+00:01:54,000 --> 00:01:57,550
+Like this is everything we've explained
+in the past 30 days in one simple
+
+82
+00:01:57,550 --> 00:01:57,560
+in the past 30 days in one simple
+ 
+
+83
+00:01:57,560 --> 00:01:59,429
+in the past 30 days in one simple
+screenshot. All right, hold on. Let me
+
+84
+00:01:59,429 --> 00:01:59,439
+screenshot. All right, hold on. Let me
+ 
+
+85
+00:01:59,439 --> 00:02:00,709
+screenshot. All right, hold on. Let me
+just make it clean for you guys. Hold
+
+86
+00:02:00,709 --> 00:02:00,719
+just make it clean for you guys. Hold
+ 
+
+87
+00:02:00,719 --> 00:02:10,630
+just make it clean for you guys. Hold
+on. Hold on.
+
+88
+00:02:10,630 --> 00:02:10,640
+
+ 
+
+89
+00:02:10,640 --> 00:02:13,790
+
+Hold on, let me make it
+
+90
+00:02:13,790 --> 00:02:13,800
+
+ 
+
+91
+00:02:13,800 --> 00:02:16,150
+
+clean. All you have to do is just print
+
+92
+00:02:16,150 --> 00:02:16,160
+clean. All you have to do is just print
+ 
+
+93
+00:02:16,160 --> 00:02:19,070
+clean. All you have to do is just print
+this out and have it next to your
+
+94
+00:02:19,070 --> 00:02:19,080
+this out and have it next to your
+ 
+
+95
+00:02:19,080 --> 00:02:21,670
+this out and have it next to your
+desk on a sticky note, whatever you
+
+96
+00:02:21,670 --> 00:02:21,680
+desk on a sticky note, whatever you
+ 
+
+97
+00:02:21,680 --> 00:02:23,869
+desk on a sticky note, whatever you
+want. It's all you
+
+98
+00:02:23,869 --> 00:02:23,879
+want. It's all you
+ 
+
+99
+00:02:23,879 --> 00:02:27,110
+want. It's all you
+need. Okay, so this would be and I'm
+
+100
+00:02:27,110 --> 00:02:27,120
+need. Okay, so this would be and I'm
+ 
+
+101
+00:02:27,120 --> 00:02:28,309
+need. Okay, so this would be and I'm
+going to have the chart here. So, it's
+
+102
+00:02:28,309 --> 00:02:28,319
+going to have the chart here. So, it's
+ 
+
+103
+00:02:28,319 --> 00:02:30,229
+going to have the chart here. So, it's
+an example of what can happen when you
+
+104
+00:02:30,229 --> 00:02:30,239
+an example of what can happen when you
+ 
+
+105
+00:02:30,239 --> 00:02:32,150
+an example of what can happen when you
+have a trade like this. This would be
+
+106
+00:02:32,150 --> 00:02:32,160
+have a trade like this. This would be
+ 
+
+107
+00:02:32,160 --> 00:02:33,830
+have a trade like this. This would be
+step one.
+
+108
+00:02:33,830 --> 00:02:33,840
+step one.
+ 
+
+109
+00:02:33,840 --> 00:02:36,430
+step one.
+This would be step
+
+110
+00:02:36,430 --> 00:02:36,440
+This would be step
+ 
+
+111
+00:02:36,440 --> 00:02:40,430
+This would be step
+two. This would be step
+
+112
+00:02:40,430 --> 00:02:40,440
+two. This would be step
+ 
+
+113
+00:02:40,440 --> 00:02:42,670
+two. This would be step
+three. This would
+
+114
+00:02:42,670 --> 00:02:42,680
+three. This would
+ 
+
+115
+00:02:42,680 --> 00:02:45,229
+three. This would
+be step
+
+116
+00:02:45,229 --> 00:02:45,239
+be step
+ 
+
+117
+00:02:45,239 --> 00:02:47,790
+be step
+four. This would
+
+118
+00:02:47,790 --> 00:02:47,800
+four. This would
+ 
+
+119
+00:02:47,800 --> 00:02:50,670
+four. This would
+be step
+
+120
+00:02:50,670 --> 00:02:50,680
+be step
+ 
+
+121
+00:02:50,680 --> 00:02:54,150
+be step
+five. And then everything from here is
+
+122
+00:02:54,150 --> 00:02:54,160
+five. And then everything from here is
+ 
+
+123
+00:02:54,160 --> 00:02:57,589
+five. And then everything from here is
+just side notes. Side notes. There has
+
+124
+00:02:57,589 --> 00:02:57,599
+just side notes. Side notes. There has
+ 
+
+125
+00:02:57,599 --> 00:03:00,949
+just side notes. Side notes. There has
+to be another side note. There it is.
+
+126
+00:03:00,949 --> 00:03:00,959
+to be another side note. There it is.
+ 
+
+127
+00:03:00,959 --> 00:03:05,270
+to be another side note. There it is.
+And then this is a side note. So this is
+
+128
+00:03:05,270 --> 00:03:05,280
+And then this is a side note. So this is
+ 
+
+129
+00:03:05,280 --> 00:03:07,430
+And then this is a side note. So this is
+a side note for stop-loss. A side note
+
+130
+00:03:07,430 --> 00:03:07,440
+a side note for stop-loss. A side note
+ 
+
+131
+00:03:07,440 --> 00:03:10,070
+a side note for stop-loss. A side note
+for take profit. Side note, we only buy.
+
+132
+00:03:10,070 --> 00:03:10,080
+for take profit. Side note, we only buy.
+ 
+
+133
+00:03:10,080 --> 00:03:12,229
+for take profit. Side note, we only buy.
+So let's do this right here. Let's do
+
+134
+00:03:12,229 --> 00:03:12,239
+So let's do this right here. Let's do
+ 
+
+135
+00:03:12,239 --> 00:03:13,790
+So let's do this right here. Let's do
+this right
+
+136
+00:03:13,790 --> 00:03:13,800
+this right
+ 
+
+137
+00:03:13,800 --> 00:03:16,910
+this right
+here. I'm going to take a screenshot
+
+138
+00:03:16,910 --> 00:03:16,920
+here. I'm going to take a screenshot
+ 
+
+139
+00:03:16,920 --> 00:03:21,630
+here. I'm going to take a screenshot
+for my damn
+
+140
+00:03:21,630 --> 00:03:21,640
+
+ 
+
+141
+00:03:21,640 --> 00:03:24,550
+
+self. So this go ahead take a
+
+142
+00:03:24,550 --> 00:03:24,560
+self. So this go ahead take a
+ 
+
+143
+00:03:24,560 --> 00:03:27,270
+self. So this go ahead take a
+screenshot. Um do whatever you got to do
+
+144
+00:03:27,270 --> 00:03:27,280
+screenshot. Um do whatever you got to do
+ 
+
+145
+00:03:27,280 --> 00:03:29,390
+screenshot. Um do whatever you got to do
+with it. But this is
+
+146
+00:03:29,390 --> 00:03:29,400
+with it. But this is
+ 
+
+147
+00:03:29,400 --> 00:03:31,990
+with it. But this is
+exactly Wow. I've gotten better. I
+
+148
+00:03:31,990 --> 00:03:32,000
+exactly Wow. I've gotten better. I
+ 
+
+149
+00:03:32,000 --> 00:03:34,710
+exactly Wow. I've gotten better. I
+really have. It's crazy. I'm telling
+
+150
+00:03:34,710 --> 00:03:34,720
+really have. It's crazy. I'm telling
+ 
+
+151
+00:03:34,720 --> 00:03:36,630
+really have. It's crazy. I'm telling
+you. Like I I like before I get on the
+
+152
+00:03:36,630 --> 00:03:36,640
+you. Like I I like before I get on the
+ 
+
+153
+00:03:36,640 --> 00:03:37,830
+you. Like I I like before I get on the
+Zoom, like I'm like, "All right, how do
+
+154
+00:03:37,830 --> 00:03:37,840
+Zoom, like I'm like, "All right, how do
+ 
+
+155
+00:03:37,840 --> 00:03:39,750
+Zoom, like I'm like, "All right, how do
+I make this easier?" Like I have to
+
+156
+00:03:39,750 --> 00:03:39,760
+I make this easier?" Like I have to
+ 
+
+157
+00:03:39,760 --> 00:03:42,710
+I make this easier?" Like I have to
+brainstorm, you know? Okay, so this is
+
+158
+00:03:42,710 --> 00:03:42,720
+brainstorm, you know? Okay, so this is
+ 
+
+159
+00:03:42,720 --> 00:03:44,990
+brainstorm, you know? Okay, so this is
+it. Let's just recap everything one more
+
+160
+00:03:44,990 --> 00:03:45,000
+it. Let's just recap everything one more
+ 
+
+161
+00:03:45,000 --> 00:03:49,350
+it. Let's just recap everything one more
+time, right? We are only going to buy at
+
+162
+00:03:49,350 --> 00:03:49,360
+time, right? We are only going to buy at
+ 
+
+163
+00:03:49,360 --> 00:03:52,309
+time, right? We are only going to buy at
+a weekly or daily area of interest.
+
+164
+00:03:52,309 --> 00:03:52,319
+a weekly or daily area of interest.
+ 
+
+165
+00:03:52,319 --> 00:03:55,509
+a weekly or daily area of interest.
+Anything from the four down is just for
+
+166
+00:03:55,509 --> 00:03:55,519
+Anything from the four down is just for
+ 
+
+167
+00:03:55,519 --> 00:03:57,589
+Anything from the four down is just for
+entries. As you can tell, when it comes
+
+168
+00:03:57,589 --> 00:03:57,599
+entries. As you can tell, when it comes
+ 
+
+169
+00:03:57,599 --> 00:03:59,350
+entries. As you can tell, when it comes
+to stop-loss and take-profit placement,
+
+170
+00:03:59,350 --> 00:03:59,360
+to stop-loss and take-profit placement,
+ 
+
+171
+00:03:59,360 --> 00:04:01,750
+to stop-loss and take-profit placement,
+we'll cover that when the time comes for
+
+172
+00:04:01,750 --> 00:04:01,760
+we'll cover that when the time comes for
+ 
+
+173
+00:04:01,760 --> 00:04:05,830
+we'll cover that when the time comes for
+that. Right. Step one, when we type our
+
+174
+00:04:05,830 --> 00:04:05,840
+that. Right. Step one, when we type our
+ 
+
+175
+00:04:05,840 --> 00:04:08,350
+that. Right. Step one, when we type our
+weekly time frame, we need to either be
+
+176
+00:04:08,350 --> 00:04:08,360
+weekly time frame, we need to either be
+ 
+
+177
+00:04:08,360 --> 00:04:11,390
+weekly time frame, we need to either be
+rejecting one of these points right
+
+178
+00:04:11,390 --> 00:04:11,400
+rejecting one of these points right
+ 
+
+179
+00:04:11,400 --> 00:04:14,149
+rejecting one of these points right
+here. Step two, when we are going to
+
+180
+00:04:14,149 --> 00:04:14,159
+here. Step two, when we are going to
+ 
+
+181
+00:04:14,159 --> 00:04:16,390
+here. Step two, when we are going to
+type up things for confluences on the
+
+182
+00:04:16,390 --> 00:04:16,400
+type up things for confluences on the
+ 
+
+183
+00:04:16,400 --> 00:04:18,949
+type up things for confluences on the
+daily time frame, we need to type up
+
+184
+00:04:18,949 --> 00:04:18,959
+daily time frame, we need to type up
+ 
+
+185
+00:04:18,959 --> 00:04:21,189
+daily time frame, we need to type up
+whatever's here.
+
+186
+00:04:21,189 --> 00:04:21,199
+whatever's here.
+ 
+
+187
+00:04:21,199 --> 00:04:22,870
+whatever's here.
+After we understand where we are in the
+
+188
+00:04:22,870 --> 00:04:22,880
+After we understand where we are in the
+ 
+
+189
+00:04:22,880 --> 00:04:24,390
+After we understand where we are in the
+daily time frame, then we need to
+
+190
+00:04:24,390 --> 00:04:24,400
+daily time frame, then we need to
+ 
+
+191
+00:04:24,400 --> 00:04:28,870
+daily time frame, then we need to
+mandatory buy at a higher low or sell at
+
+192
+00:04:28,870 --> 00:04:28,880
+mandatory buy at a higher low or sell at
+ 
+
+193
+00:04:28,880 --> 00:04:31,030
+mandatory buy at a higher low or sell at
+a lower high. Right? And then this is
+
+194
+00:04:31,030 --> 00:04:31,040
+a lower high. Right? And then this is
+ 
+
+195
+00:04:31,040 --> 00:04:32,230
+a lower high. Right? And then this is
+where we'll wait for the shift of
+
+196
+00:04:32,230 --> 00:04:32,240
+where we'll wait for the shift of
+ 
+
+197
+00:04:32,240 --> 00:04:34,469
+where we'll wait for the shift of
+structure. After as we're waiting for
+
+198
+00:04:34,469 --> 00:04:34,479
+structure. After as we're waiting for
+ 
+
+199
+00:04:34,479 --> 00:04:37,510
+structure. After as we're waiting for
+this higher low or lower high, we then
+
+200
+00:04:37,510 --> 00:04:37,520
+this higher low or lower high, we then
+ 
+
+201
+00:04:37,520 --> 00:04:40,790
+this higher low or lower high, we then
+need to be constantly moderating the
+
+202
+00:04:40,790 --> 00:04:40,800
+need to be constantly moderating the
+ 
+
+203
+00:04:40,800 --> 00:04:43,430
+need to be constantly moderating the
+15minut, 30 minute or 1 hour for this
+
+204
+00:04:43,430 --> 00:04:43,440
+15minut, 30 minute or 1 hour for this
+ 
+
+205
+00:04:43,440 --> 00:04:46,310
+15minut, 30 minute or 1 hour for this
+shift of structure to continue with the
+
+206
+00:04:46,310 --> 00:04:46,320
+shift of structure to continue with the
+ 
+
+207
+00:04:46,320 --> 00:04:48,070
+shift of structure to continue with the
+higher time frames. As you can tell, we
+
+208
+00:04:48,070 --> 00:04:48,080
+higher time frames. As you can tell, we
+ 
+
+209
+00:04:48,080 --> 00:04:49,590
+higher time frames. As you can tell, we
+waited for this shifted structure here
+
+210
+00:04:49,590 --> 00:04:49,600
+waited for this shifted structure here
+ 
+
+211
+00:04:49,600 --> 00:04:53,909
+waited for this shifted structure here
+to go bullish to continue with our uh
+
+212
+00:04:53,909 --> 00:04:53,919
+to go bullish to continue with our uh
+ 
+
+213
+00:04:53,919 --> 00:04:56,070
+to go bullish to continue with our uh
+weekly time frame and buying at a daily
+
+214
+00:04:56,070 --> 00:04:56,080
+weekly time frame and buying at a daily
+ 
+
+215
+00:04:56,080 --> 00:04:58,629
+weekly time frame and buying at a daily
+area of interest. Which time frames are
+
+216
+00:04:58,629 --> 00:04:58,639
+area of interest. Which time frames are
+ 
+
+217
+00:04:58,639 --> 00:05:01,030
+area of interest. Which time frames are
+the correct ones to look at? Whichever
+
+218
+00:05:01,030 --> 00:05:01,040
+the correct ones to look at? Whichever
+ 
+
+219
+00:05:01,040 --> 00:05:02,629
+the correct ones to look at? Whichever
+ones look the cleanest, whichever one
+
+220
+00:05:02,629 --> 00:05:02,639
+ones look the cleanest, whichever one
+ 
+
+221
+00:05:02,639 --> 00:05:05,270
+ones look the cleanest, whichever one
+makes the most sense. After that, once
+
+222
+00:05:05,270 --> 00:05:05,280
+makes the most sense. After that, once
+ 
+
+223
+00:05:05,280 --> 00:05:07,670
+makes the most sense. After that, once
+we get the shift of structure, whether
+
+224
+00:05:07,670 --> 00:05:07,680
+we get the shift of structure, whether
+ 
+
+225
+00:05:07,680 --> 00:05:10,390
+we get the shift of structure, whether
+it's on the 15, 30 minute, 1 hour, we
+
+226
+00:05:10,390 --> 00:05:10,400
+it's on the 15, 30 minute, 1 hour, we
+ 
+
+227
+00:05:10,400 --> 00:05:13,270
+it's on the 15, 30 minute, 1 hour, we
+now look for an engulfing on the 1 hour,
+
+228
+00:05:13,270 --> 00:05:13,280
+now look for an engulfing on the 1 hour,
+ 
+
+229
+00:05:13,280 --> 00:05:15,670
+now look for an engulfing on the 1 hour,
+2 hour, 4 hour, whichever looks the
+
+230
+00:05:15,670 --> 00:05:15,680
+2 hour, 4 hour, whichever looks the
+ 
+
+231
+00:05:15,680 --> 00:05:17,270
+2 hour, 4 hour, whichever looks the
+cleanest and has the strongest
+
+232
+00:05:17,270 --> 00:05:17,280
+cleanest and has the strongest
+ 
+
+233
+00:05:17,280 --> 00:05:19,430
+cleanest and has the strongest
+confirmation. The higher the time frame,
+
+234
+00:05:19,430 --> 00:05:19,440
+confirmation. The higher the time frame,
+ 
+
+235
+00:05:19,440 --> 00:05:21,029
+confirmation. The higher the time frame,
+the stronger the confirmation. So, if
+
+236
+00:05:21,029 --> 00:05:21,039
+the stronger the confirmation. So, if
+ 
+
+237
+00:05:21,039 --> 00:05:22,790
+the stronger the confirmation. So, if
+you get an engulfing on the 4 hour, it's
+
+238
+00:05:22,790 --> 00:05:22,800
+you get an engulfing on the 4 hour, it's
+ 
+
+239
+00:05:22,800 --> 00:05:25,189
+you get an engulfing on the 4 hour, it's
+obviously stronger than the 2hour, but
+
+240
+00:05:25,189 --> 00:05:25,199
+obviously stronger than the 2hour, but
+ 
+
+241
+00:05:25,199 --> 00:05:26,870
+obviously stronger than the 2hour, but
+if you get an engulfing on the 4 hour,
+
+242
+00:05:26,870 --> 00:05:26,880
+if you get an engulfing on the 4 hour,
+ 
+
+243
+00:05:26,880 --> 00:05:28,150
+if you get an engulfing on the 4 hour,
+you're going to get an engulfing on the
+
+244
+00:05:28,150 --> 00:05:28,160
+you're going to get an engulfing on the
+ 
+
+245
+00:05:28,160 --> 00:05:29,990
+you're going to get an engulfing on the
+2hour, 1 hour, cuz they will all go at
+
+246
+00:05:29,990 --> 00:05:30,000
+2hour, 1 hour, cuz they will all go at
+ 
+
+247
+00:05:30,000 --> 00:05:31,590
+2hour, 1 hour, cuz they will all go at
+the same time by then. You know, it's
+
+248
+00:05:31,590 --> 00:05:31,600
+the same time by then. You know, it's
+ 
+
+249
+00:05:31,600 --> 00:05:33,350
+the same time by then. You know, it's
+very simple. When it comes to placing
+
+250
+00:05:33,350 --> 00:05:33,360
+very simple. When it comes to placing
+ 
+
+251
+00:05:33,360 --> 00:05:35,270
+very simple. When it comes to placing
+your stop loss, you need to place your
+
+252
+00:05:35,270 --> 00:05:35,280
+your stop loss, you need to place your
+ 
+
+253
+00:05:35,280 --> 00:05:37,110
+your stop loss, you need to place your
+stop loss wherever it gets hit. You are
+
+254
+00:05:37,110 --> 00:05:37,120
+stop loss wherever it gets hit. You are
+ 
+
+255
+00:05:37,120 --> 00:05:39,749
+stop loss wherever it gets hit. You are
+completely wrong. Also known as the
+
+256
+00:05:39,749 --> 00:05:39,759
+completely wrong. Also known as the
+ 
+
+257
+00:05:39,759 --> 00:05:41,909
+completely wrong. Also known as the
+bottom of the shift of structure on the
+
+258
+00:05:41,909 --> 00:05:41,919
+bottom of the shift of structure on the
+ 
+
+259
+00:05:41,919 --> 00:05:44,310
+bottom of the shift of structure on the
+15-minute, which is step four. So once
+
+260
+00:05:44,310 --> 00:05:44,320
+15-minute, which is step four. So once
+ 
+
+261
+00:05:44,320 --> 00:05:46,230
+15-minute, which is step four. So once
+you have the shift of the structure,
+
+262
+00:05:46,230 --> 00:05:46,240
+you have the shift of the structure,
+ 
+
+263
+00:05:46,240 --> 00:05:47,830
+you have the shift of the structure,
+place your stop loss under it. Give it
+
+264
+00:05:47,830 --> 00:05:47,840
+place your stop loss under it. Give it
+ 
+
+265
+00:05:47,840 --> 00:05:49,430
+place your stop loss under it. Give it
+some breathing room. When it comes to
+
+266
+00:05:49,430 --> 00:05:49,440
+some breathing room. When it comes to
+ 
+
+267
+00:05:49,440 --> 00:05:52,510
+some breathing room. When it comes to
+your takerit, literally place it at the
+
+268
+00:05:52,510 --> 00:05:52,520
+your takerit, literally place it at the
+ 
+
+269
+00:05:52,520 --> 00:05:55,909
+your takerit, literally place it at the
+weekly high or the daily high, depends
+
+270
+00:05:55,909 --> 00:05:55,919
+weekly high or the daily high, depends
+ 
+
+271
+00:05:55,919 --> 00:05:57,590
+weekly high or the daily high, depends
+where you're buying. I'm telling you,
+
+272
+00:05:57,590 --> 00:05:57,600
+where you're buying. I'm telling you,
+ 
+
+273
+00:05:57,600 --> 00:05:59,749
+where you're buying. I'm telling you,
+you just copy and paste this and then
+
+274
+00:05:59,749 --> 00:05:59,759
+you just copy and paste this and then
+ 
+
+275
+00:05:59,759 --> 00:06:02,150
+you just copy and paste this and then
+there's just no questions to be asked.
+
+276
+00:06:02,150 --> 00:06:02,160
+there's just no questions to be asked.
+ 
+
+277
+00:06:02,160 --> 00:06:04,150
+there's just no questions to be asked.
+You literally just type your confluence
+
+278
+00:06:04,150 --> 00:06:04,160
+You literally just type your confluence
+ 
+
+279
+00:06:04,160 --> 00:06:06,510
+You literally just type your confluence
+up and then there it
+
+280
+00:06:06,510 --> 00:06:06,520
+up and then there it
+ 
+
+281
+00:06:06,520 --> 00:06:09,150
+up and then there it
+is. Feel like my mission here is
+
+282
+00:06:09,150 --> 00:06:09,160
+is. Feel like my mission here is
+ 
+
+283
+00:06:09,160 --> 00:06:11,830
+is. Feel like my mission here is
+accomplished. I feel I I genuinely feel
+
+284
+00:06:11,830 --> 00:06:11,840
+accomplished. I feel I I genuinely feel
+ 
+
+285
+00:06:11,840 --> 00:06:14,150
+accomplished. I feel I I genuinely feel
+good. Thank you. Zoom. This man was
+
+286
+00:06:14,150 --> 00:06:14,160
+good. Thank you. Zoom. This man was
+ 
+
+287
+00:06:14,160 --> 00:06:16,830
+good. Thank you. Zoom. This man was
+applauding. Thank you,
+
+288
+00:06:16,830 --> 00:06:16,840
+applauding. Thank you,
+ 
+
+289
+00:06:16,840 --> 00:06:18,950
+applauding. Thank you,
+man. Thank you. Thank you. Thank you.
+
+290
+00:06:18,950 --> 00:06:18,960
+man. Thank you. Thank you. Thank you.
+ 
+
+291
+00:06:18,960 --> 00:06:23,950
+man. Thank you. Thank you. Thank you.
+Thank you. Thank
+
+292
+00:06:23,950 --> 00:06:23,960
+
+ 
+
+293
+00:06:23,960 --> 00:06:26,870
+
+you. So, can I explain how I have
+
+294
+00:06:26,870 --> 00:06:26,880
+you. So, can I explain how I have
+ 
+
+295
+00:06:26,880 --> 00:06:29,430
+you. So, can I explain how I have
+multiple take profits? Do you place
+
+296
+00:06:29,430 --> 00:06:29,440
+multiple take profits? Do you place
+ 
+
+297
+00:06:29,440 --> 00:06:31,909
+multiple take profits? Do you place
+three, four separate trades? do you have
+
+298
+00:06:31,909 --> 00:06:31,919
+three, four separate trades? do you have
+ 
+
+299
+00:06:31,919 --> 00:06:35,950
+three, four separate trades? do you have
+separate? So for this type of trading
+
+300
+00:06:35,950 --> 00:06:35,960
+separate? So for this type of trading
+ 
+
+301
+00:06:35,960 --> 00:06:39,189
+separate? So for this type of trading
+strategy, I only have one takeprofit and
+
+302
+00:06:39,189 --> 00:06:39,199
+strategy, I only have one takeprofit and
+ 
+
+303
+00:06:39,199 --> 00:06:42,629
+strategy, I only have one takeprofit and
+it's just here and I close there or I
+
+304
+00:06:42,629 --> 00:06:42,639
+it's just here and I close there or I
+ 
+
+305
+00:06:42,639 --> 00:06:45,270
+it's just here and I close there or I
+get stopped out. That's really it. Now
+
+306
+00:06:45,270 --> 00:06:45,280
+get stopped out. That's really it. Now
+ 
+
+307
+00:06:45,280 --> 00:06:47,430
+get stopped out. That's really it. Now
+what I'm kind of doing now, I have
+
+308
+00:06:47,430 --> 00:06:47,440
+what I'm kind of doing now, I have
+ 
+
+309
+00:06:47,440 --> 00:06:49,510
+what I'm kind of doing now, I have
+multiple take profits and they're really
+
+310
+00:06:49,510 --> 00:06:49,520
+multiple take profits and they're really
+ 
+
+311
+00:06:49,520 --> 00:06:51,430
+multiple take profits and they're really
+not multiple take profits. They're just
+
+312
+00:06:51,430 --> 00:06:51,440
+not multiple take profits. They're just
+ 
+
+313
+00:06:51,440 --> 00:06:53,550
+not multiple take profits. They're just
+like whenever I'm at a onetoone
+
+314
+00:06:53,550 --> 00:06:53,560
+like whenever I'm at a onetoone
+ 
+
+315
+00:06:53,560 --> 00:06:55,830
+like whenever I'm at a onetoone
+risk-to-reward. So let's say right here.
+
+316
+00:06:55,830 --> 00:06:55,840
+risk-to-reward. So let's say right here.
+ 
+
+317
+00:06:55,840 --> 00:06:57,629
+risk-to-reward. So let's say right here.
+And this is just more for like the
+
+318
+00:06:57,629 --> 00:06:57,639
+And this is just more for like the
+ 
+
+319
+00:06:57,639 --> 00:07:00,550
+And this is just more for like the
+signals. The reason why I have multiple
+
+320
+00:07:00,550 --> 00:07:00,560
+signals. The reason why I have multiple
+ 
+
+321
+00:07:00,560 --> 00:07:03,029
+signals. The reason why I have multiple
+take profits is because everybody has a
+
+322
+00:07:03,029 --> 00:07:03,039
+take profits is because everybody has a
+ 
+
+323
+00:07:03,039 --> 00:07:05,189
+take profits is because everybody has a
+risk a different risk tolerance and then
+
+324
+00:07:05,189 --> 00:07:05,199
+risk a different risk tolerance and then
+ 
+
+325
+00:07:05,199 --> 00:07:07,510
+risk a different risk tolerance and then
+not a lot of people will hold all the
+
+326
+00:07:07,510 --> 00:07:07,520
+not a lot of people will hold all the
+ 
+
+327
+00:07:07,520 --> 00:07:09,830
+not a lot of people will hold all the
+way and they just like there's people
+
+328
+00:07:09,830 --> 00:07:09,840
+way and they just like there's people
+ 
+
+329
+00:07:09,840 --> 00:07:11,350
+way and they just like there's people
+literally in the signal group that they
+
+330
+00:07:11,350 --> 00:07:11,360
+literally in the signal group that they
+ 
+
+331
+00:07:11,360 --> 00:07:13,189
+literally in the signal group that they
+only like they every single trade they
+
+332
+00:07:13,189 --> 00:07:13,199
+only like they every single trade they
+ 
+
+333
+00:07:13,199 --> 00:07:15,350
+only like they every single trade they
+take they close at a one or they close
+
+334
+00:07:15,350 --> 00:07:15,360
+take they close at a one or they close
+ 
+
+335
+00:07:15,360 --> 00:07:18,550
+take they close at a one or they close
+at a 1 to2 or they'll close at a one to
+
+336
+00:07:18,550 --> 00:07:18,560
+at a 1 to2 or they'll close at a one to
+ 
+
+337
+00:07:18,560 --> 00:07:19,830
+at a 1 to2 or they'll close at a one to
+three whatever you get me like the
+
+338
+00:07:19,830 --> 00:07:19,840
+three whatever you get me like the
+ 
+
+339
+00:07:19,840 --> 00:07:21,430
+three whatever you get me like the
+signal room is it's a it's just like
+
+340
+00:07:21,430 --> 00:07:21,440
+signal room is it's a it's just like
+ 
+
+341
+00:07:21,440 --> 00:07:22,790
+signal room is it's a it's just like
+it's a wild place right like everybody
+
+342
+00:07:22,790 --> 00:07:22,800
+it's a wild place right like everybody
+ 
+
+343
+00:07:22,800 --> 00:07:24,550
+it's a wild place right like everybody
+that goes in there has their own type of
+
+344
+00:07:24,550 --> 00:07:24,560
+that goes in there has their own type of
+ 
+
+345
+00:07:24,560 --> 00:07:27,430
+that goes in there has their own type of
+trading but I you know for me the way
+
+346
+00:07:27,430 --> 00:07:27,440
+trading but I you know for me the way
+ 
+
+347
+00:07:27,440 --> 00:07:28,950
+trading but I you know for me the way
+I'm teaching you guys And the way to
+
+348
+00:07:28,950 --> 00:07:28,960
+I'm teaching you guys And the way to
+ 
+
+349
+00:07:28,960 --> 00:07:31,270
+I'm teaching you guys And the way to
+that how I got where I am today is with
+
+350
+00:07:31,270 --> 00:07:31,280
+that how I got where I am today is with
+ 
+
+351
+00:07:31,280 --> 00:07:33,670
+that how I got where I am today is with
+this style. This is more kind of to just
+
+352
+00:07:33,670 --> 00:07:33,680
+this style. This is more kind of to just
+ 
+
+353
+00:07:33,680 --> 00:07:35,510
+this style. This is more kind of to just
+give people signals and they kind of
+
+354
+00:07:35,510 --> 00:07:35,520
+give people signals and they kind of
+ 
+
+355
+00:07:35,520 --> 00:07:36,629
+give people signals and they kind of
+don't want to learn how to trade. They
+
+356
+00:07:36,629 --> 00:07:36,639
+don't want to learn how to trade. They
+ 
+
+357
+00:07:36,639 --> 00:07:38,629
+don't want to learn how to trade. They
+just want to copy and paste. And they
+
+358
+00:07:38,629 --> 00:07:38,639
+just want to copy and paste. And they
+ 
+
+359
+00:07:38,639 --> 00:07:39,670
+just want to copy and paste. And they
+I'm telling you there's people that have
+
+360
+00:07:39,670 --> 00:07:39,680
+I'm telling you there's people that have
+ 
+
+361
+00:07:39,680 --> 00:07:40,950
+I'm telling you there's people that have
+a certain approach. They're like, "Bro,
+
+362
+00:07:40,950 --> 00:07:40,960
+a certain approach. They're like, "Bro,
+ 
+
+363
+00:07:40,960 --> 00:07:42,710
+a certain approach. They're like, "Bro,
+if I just copy his signals, the majority
+
+364
+00:07:42,710 --> 00:07:42,720
+if I just copy his signals, the majority
+ 
+
+365
+00:07:42,720 --> 00:07:45,029
+if I just copy his signals, the majority
+of the time they hit a one to one just,
+
+366
+00:07:45,029 --> 00:07:45,039
+of the time they hit a one to one just,
+ 
+
+367
+00:07:45,039 --> 00:07:47,270
+of the time they hit a one to one just,
+you know, making couple cents. Some the
+
+368
+00:07:47,270 --> 00:07:47,280
+you know, making couple cents. Some the
+ 
+
+369
+00:07:47,280 --> 00:07:48,629
+you know, making couple cents. Some the
+majority of the time they hit a one to
+
+370
+00:07:48,629 --> 00:07:48,639
+majority of the time they hit a one to
+ 
+
+371
+00:07:48,639 --> 00:07:50,230
+majority of the time they hit a one to
+two, but not everybody will hold to the
+
+372
+00:07:50,230 --> 00:07:50,240
+two, but not everybody will hold to the
+ 
+
+373
+00:07:50,240 --> 00:07:51,670
+two, but not everybody will hold to the
+final take profit." So that's what I
+
+374
+00:07:51,670 --> 00:07:51,680
+final take profit." So that's what I
+ 
+
+375
+00:07:51,680 --> 00:07:53,189
+final take profit." So that's what I
+have that when it comes to the signals,
+
+376
+00:07:53,189 --> 00:07:53,199
+have that when it comes to the signals,
+ 
+
+377
+00:07:53,199 --> 00:07:54,629
+have that when it comes to the signals,
+that's what the multiple take profits
+
+378
+00:07:54,629 --> 00:07:54,639
+that's what the multiple take profits
+ 
+
+379
+00:07:54,639 --> 00:07:56,309
+that's what the multiple take profits
+are. Just so the people know like, yo,
+
+380
+00:07:56,309 --> 00:07:56,319
+are. Just so the people know like, yo,
+ 
+
+381
+00:07:56,319 --> 00:07:57,830
+are. Just so the people know like, yo,
+we're here. If you want, you get out or
+
+382
+00:07:57,830 --> 00:07:57,840
+we're here. If you want, you get out or
+ 
+
+383
+00:07:57,840 --> 00:07:59,350
+we're here. If you want, you get out or
+you could keep going. It's literally
+
+384
+00:07:59,350 --> 00:07:59,360
+you could keep going. It's literally
+ 
+
+385
+00:07:59,360 --> 00:08:01,990
+you could keep going. It's literally
+what it is. Um, and then yeah, all the
+
+386
+00:08:01,990 --> 00:08:02,000
+what it is. Um, and then yeah, all the
+ 
+
+387
+00:08:02,000 --> 00:08:03,589
+what it is. Um, and then yeah, all the
+takeprofits are placed at each
+
+388
+00:08:03,589 --> 00:08:03,599
+takeprofits are placed at each
+ 
+
+389
+00:08:03,599 --> 00:08:05,430
+takeprofits are placed at each
+risk-to-reward. So, if take profit three
+
+390
+00:08:05,430 --> 00:08:05,440
+risk-to-reward. So, if take profit three
+ 
+
+391
+00:08:05,440 --> 00:08:07,350
+risk-to-reward. So, if take profit three
+is hit, it's because we're up a one to
+
+392
+00:08:07,350 --> 00:08:07,360
+is hit, it's because we're up a one to
+ 
+
+393
+00:08:07,360 --> 00:08:09,029
+is hit, it's because we're up a one to
+three risk-to-reward. It's not like a
+
+394
+00:08:09,029 --> 00:08:09,039
+three risk-to-reward. It's not like a
+ 
+
+395
+00:08:09,039 --> 00:08:10,790
+three risk-to-reward. It's not like a
+madeup number. People like make up
+
+396
+00:08:10,790 --> 00:08:10,800
+madeup number. People like make up
+ 
+
+397
+00:08:10,800 --> 00:08:15,309
+madeup number. People like make up
+random numbers, which makes no sense to
+
+398
+00:08:15,309 --> 00:08:15,319
+random numbers, which makes no sense to
+ 
+
+399
+00:08:15,319 --> 00:08:17,710
+random numbers, which makes no sense to
+me.
+
+400
+00:08:17,710 --> 00:08:17,720
+me.
+ 
+
+401
+00:08:17,720 --> 00:08:20,390
+me.
+Um, okay. Let me let me let me just read
+
+402
+00:08:20,390 --> 00:08:20,400
+Um, okay. Let me let me let me just read
+ 
+
+403
+00:08:20,400 --> 00:08:29,430
+Um, okay. Let me let me let me just read
+some questions.
+
+404
+00:08:29,430 --> 00:08:29,440
+
+ 
+
+405
+00:08:29,440 --> 00:08:31,029
+
+Yes, Jonathan, because we already
+
+406
+00:08:31,029 --> 00:08:31,039
+Yes, Jonathan, because we already
+ 
+
+407
+00:08:31,039 --> 00:08:33,029
+Yes, Jonathan, because we already
+rejected our area of interest. Thank
+
+408
+00:08:33,029 --> 00:08:33,039
+rejected our area of interest. Thank
+ 
+
+409
+00:08:33,039 --> 00:08:37,070
+rejected our area of interest. Thank
+you, Max. Thank you, man. Thank you,
+
+410
+00:08:37,070 --> 00:08:37,080
+you, Max. Thank you, man. Thank you,
+ 
+
+411
+00:08:37,080 --> 00:08:39,670
+you, Max. Thank you, man. Thank you,
+Jeremy. How would I go about multiple
+
+412
+00:08:39,670 --> 00:08:39,680
+Jeremy. How would I go about multiple
+ 
+
+413
+00:08:39,680 --> 00:08:42,469
+Jeremy. How would I go about multiple
+entries? I'll just do one one entry. I
+
+414
+00:08:42,469 --> 00:08:42,479
+entries? I'll just do one one entry. I
+ 
+
+415
+00:08:42,479 --> 00:08:44,949
+entries? I'll just do one one entry. I
+don't I don't like I hate scaling in
+
+416
+00:08:44,949 --> 00:08:44,959
+don't I don't like I hate scaling in
+ 
+
+417
+00:08:44,959 --> 00:08:46,150
+don't I don't like I hate scaling in
+honestly. Yeah, that's where you get
+
+418
+00:08:46,150 --> 00:08:46,160
+honestly. Yeah, that's where you get
+ 
+
+419
+00:08:46,160 --> 00:08:48,389
+honestly. Yeah, that's where you get
+wicked out cuz if you're scaling in now,
+
+420
+00:08:48,389 --> 00:08:48,399
+wicked out cuz if you're scaling in now,
+ 
+
+421
+00:08:48,399 --> 00:08:49,630
+wicked out cuz if you're scaling in now,
+you're buying
+
+422
+00:08:49,630 --> 00:08:49,640
+you're buying
+ 
+
+423
+00:08:49,640 --> 00:08:52,550
+you're buying
+here. Now, you're buying here and then
+
+424
+00:08:52,550 --> 00:08:52,560
+here. Now, you're buying here and then
+ 
+
+425
+00:08:52,560 --> 00:08:54,470
+here. Now, you're buying here and then
+you're literally breaking rule number
+
+426
+00:08:54,470 --> 00:08:54,480
+you're literally breaking rule number
+ 
+
+427
+00:08:54,480 --> 00:08:55,670
+you're literally breaking rule number
+one.
+
+428
+00:08:55,670 --> 00:08:55,680
+one.
+ 
+
+429
+00:08:55,680 --> 00:08:58,990
+one.
+We only buy at weekly or daily areas of
+
+430
+00:08:58,990 --> 00:08:59,000
+We only buy at weekly or daily areas of
+ 
+
+431
+00:08:59,000 --> 00:09:01,269
+We only buy at weekly or daily areas of
+interest. It's it's very it's literally
+
+432
+00:09:01,269 --> 00:09:01,279
+interest. It's it's very it's literally
+ 
+
+433
+00:09:01,279 --> 00:09:03,190
+interest. It's it's very it's literally
+that simple. That's why I hate scaling
+
+434
+00:09:03,190 --> 00:09:03,200
+that simple. That's why I hate scaling
+ 
+
+435
+00:09:03,200 --> 00:09:05,670
+that simple. That's why I hate scaling
+it. Like even now, like I'm drifting or
+
+436
+00:09:05,670 --> 00:09:05,680
+it. Like even now, like I'm drifting or
+ 
+
+437
+00:09:05,680 --> 00:09:07,070
+it. Like even now, like I'm drifting or
+whatever. I I just
+
+438
+00:09:07,070 --> 00:09:07,080
+whatever. I I just
+ 
+
+439
+00:09:07,080 --> 00:09:09,310
+whatever. I I just
+don't. Do you leave trades open
+
+440
+00:09:09,310 --> 00:09:09,320
+don't. Do you leave trades open
+ 
+
+441
+00:09:09,320 --> 00:09:11,670
+don't. Do you leave trades open
+overnight? Yeah. Like I take my trade
+
+442
+00:09:11,670 --> 00:09:11,680
+overnight? Yeah. Like I take my trade
+ 
+
+443
+00:09:11,680 --> 00:09:13,509
+overnight? Yeah. Like I take my trade
+and I put my take profit and whenever it
+
+444
+00:09:13,509 --> 00:09:13,519
+and I put my take profit and whenever it
+ 
+
+445
+00:09:13,519 --> 00:09:14,949
+and I put my take profit and whenever it
+gets there, bro, this trade got here
+
+446
+00:09:14,949 --> 00:09:14,959
+gets there, bro, this trade got here
+ 
+
+447
+00:09:14,959 --> 00:09:17,430
+gets there, bro, this trade got here
+very fast. 1 2 3 4 days. They're telling
+
+448
+00:09:17,430 --> 00:09:17,440
+very fast. 1 2 3 4 days. They're telling
+ 
+
+449
+00:09:17,440 --> 00:09:19,269
+very fast. 1 2 3 4 days. They're telling
+me you can't hold a trade for 4 days for
+
+450
+00:09:19,269 --> 00:09:19,279
+me you can't hold a trade for 4 days for
+ 
+
+451
+00:09:19,279 --> 00:09:22,389
+me you can't hold a trade for 4 days for
+a 1 to six risk-to-reward. Come on. You
+
+452
+00:09:22,389 --> 00:09:22,399
+a 1 to six risk-to-reward. Come on. You
+ 
+
+453
+00:09:22,399 --> 00:09:26,389
+a 1 to six risk-to-reward. Come on. You
+know, very simple.
+
+454
+00:09:26,389 --> 00:09:26,399
+
+ 
+
+455
+00:09:26,399 --> 00:09:29,350
+
+Okay. Stop loss box. When you when do
+
+456
+00:09:29,350 --> 00:09:29,360
+Okay. Stop loss box. When you when do
+ 
+
+457
+00:09:29,360 --> 00:09:32,269
+Okay. Stop loss box. When you when do
+you place it
+
+458
+00:09:32,269 --> 00:09:32,279
+
+ 
+
+459
+00:09:32,279 --> 00:09:34,710
+
+below. Damn crap. Don't understand that
+
+460
+00:09:34,710 --> 00:09:34,720
+below. Damn crap. Don't understand that
+ 
+
+461
+00:09:34,720 --> 00:09:35,790
+below. Damn crap. Don't understand that
+one,
+
+462
+00:09:35,790 --> 00:09:35,800
+one,
+ 
+
+463
+00:09:35,800 --> 00:09:38,509
+one,
+man. I just don't I just don't I just
+
+464
+00:09:38,509 --> 00:09:38,519
+man. I just don't I just don't I just
+ 
+
+465
+00:09:38,519 --> 00:09:42,620
+man. I just don't I just don't I just
+don't like when when do you place it
+
+466
+00:09:42,620 --> 00:09:42,630
+don't like when when do you place it
+ 
+
+467
+00:09:42,630 --> 00:09:44,269
+don't like when when do you place it
+[Music]
+
+468
+00:09:44,269 --> 00:09:44,279
+[Music]
+ 
+
+469
+00:09:44,279 --> 00:09:46,470
+[Music]
+below? Damn. Yeah, man. I don't get it,
+
+470
+00:09:46,470 --> 00:09:46,480
+below? Damn. Yeah, man. I don't get it,
+ 
+
+471
+00:09:46,480 --> 00:09:48,550
+below? Damn. Yeah, man. I don't get it,
+man. Um just want to say I'm truly
+
+472
+00:09:48,550 --> 00:09:48,560
+man. Um just want to say I'm truly
+ 
+
+473
+00:09:48,560 --> 00:09:51,829
+man. Um just want to say I'm truly
+grateful. No, appreciate you.
+
+474
+00:09:51,829 --> 00:09:51,839
+grateful. No, appreciate you.
+ 
+
+475
+00:09:51,839 --> 00:09:54,389
+grateful. No, appreciate you.
+Um, what percentages do I put aside for
+
+476
+00:09:54,389 --> 00:09:54,399
+Um, what percentages do I put aside for
+ 
+
+477
+00:09:54,399 --> 00:09:56,949
+Um, what percentages do I put aside for
+taxes? I mean, bro, like taxes is just
+
+478
+00:09:56,949 --> 00:09:56,959
+taxes? I mean, bro, like taxes is just
+ 
+
+479
+00:09:56,959 --> 00:09:59,190
+taxes? I mean, bro, like taxes is just
+different for everybody. Like, it's a
+
+480
+00:09:59,190 --> 00:09:59,200
+different for everybody. Like, it's a
+ 
+
+481
+00:09:59,200 --> 00:10:01,430
+different for everybody. Like, it's a
+lot. Like, it's it's a lot. No. Like, it
+
+482
+00:10:01,430 --> 00:10:01,440
+lot. Like, it's it's a lot. No. Like, it
+ 
+
+483
+00:10:01,440 --> 00:10:03,190
+lot. Like, it's it's a lot. No. Like, it
+really is a lot. It's kind of why we
+
+484
+00:10:03,190 --> 00:10:03,200
+really is a lot. It's kind of why we
+ 
+
+485
+00:10:03,200 --> 00:10:04,790
+really is a lot. It's kind of why we
+have to buy all this Like, we have
+
+486
+00:10:04,790 --> 00:10:04,800
+have to buy all this Like, we have
+ 
+
+487
+00:10:04,800 --> 00:10:06,150
+have to buy all this Like, we have
+we have to buy the car. We have to buy
+
+488
+00:10:06,150 --> 00:10:06,160
+we have to buy the car. We have to buy
+ 
+
+489
+00:10:06,160 --> 00:10:07,750
+we have to buy the car. We have to buy
+all this annoying stuff cuz it's just,
+
+490
+00:10:07,750 --> 00:10:07,760
+all this annoying stuff cuz it's just,
+ 
+
+491
+00:10:07,760 --> 00:10:09,750
+all this annoying stuff cuz it's just,
+you know, just spend the money. It's
+
+492
+00:10:09,750 --> 00:10:09,760
+you know, just spend the money. It's
+ 
+
+493
+00:10:09,760 --> 00:10:11,710
+you know, just spend the money. It's
+like a loss. It's
+
+494
+00:10:11,710 --> 00:10:11,720
+like a loss. It's
+ 
+
+495
+00:10:11,720 --> 00:10:13,910
+like a loss. It's
+depreciation. That's why that's why Ro
+
+496
+00:10:13,910 --> 00:10:13,920
+depreciation. That's why that's why Ro
+ 
+
+497
+00:10:13,920 --> 00:10:16,150
+depreciation. That's why that's why Ro
+gets 25 cars cuz it's a write-off. All
+
+498
+00:10:16,150 --> 00:10:16,160
+gets 25 cars cuz it's a write-off. All
+ 
+
+499
+00:10:16,160 --> 00:10:17,750
+gets 25 cars cuz it's a write-off. All
+those like all that depreciation is a
+
+500
+00:10:17,750 --> 00:10:17,760
+those like all that depreciation is a
+ 
+
+501
+00:10:17,760 --> 00:10:23,350
+those like all that depreciation is a
+write-off.
+
+502
+00:10:23,350 --> 00:10:23,360
+
+ 
+
+503
+00:10:23,360 --> 00:10:24,910
+
+When will you
+
+504
+00:10:24,910 --> 00:10:24,920
+When will you
+ 
+
+505
+00:10:24,920 --> 00:10:27,990
+When will you
+give when will you give your trade a
+
+506
+00:10:27,990 --> 00:10:28,000
+give when will you give your trade a
+ 
+
+507
+00:10:28,000 --> 00:10:30,470
+give when will you give your trade a
+second chance if stop losses hit? Great
+
+508
+00:10:30,470 --> 00:10:30,480
+second chance if stop losses hit? Great
+ 
+
+509
+00:10:30,480 --> 00:10:33,430
+second chance if stop losses hit? Great
+question, Daniel. Great question. So, I
+
+510
+00:10:33,430 --> 00:10:33,440
+question, Daniel. Great question. So, I
+ 
+
+511
+00:10:33,440 --> 00:10:36,389
+question, Daniel. Great question. So, I
+was asked if when do I give my trade a
+
+512
+00:10:36,389 --> 00:10:36,399
+was asked if when do I give my trade a
+ 
+
+513
+00:10:36,399 --> 00:10:39,030
+was asked if when do I give my trade a
+second chance if my stop loss is hit?
+
+514
+00:10:39,030 --> 00:10:39,040
+second chance if my stop loss is hit?
+ 
+
+515
+00:10:39,040 --> 00:10:41,269
+second chance if my stop loss is hit?
+So, let's zoom in right here cuz this is
+
+516
+00:10:41,269 --> 00:10:41,279
+So, let's zoom in right here cuz this is
+ 
+
+517
+00:10:41,279 --> 00:10:43,910
+So, let's zoom in right here cuz this is
+where my stop loss would get hit, right?
+
+518
+00:10:43,910 --> 00:10:43,920
+where my stop loss would get hit, right?
+ 
+
+519
+00:10:43,920 --> 00:10:46,150
+where my stop loss would get hit, right?
+So let's say this trade right here
+
+520
+00:10:46,150 --> 00:10:46,160
+So let's say this trade right here
+ 
+
+521
+00:10:46,160 --> 00:10:49,110
+So let's say this trade right here
+presumably or however you say that word
+
+522
+00:10:49,110 --> 00:10:49,120
+presumably or however you say that word
+ 
+
+523
+00:10:49,120 --> 00:10:51,790
+presumably or however you say that word
+let's say it goes from here that it goes
+
+524
+00:10:51,790 --> 00:10:51,800
+let's say it goes from here that it goes
+ 
+
+525
+00:10:51,800 --> 00:10:54,550
+let's say it goes from here that it goes
+bullish it creates a higher high we take
+
+526
+00:10:54,550 --> 00:10:54,560
+bullish it creates a higher high we take
+ 
+
+527
+00:10:54,560 --> 00:10:57,269
+bullish it creates a higher high we take
+our trade but then it comes and it hits
+
+528
+00:10:57,269 --> 00:10:57,279
+our trade but then it comes and it hits
+ 
+
+529
+00:10:57,279 --> 00:11:00,310
+our trade but then it comes and it hits
+stop loss straight away I'm waiting for
+
+530
+00:11:00,310 --> 00:11:00,320
+stop loss straight away I'm waiting for
+ 
+
+531
+00:11:00,320 --> 00:11:02,949
+stop loss straight away I'm waiting for
+the same thing I need to wait for the 30
+
+532
+00:11:02,949 --> 00:11:02,959
+the same thing I need to wait for the 30
+ 
+
+533
+00:11:02,959 --> 00:11:05,430
+the same thing I need to wait for the 30
+minute time frame shift when this shifts
+
+534
+00:11:05,430 --> 00:11:05,440
+minute time frame shift when this shifts
+ 
+
+535
+00:11:05,440 --> 00:11:08,230
+minute time frame shift when this shifts
+to bullish again I do the same thing
+
+536
+00:11:08,230 --> 00:11:08,240
+to bullish again I do the same thing
+ 
+
+537
+00:11:08,240 --> 00:11:09,910
+to bullish again I do the same thing
+I'll take the trade here and now I have
+
+538
+00:11:09,910 --> 00:11:09,920
+I'll take the trade here and now I have
+ 
+
+539
+00:11:09,920 --> 00:11:12,150
+I'll take the trade here and now I have
+my stop loss here I have to wait for the
+
+540
+00:11:12,150 --> 00:11:12,160
+my stop loss here I have to wait for the
+ 
+
+541
+00:11:12,160 --> 00:11:16,310
+my stop loss here I have to wait for the
+shift of structure again. That's it. Cuz
+
+542
+00:11:16,310 --> 00:11:16,320
+shift of structure again. That's it. Cuz
+ 
+
+543
+00:11:16,320 --> 00:11:18,389
+shift of structure again. That's it. Cuz
+it happens like this can this can
+
+544
+00:11:18,389 --> 00:11:18,399
+it happens like this can this can
+ 
+
+545
+00:11:18,399 --> 00:11:20,710
+it happens like this can this can
+literally stop me out. Like it can do
+
+546
+00:11:20,710 --> 00:11:20,720
+literally stop me out. Like it can do
+ 
+
+547
+00:11:20,720 --> 00:11:22,949
+literally stop me out. Like it can do
+this. It can do this right here. It can
+
+548
+00:11:22,949 --> 00:11:22,959
+this. It can do this right here. It can
+ 
+
+549
+00:11:22,959 --> 00:11:24,389
+this. It can do this right here. It can
+come down a little bit lower and then
+
+550
+00:11:24,389 --> 00:11:24,399
+come down a little bit lower and then
+ 
+
+551
+00:11:24,399 --> 00:11:26,389
+come down a little bit lower and then
+here it shifts to bullish. And now this
+
+552
+00:11:26,389 --> 00:11:26,399
+here it shifts to bullish. And now this
+ 
+
+553
+00:11:26,399 --> 00:11:29,110
+here it shifts to bullish. And now this
+is where I take my trade right here. So
+
+554
+00:11:29,110 --> 00:11:29,120
+is where I take my trade right here. So
+ 
+
+555
+00:11:29,120 --> 00:11:31,590
+is where I take my trade right here. So
+I just have to say I just want to say
+
+556
+00:11:31,590 --> 00:11:31,600
+I just have to say I just want to say
+ 
+
+557
+00:11:31,600 --> 00:11:33,710
+I just have to say I just want to say
+thank you for truly your
+
+558
+00:11:33,710 --> 00:11:33,720
+thank you for truly your
+ 
+
+559
+00:11:33,720 --> 00:11:35,829
+thank you for truly your
+answer. Thank you Mandy. Thank you.
+
+560
+00:11:35,829 --> 00:11:35,839
+answer. Thank you Mandy. Thank you.
+ 
+
+561
+00:11:35,839 --> 00:11:36,949
+answer. Thank you Mandy. Thank you.
+Thank you. Thank you. Thank you. Thank
+
+562
+00:11:36,949 --> 00:11:36,959
+Thank you. Thank you. Thank you. Thank
+ 
+
+563
+00:11:36,959 --> 00:11:39,030
+Thank you. Thank you. Thank you. Thank
+you.
+
+564
+00:11:39,030 --> 00:11:39,040
+you.
+ 
+
+565
+00:11:39,040 --> 00:11:41,350
+you.
+Do you ever get out early if you see
+
+566
+00:11:41,350 --> 00:11:41,360
+Do you ever get out early if you see
+ 
+
+567
+00:11:41,360 --> 00:11:43,829
+Do you ever get out early if you see
+that it's reversing on you until you get
+
+568
+00:11:43,829 --> 00:11:43,839
+that it's reversing on you until you get
+ 
+
+569
+00:11:43,839 --> 00:11:46,389
+that it's reversing on you until you get
+stopped out or break even? So for kind
+
+570
+00:11:46,389 --> 00:11:46,399
+stopped out or break even? So for kind
+ 
+
+571
+00:11:46,399 --> 00:11:49,190
+stopped out or break even? So for kind
+of positions like this one
+
+572
+00:11:49,190 --> 00:11:49,200
+of positions like this one
+ 
+
+573
+00:11:49,200 --> 00:11:51,190
+of positions like this one
+um where I'll place my take like that's
+
+574
+00:11:51,190 --> 00:11:51,200
+um where I'll place my take like that's
+ 
+
+575
+00:11:51,200 --> 00:11:53,269
+um where I'll place my take like that's
+why like I don't want to place my
+
+576
+00:11:53,269 --> 00:11:53,279
+why like I don't want to place my
+ 
+
+577
+00:11:53,279 --> 00:11:55,829
+why like I don't want to place my
+takerit at the wick cuz if you place it
+
+578
+00:11:55,829 --> 00:11:55,839
+takerit at the wick cuz if you place it
+ 
+
+579
+00:11:55,839 --> 00:11:59,190
+takerit at the wick cuz if you place it
+at the wick it like it's so exact like
+
+580
+00:11:59,190 --> 00:11:59,200
+at the wick it like it's so exact like
+ 
+
+581
+00:11:59,200 --> 00:12:01,030
+at the wick it like it's so exact like
+it's kind of scary like it's literally
+
+582
+00:12:01,030 --> 00:12:01,040
+it's kind of scary like it's literally
+ 
+
+583
+00:12:01,040 --> 00:12:03,670
+it's kind of scary like it's literally
+like to the tea. I want to place the
+
+584
+00:12:03,670 --> 00:12:03,680
+like to the tea. I want to place the
+ 
+
+585
+00:12:03,680 --> 00:12:06,069
+like to the tea. I want to place the
+takerit to the bodies. So, I feel like
+
+586
+00:12:06,069 --> 00:12:06,079
+takerit to the bodies. So, I feel like
+ 
+
+587
+00:12:06,079 --> 00:12:08,470
+takerit to the bodies. So, I feel like
+the bodies is enough like I'm not like
+
+588
+00:12:08,470 --> 00:12:08,480
+the bodies is enough like I'm not like
+ 
+
+589
+00:12:08,480 --> 00:12:10,230
+the bodies is enough like I'm not like
+stretching it out to the max like I'm
+
+590
+00:12:10,230 --> 00:12:10,240
+stretching it out to the max like I'm
+ 
+
+591
+00:12:10,240 --> 00:12:11,990
+stretching it out to the max like I'm
+reaching it to the point where I think
+
+592
+00:12:11,990 --> 00:12:12,000
+reaching it to the point where I think
+ 
+
+593
+00:12:12,000 --> 00:12:13,269
+reaching it to the point where I think
+it's fair. So, for example, let's say
+
+594
+00:12:13,269 --> 00:12:13,279
+it's fair. So, for example, let's say
+ 
+
+595
+00:12:13,279 --> 00:12:15,829
+it's fair. So, for example, let's say
+that I was buying right here. Um, let's
+
+596
+00:12:15,829 --> 00:12:15,839
+that I was buying right here. Um, let's
+ 
+
+597
+00:12:15,839 --> 00:12:17,910
+that I was buying right here. Um, let's
+say let's say whatever I was buying at
+
+598
+00:12:17,910 --> 00:12:17,920
+say let's say whatever I was buying at
+ 
+
+599
+00:12:17,920 --> 00:12:19,990
+say let's say whatever I was buying at
+at this point right here. My take
+
+600
+00:12:19,990 --> 00:12:20,000
+at this point right here. My take
+ 
+
+601
+00:12:20,000 --> 00:12:21,590
+at this point right here. My take
+profit's going to be the daily structure
+
+602
+00:12:21,590 --> 00:12:21,600
+profit's going to be the daily structure
+ 
+
+603
+00:12:21,600 --> 00:12:23,990
+profit's going to be the daily structure
+point. I'm getting out at the bodies
+
+604
+00:12:23,990 --> 00:12:24,000
+point. I'm getting out at the bodies
+ 
+
+605
+00:12:24,000 --> 00:12:25,509
+point. I'm getting out at the bodies
+right here. So, I don't care that it
+
+606
+00:12:25,509 --> 00:12:25,519
+right here. So, I don't care that it
+ 
+
+607
+00:12:25,519 --> 00:12:27,910
+right here. So, I don't care that it
+went this little extra push, which if
+
+608
+00:12:27,910 --> 00:12:27,920
+went this little extra push, which if
+ 
+
+609
+00:12:27,920 --> 00:12:29,509
+went this little extra push, which if
+you do the math, like it could add up to
+
+610
+00:12:29,509 --> 00:12:29,519
+you do the math, like it could add up to
+ 
+
+611
+00:12:29,519 --> 00:12:32,069
+you do the math, like it could add up to
+like a whole other one or 2%. But no, I
+
+612
+00:12:32,069 --> 00:12:32,079
+like a whole other one or 2%. But no, I
+ 
+
+613
+00:12:32,079 --> 00:12:36,290
+like a whole other one or 2%. But no, I
+want I I I get out at the
+
+614
+00:12:36,290 --> 00:12:36,300
+
+ 
+
+615
+00:12:36,300 --> 00:12:39,790
+
+[Music]
+
+616
+00:12:39,790 --> 00:12:39,800
+
+ 
+
+617
+00:12:39,800 --> 00:12:42,470
+
+bodies. You forgot how I separate my
+
+618
+00:12:42,470 --> 00:12:42,480
+bodies. You forgot how I separate my
+ 
+
+619
+00:12:42,480 --> 00:12:46,069
+bodies. You forgot how I separate my
+3030. So, it's it's a 30 30 30 10 rule,
+
+620
+00:12:46,069 --> 00:12:46,079
+3030. So, it's it's a 30 30 30 10 rule,
+ 
+
+621
+00:12:46,079 --> 00:12:47,350
+3030. So, it's it's a 30 30 30 10 rule,
+but that's just something completely
+
+622
+00:12:47,350 --> 00:12:47,360
+but that's just something completely
+ 
+
+623
+00:12:47,360 --> 00:12:48,670
+but that's just something completely
+aside from
+
+624
+00:12:48,670 --> 00:12:48,680
+aside from
+ 
+
+625
+00:12:48,680 --> 00:12:53,310
+aside from
+this. What do you have to
+
+626
+00:12:53,310 --> 00:12:53,320
+
+ 
+
+627
+00:12:53,320 --> 00:12:58,150
+
+pay? Yes. Yes. Correct, Max. Yes.
+
+628
+00:12:58,150 --> 00:12:58,160
+pay? Yes. Yes. Correct, Max. Yes.
+ 
+
+629
+00:12:58,160 --> 00:13:00,470
+pay? Yes. Yes. Correct, Max. Yes.
+Can you explain the times that you take
+
+630
+00:13:00,470 --> 00:13:00,480
+Can you explain the times that you take
+ 
+
+631
+00:13:00,480 --> 00:13:03,190
+Can you explain the times that you take
+trades from 3:00 to 5:00 a.m. or 9 to
+
+632
+00:13:03,190 --> 00:13:03,200
+trades from 3:00 to 5:00 a.m. or 9 to
+ 
+
+633
+00:13:03,200 --> 00:13:06,870
+trades from 3:00 to 5:00 a.m. or 9 to
+11? So, with this approach, um, like
+
+634
+00:13:06,870 --> 00:13:06,880
+11? So, with this approach, um, like
+ 
+
+635
+00:13:06,880 --> 00:13:08,710
+11? So, with this approach, um, like
+like exactly what I'm teaching you guys
+
+636
+00:13:08,710 --> 00:13:08,720
+like exactly what I'm teaching you guys
+ 
+
+637
+00:13:08,720 --> 00:13:10,949
+like exactly what I'm teaching you guys
+here, let me just kind of organize
+
+638
+00:13:10,949 --> 00:13:10,959
+here, let me just kind of organize
+ 
+
+639
+00:13:10,959 --> 00:13:14,230
+here, let me just kind of organize
+everything again. Um, so everything that
+
+640
+00:13:14,230 --> 00:13:14,240
+everything again. Um, so everything that
+ 
+
+641
+00:13:14,240 --> 00:13:17,190
+everything again. Um, so everything that
+I teach you guys here, it's literally to
+
+642
+00:13:17,190 --> 00:13:17,200
+I teach you guys here, it's literally to
+ 
+
+643
+00:13:17,200 --> 00:13:21,790
+I teach you guys here, it's literally to
+be done on any time frame outside
+
+644
+00:13:21,790 --> 00:13:21,800
+be done on any time frame outside
+ 
+
+645
+00:13:21,800 --> 00:13:24,790
+be done on any time frame outside
+of Sydney and Tokyo. So you could take
+
+646
+00:13:24,790 --> 00:13:24,800
+of Sydney and Tokyo. So you could take
+ 
+
+647
+00:13:24,800 --> 00:13:28,069
+of Sydney and Tokyo. So you could take
+the trade pre-London, during London,
+
+648
+00:13:28,069 --> 00:13:28,079
+the trade pre-London, during London,
+ 
+
+649
+00:13:28,079 --> 00:13:31,110
+the trade pre-London, during London,
+pre- New York, during New York. That's
+
+650
+00:13:31,110 --> 00:13:31,120
+pre- New York, during New York. That's
+ 
+
+651
+00:13:31,120 --> 00:13:33,110
+pre- New York, during New York. That's
+it. Cuz you're giving your trade enough
+
+652
+00:13:33,110 --> 00:13:33,120
+it. Cuz you're giving your trade enough
+ 
+
+653
+00:13:33,120 --> 00:13:34,870
+it. Cuz you're giving your trade enough
+room to breathe. You get me? Like like
+
+654
+00:13:34,870 --> 00:13:34,880
+room to breathe. You get me? Like like
+ 
+
+655
+00:13:34,880 --> 00:13:36,389
+room to breathe. You get me? Like like
+this is the type of strategy you could
+
+656
+00:13:36,389 --> 00:13:36,399
+this is the type of strategy you could
+ 
+
+657
+00:13:36,399 --> 00:13:38,629
+this is the type of strategy you could
+take at any of those times. So like for
+
+658
+00:13:38,629 --> 00:13:38,639
+take at any of those times. So like for
+ 
+
+659
+00:13:38,639 --> 00:13:40,470
+take at any of those times. So like for
+example, right now I won't take a trade
+
+660
+00:13:40,470 --> 00:13:40,480
+example, right now I won't take a trade
+ 
+
+661
+00:13:40,480 --> 00:13:42,550
+example, right now I won't take a trade
+right now at all, but I'll take a trade
+
+662
+00:13:42,550 --> 00:13:42,560
+right now at all, but I'll take a trade
+ 
+
+663
+00:13:42,560 --> 00:13:45,269
+right now at all, but I'll take a trade
+at 12:00 p.m. EST. It's like it's like 2
+
+664
+00:13:45,269 --> 00:13:45,279
+at 12:00 p.m. EST. It's like it's like 2
+ 
+
+665
+00:13:45,279 --> 00:13:48,150
+at 12:00 p.m. EST. It's like it's like 2
+3 hours before uh London, which is fine.
+
+666
+00:13:48,150 --> 00:13:48,160
+3 hours before uh London, which is fine.
+ 
+
+667
+00:13:48,160 --> 00:13:51,269
+3 hours before uh London, which is fine.
+You get me? just I will only take it if
+
+668
+00:13:51,269 --> 00:13:51,279
+You get me? just I will only take it if
+ 
+
+669
+00:13:51,279 --> 00:13:54,069
+You get me? just I will only take it if
+I have this my entry signal. As soon as
+
+670
+00:13:54,069 --> 00:13:54,079
+I have this my entry signal. As soon as
+ 
+
+671
+00:13:54,079 --> 00:13:55,829
+I have this my entry signal. As soon as
+you as soon as your strategy is met and
+
+672
+00:13:55,829 --> 00:13:55,839
+you as soon as your strategy is met and
+ 
+
+673
+00:13:55,839 --> 00:13:57,430
+you as soon as your strategy is met and
+you're kind of like couple hours off
+
+674
+00:13:57,430 --> 00:13:57,440
+you're kind of like couple hours off
+ 
+
+675
+00:13:57,440 --> 00:13:59,189
+you're kind of like couple hours off
+from the session, you take the trade.
+
+676
+00:13:59,189 --> 00:13:59,199
+from the session, you take the trade.
+ 
+
+677
+00:13:59,199 --> 00:14:01,110
+from the session, you take the trade.
+You know, there's no like, oh, I have to
+
+678
+00:14:01,110 --> 00:14:01,120
+You know, there's no like, oh, I have to
+ 
+
+679
+00:14:01,120 --> 00:14:04,509
+You know, there's no like, oh, I have to
+wait for it to hit. Not really. You
+
+680
+00:14:04,509 --> 00:14:04,519
+wait for it to hit. Not really. You
+ 
+
+681
+00:14:04,519 --> 00:14:06,870
+wait for it to hit. Not really. You
+know, I hope it does, Jeremy. I really
+
+682
+00:14:06,870 --> 00:14:06,880
+know, I hope it does, Jeremy. I really
+ 
+
+683
+00:14:06,880 --> 00:14:09,590
+know, I hope it does, Jeremy. I really
+hope it does. I really, trust me, I
+
+684
+00:14:09,590 --> 00:14:09,600
+hope it does. I really, trust me, I
+ 
+
+685
+00:14:09,600 --> 00:14:12,430
+hope it does. I really, trust me, I
+genuinely really hope it
+
+686
+00:14:12,430 --> 00:14:12,440
+genuinely really hope it
+ 
+
+687
+00:14:12,440 --> 00:14:15,030
+genuinely really hope it
+does. Do you guys have any questions?
+
+688
+00:14:15,030 --> 00:14:15,040
+does. Do you guys have any questions?
+ 
+
+689
+00:14:15,040 --> 00:14:18,069
+does. Do you guys have any questions?
+Yes. Yes, Max. Yes, Max. Do you guys
+
+690
+00:14:18,069 --> 00:14:18,079
+Yes. Yes, Max. Yes, Max. Do you guys
+ 
+
+691
+00:14:18,079 --> 00:14:20,870
+Yes. Yes, Max. Yes, Max. Do you guys
+have any questions? Anything? Um, I'm
+
+692
+00:14:20,870 --> 00:14:20,880
+have any questions? Anything? Um, I'm
+ 
+
+693
+00:14:20,880 --> 00:14:22,470
+have any questions? Anything? Um, I'm
+telling you, this has probably been
+
+694
+00:14:22,470 --> 00:14:22,480
+telling you, this has probably been
+ 
+
+695
+00:14:22,480 --> 00:14:24,230
+telling you, this has probably been
+like, but not probably. This is like
+
+696
+00:14:24,230 --> 00:14:24,240
+like, but not probably. This is like
+ 
+
+697
+00:14:24,240 --> 00:14:25,990
+like, but not probably. This is like
+been the best boot camp I have ever
+
+698
+00:14:25,990 --> 00:14:26,000
+been the best boot camp I have ever
+ 
+
+699
+00:14:26,000 --> 00:14:27,509
+been the best boot camp I have ever
+done. Like, you know, you guys have
+
+700
+00:14:27,509 --> 00:14:27,519
+done. Like, you know, you guys have
+ 
+
+701
+00:14:27,519 --> 00:14:30,310
+done. Like, you know, you guys have
+gotten the first of it. Um, with these
+
+702
+00:14:30,310 --> 00:14:30,320
+gotten the first of it. Um, with these
+ 
+
+703
+00:14:30,320 --> 00:14:32,470
+gotten the first of it. Um, with these
+boxes right here, the next boot camp is
+
+704
+00:14:32,470 --> 00:14:32,480
+boxes right here, the next boot camp is
+ 
+
+705
+00:14:32,480 --> 00:14:34,870
+boxes right here, the next boot camp is
+just going to be even even easier. I
+
+706
+00:14:34,870 --> 00:14:34,880
+just going to be even even easier. I
+ 
+
+707
+00:14:34,880 --> 00:14:36,230
+just going to be even even easier. I
+probably won't even do a month ever
+
+708
+00:14:36,230 --> 00:14:36,240
+probably won't even do a month ever
+ 
+
+709
+00:14:36,240 --> 00:14:38,550
+probably won't even do a month ever
+again. I'll probably just do like two
+
+710
+00:14:38,550 --> 00:14:38,560
+again. I'll probably just do like two
+ 
+
+711
+00:14:38,560 --> 00:14:40,470
+again. I'll probably just do like two
+weeks. Um, you know, just kind of
+
+712
+00:14:40,470 --> 00:14:40,480
+weeks. Um, you know, just kind of
+ 
+
+713
+00:14:40,480 --> 00:14:43,509
+weeks. Um, you know, just kind of
+explain it box by box. So, you know, you
+
+714
+00:14:43,509 --> 00:14:43,519
+explain it box by box. So, you know, you
+ 
+
+715
+00:14:43,519 --> 00:14:45,350
+explain it box by box. So, you know, you
+guys are witnesses. You guys are just
+
+716
+00:14:45,350 --> 00:14:45,360
+guys are witnesses. You guys are just
+ 
+
+717
+00:14:45,360 --> 00:14:47,110
+guys are witnesses. You guys are just
+been But like the thing that I like
+
+718
+00:14:47,110 --> 00:14:47,120
+been But like the thing that I like
+ 
+
+719
+00:14:47,120 --> 00:14:49,509
+been But like the thing that I like
+about the 30 days is like bro you bro we
+
+720
+00:14:49,509 --> 00:14:49,519
+about the 30 days is like bro you bro we
+ 
+
+721
+00:14:49,519 --> 00:14:51,590
+about the 30 days is like bro you bro we
+literally like come on like we saw this
+
+722
+00:14:51,590 --> 00:14:51,600
+literally like come on like we saw this
+ 
+
+723
+00:14:51,600 --> 00:14:53,509
+literally like come on like we saw this
+whole move together we called this whole
+
+724
+00:14:53,509 --> 00:14:53,519
+whole move together we called this whole
+ 
+
+725
+00:14:53,519 --> 00:14:55,269
+whole move together we called this whole
+move together. We saw this whole move
+
+726
+00:14:55,269 --> 00:14:55,279
+move together. We saw this whole move
+ 
+
+727
+00:14:55,279 --> 00:14:56,790
+move together. We saw this whole move
+together we called this whole move
+
+728
+00:14:56,790 --> 00:14:56,800
+together we called this whole move
+ 
+
+729
+00:14:56,800 --> 00:14:59,110
+together we called this whole move
+together. We saw this pull back together
+
+730
+00:14:59,110 --> 00:14:59,120
+together. We saw this pull back together
+ 
+
+731
+00:14:59,120 --> 00:15:00,710
+together. We saw this pull back together
+and we like you get what I mean? Like
+
+732
+00:15:00,710 --> 00:15:00,720
+and we like you get what I mean? Like
+ 
+
+733
+00:15:00,720 --> 00:15:04,560
+and we like you get what I mean? Like
+it's just different 30 days.
+

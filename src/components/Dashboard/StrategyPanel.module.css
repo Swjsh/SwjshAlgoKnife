@@ -144,3 +144,8 @@
 :global([data-theme='nature']) .loss {
     color: var(--leather-brown);
 }
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .container {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}

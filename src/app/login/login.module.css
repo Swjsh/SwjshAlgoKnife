@@ -262,5 +262,41 @@
     border-radius: 8px;
     margin-bottom: 16px;
     font-size: 0.95rem;
-    text-align: center;
+}
+
+/* Guest access button */
+.guestBtn {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 14px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.guestBtn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.guestBtnIcon {
+    opacity: 0.7;
+}
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .container,
+:global([data-theme='light']) .page {
+    background: var(--bg-workspace, radial-gradient(circle at top right, #f1f5f9 0%, #e2e8f0 100%));
 }

@@ -2,32 +2,14 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
 
-export default function DashboardPage() {
+/**
+ * /dashboard → /command-center redirect.
+ * The dashboard has been merged into the Command Center.
+ * This page exists solely so bookmarks and old links still work.
+ */
+export default function DashboardRedirect() {
     const router = useRouter();
-    const { user, loading } = useAuth();
-
-    useEffect(() => {
-        if (!loading && !user) {
-            // Not authenticated, redirect to login
-            router.replace('/login');
-        } else if (!loading && user) {
-            // Authenticated, redirect to Squad Terminal (Agents)
-            router.replace('/agents');
-        }
-    }, [router, user, loading]);
-
-    return (
-        <div style={{
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#0a0a12',
-            color: 'rgba(255,255,255,0.5)'
-        }}>
-            Redirecting to dashboard...
-        </div>
-    );
+    useEffect(() => { router.replace('/command-center'); }, [router]);
+    return null;
 }

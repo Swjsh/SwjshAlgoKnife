@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useRef, useCallback } from 'react';
+import React from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './AgentSidebar.module.css';
 import { TickerIcon } from './TickerIcons';
-import { SplineScene } from '@/components/ui/SplineScene';
 
 interface Agent {
     id: string;
@@ -30,40 +30,15 @@ export default function AgentSidebar({
     totalPnl = 0,
     activeAgentsCount = 0,
 }: AgentSidebarProps) {
-    const splineRef = useRef<any>(null);
+    const router = useRouter();
 
-    const handleSplineLoad = useCallback((spline: any) => {
-        splineRef.current = spline;
-        console.log('Spline scene loaded in AgentSidebar');
-    }, []);
-
-    // Emit hover events to Spline scene when hovering over agents
-    const handleAgentHover = useCallback((isHovering: boolean) => {
-        if (!splineRef.current) return;
-        try {
-            if (isHovering) {
-                splineRef.current.emitEvent?.('mouseHover', 'Agent');
-            }
-            // Try to set variables if they exist in the scene
-            splineRef.current.setVariable?.('Hover', isHovering);
-            splineRef.current.setVariable?.('Focus', isHovering);
-        } catch {
-            // Variables may not exist in this scene
-        }
-    }, []);
+    // Navigate to the agent's full cockpit with chart
+    const handleAgentClick = (agentId: string) => {
+        router.push(`/agent/${agentId}`);
+    };
 
     return (
         <aside className={styles.sidebar}>
-            {/* Spline 3D Background Animation */}
-            <div className={styles.splineBackground}>
-                <SplineScene
-                    scene="https://community.spline.design/file/11c58f0f-0a51-4e93-b84f-0349c4c40a90"
-                    className={styles.splineCanvas}
-                    onLoad={handleSplineLoad}
-                />
-                {/* Overlay gradient for text readability */}
-                <div className={styles.splineOverlay} />
-            </div>
             <div className={styles.header}>
                 <div className={styles.title}>Squad Metrics</div>
 
@@ -110,9 +85,7 @@ export default function AgentSidebar({
                         <div
                             key={agent.id}
                             className={`${styles.agentCard} ${selectedId === agent.id ? styles.active : ''}`}
-                            onClick={() => onSelect(agent.id)}
-                            onMouseEnter={() => handleAgentHover(true)}
-                            onMouseLeave={() => handleAgentHover(false)}
+                            onClick={() => handleAgentClick(agent.id)}
                             style={{ animationDelay: `${i * 0.1}s` }}
                         >
                             <div className={styles.avatar}>

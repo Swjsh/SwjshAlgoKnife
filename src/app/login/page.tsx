@@ -5,11 +5,11 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import styles from './login.module.css';
 import GlassPanel from '@/components/UI/GlassPanel';
-import { Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Loader2, AlertCircle, FlaskConical } from 'lucide-react';
 import { LogoIcon } from '@/components/UI/LogoIcon';
 
 export default function LoginPage() {
-    const { loginWithGoogle, loginWithEmail, signUpWithEmail, resetPassword, user, loading, authLoading, authError, clearError } = useAuth();
+    const { loginWithGoogle, loginWithEmail, loginAsGuest, signUpWithEmail, resetPassword, user, loading, authLoading, authError, clearError } = useAuth();
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -20,9 +20,14 @@ export default function LoginPage() {
     // Redirect if already logged in
     React.useEffect(() => {
         if (user) {
-            router.push('/strategies');
+            router.push('/command-center');
         }
     }, [user, router]);
+
+    const handleGuestAccess = () => {
+        loginAsGuest();
+        router.push('/command-center');
+    };
 
     const handleGoogleLogin = async () => {
         await loginWithGoogle();
@@ -227,6 +232,15 @@ export default function LoginPage() {
                             Continue with Google
                         </>
                     )}
+                </button>
+
+                <button
+                    onClick={handleGuestAccess}
+                    className={styles.guestBtn}
+                    disabled={authLoading}
+                >
+                    <FlaskConical className={styles.guestBtnIcon} size={20} />
+                    Enter as Guest (Lab Access)
                 </button>
             </GlassPanel>
         </div>

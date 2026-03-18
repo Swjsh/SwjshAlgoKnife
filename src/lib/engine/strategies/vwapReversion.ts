@@ -30,27 +30,33 @@ export class VWAPStrategy extends BaseStrategy {
         const vwap = this.vwapSum / this.volumeSum;
 
         const deviation = ((candle.close - vwap) / vwap) * 100;
-        const threshold = this.config.params.threshold || 1.5; // deviation threshold in %
+        // Intel adapts: trending widens threshold (don't fade trends),
+        // ranging tightens it (catch mean reversion sooner)
+        const baseThreshold = this.config.params.threshold || 1.5;
+        const threshold = this.adaptParam(baseThreshold, this.intelContext?.adaptations.vwapThresholdAdj ?? 0);
 
+        // In a strong trend, intel may flag mean-reversion as dangerous
         if (deviation < -threshold) {
+            if (this.isDirectionVetoed('LONG')) return null;
             return {
                 timestamp: candle.timestamp,
                 symbol: 'DYNAMIC',
                 action: 'BUY',
                 price: candle.close,
                 strategy: this.name,
-                notes: `Price ${deviation.toFixed(2)}% below VWAP. Mean reversion LONG.`
+                notes: `Price ${deviation.toFixed(2)}% below VWAP. Mean reversion LONG. (thresh: ${threshold.toFixed(2)}%)`
             };
         }
 
         if (deviation > threshold) {
+            if (this.isDirectionVetoed('SHORT')) return null;
             return {
                 timestamp: candle.timestamp,
                 symbol: 'DYNAMIC',
                 action: 'SELL',
                 price: candle.close,
                 strategy: this.name,
-                notes: `Price ${deviation.toFixed(2)}% above VWAP. Mean reversion SHORT.`
+                notes: `Price ${deviation.toFixed(2)}% above VWAP. Mean reversion SHORT. (thresh: ${threshold.toFixed(2)}%)`
             };
         }
 

@@ -238,3 +238,13 @@
 :global([data-theme='nature']) .avatarFallback {
     background: linear-gradient(135deg, var(--forest-green), var(--leather-brown));
 }
+
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .card:hover {
+    background: var(--bg-subtle);
+    border-color: var(--border-bright);
+}
+
+:global([data-theme='light']) .avatarImage {
+    border-color: var(--border-base);
+}

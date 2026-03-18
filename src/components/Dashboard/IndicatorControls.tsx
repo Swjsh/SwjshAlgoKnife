@@ -7,6 +7,9 @@ export interface IndicatorState {
     sma20: boolean;
     sma50: boolean;
     ema200: boolean;
+    vwap: boolean;
+    bbands: boolean;
+    rsi: boolean;
 }
 
 interface IndicatorControlsProps {
@@ -42,6 +45,27 @@ export default function IndicatorControls({ indicators, onChange }: IndicatorCon
                 style={{ '--indicator-color': '#8B5CF6' } as React.CSSProperties}
             >
                 EMA 200
+            </button>
+            <button
+                className={`${styles.toggle} ${indicators.vwap ? styles.active : ''}`}
+                onClick={() => toggle('vwap')}
+                style={{ '--indicator-color': '#EC4899' } as React.CSSProperties}
+            >
+                VWAP
+            </button>
+            <button
+                className={`${styles.toggle} ${indicators.bbands ? styles.active : ''}`}
+                onClick={() => toggle('bbands')}
+                style={{ '--indicator-color': '#14B8A6' } as React.CSSProperties}
+            >
+                BBands
+            </button>
+            <button
+                className={`${styles.toggle} ${indicators.rsi ? styles.active : ''}`}
+                onClick={() => toggle('rsi')}
+                style={{ '--indicator-color': '#F97316' } as React.CSSProperties}
+            >
+                RSI
             </button>
         </div>
     );

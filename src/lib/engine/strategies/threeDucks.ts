@@ -31,25 +31,30 @@ export class ThreeDucksStrategy extends BaseStrategy {
         const longAvg = this.getAverage(this.sma60_long);
 
         // Three Ducks Condition: Price above all 3 averages for LONG
+        // Intel integration: this trend strategy can be suppressed in ranging markets
         if (candle.close > shortAvg && candle.close > medAvg && candle.close > longAvg) {
+            if (this.isDirectionVetoed('LONG')) return null;
+            const regime = this.intelContext?.regime || 'UNKNOWN';
             return {
                 timestamp: candle.timestamp,
                 symbol: 'DYNAMIC',
                 action: 'BUY',
                 price: candle.close,
                 strategy: this.name,
-                notes: 'Three Ducks Aligned: Strong Bullish Trend'
+                notes: `Three Ducks Aligned: Strong Bullish Trend [regime: ${regime}]`
             };
         }
 
         if (candle.close < shortAvg && candle.close < medAvg && candle.close < longAvg) {
+            if (this.isDirectionVetoed('SHORT')) return null;
+            const regime = this.intelContext?.regime || 'UNKNOWN';
             return {
                 timestamp: candle.timestamp,
                 symbol: 'DYNAMIC',
                 action: 'SELL',
                 price: candle.close,
                 strategy: this.name,
-                notes: 'Three Ducks Aligned: Strong Bearish Trend'
+                notes: `Three Ducks Aligned: Strong Bearish Trend [regime: ${regime}]`
             };
         }
 

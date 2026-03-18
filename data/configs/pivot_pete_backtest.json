@@ -1,0 +1,26 @@
+{
+  "name": "Pivot Pete",
+  "market": "futures",
+  "symbols": [
+    "ES=F",
+    "NQ=F",
+    "YM=F"
+  ],
+  "primary_symbol": "ES=F",
+  "strategy": "pivot",
+  "timeframe": "5m",
+  "initial_capital": 100000,
+  "risk_per_trade": 0.01,
+  "strategy_params": {
+    "tolerance_pct": 0.0008,
+    "min_confluence": 1,
+    "risk_pct": 0.003,
+    "rr": 2.0
+  },
+  "session": {
+    "start_hour": 9,
+    "start_minute": 30,
+    "end_hour": 16,
+    "end_minute": 0
+  }
+}

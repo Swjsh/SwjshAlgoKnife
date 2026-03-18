@@ -224,3 +224,21 @@
 .saveBtnSuccess {
     background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
 }
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .settingRow {
+    border-bottom-color: var(--border-subtle);
+}
+
+:global([data-theme='light']) .inputGroup {
+    background: var(--input-bg);
+    border-color: var(--input-border);
+}
+
+:global([data-theme='light']) .inputWide {
+    background: var(--input-bg);
+    border-color: var(--input-border);
+}
+
+:global([data-theme='light']) .infoItem {
+    background: var(--bg-subtle);
+}

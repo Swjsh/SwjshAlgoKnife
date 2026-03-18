@@ -1,0 +1,69 @@
+
+# ═══════════════════════════════════════════════════════════════════
+# VERCEL IGNORE FILE - Security & Size Optimized
+# ═══════════════════════════════════════════════════════════════════
+
+# ══════════════ DEPENDENCIES ══════════════
+node_modules/
+
+# ══════════════ BUILD OUTPUT ══════════════
+.next/
+out/
+build/
+dist/
+
+# ══════════════ PERSONAL DATA (CRITICAL!) ══════════════
+# Your trading history - DO NOT UPLOAD
+docs/
+docs/WeBull*
+
+# Parsed trade data with your personal trades
+data/
+data/parsed_trades.json
+
+# Local database with trade history
+journal.db
+*.db
+*.sqlite
+*.sqlite3
+
+# ══════════════ DOCUMENTATION & NOTES ══════════════
+theories/
+WoodTheme/
+testsprite_tests/
+LookInHereClaude/
+backups/
+TESTING_COMPLETE.md
+
+# ══════════════ SECRETS & ENVIRONMENT ══════════════
+.env
+.env.local
+.env.development
+.env.production
+.env.*
+*.pem
+*.key
+
+# ══════════════ VERSION CONTROL ══════════════
+.git/
+.vercel/
+
+# ══════════════ LOGS & TEMP FILES ══════════════
+*.log
+build_log.txt
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.tsbuildinfo
+
+# ══════════════ SCRIPTS (Local Only) ══════════════
+scripts/*
+!scripts/agent_personas.json
+START_BOT.ps1
+START_DASHBOARD.ps1
+
+# ══════════════ MISC ══════════════
+*.md
+!README.md
+jack.md
+nul

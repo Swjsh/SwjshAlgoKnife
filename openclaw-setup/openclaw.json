@@ -1,0 +1,233 @@
+{
+  "models": {
+    "providers": {
+      "anthropic": {
+        "baseUrl": "https://api.anthropic.com",
+        "apiKey": "${ANTHROPIC_API_KEY}",
+        "models": [
+          {
+            "id": "claude-sonnet-4-6",
+            "name": "Claude Sonnet 4.6",
+            "api": "anthropic-messages",
+            "contextWindow": 200000,
+            "maxTokens": 8096
+          },
+          {
+            "id": "claude-haiku-4-5-20251001",
+            "name": "Claude Haiku 4.5",
+            "api": "anthropic-messages",
+            "contextWindow": 200000,
+            "maxTokens": 8096
+          }
+        ]
+      }
+    }
+  },
+  "channels": {
+    "discord": {
+      "accounts": {
+        "main": {
+          "token": "${DISCORD_BOT_TOKEN}",
+          "guilds": {
+            "340322473276997632": {
+              "channels": {
+                "1465522015095099549": {},
+                "1467174412615942186": {},
+                "1467174512377200640": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "bindings": [
+    {
+      "type": "acp",
+      "agentId": "chief",
+      "match": {
+        "channel": "discord",
+        "accountId": "main",
+        "peer": {
+          "kind": "channel",
+          "id": "1465522015095099549"
+        }
+      },
+      "acp": {
+        "label": "chief-main"
+      }
+    },
+    {
+      "type": "acp",
+      "agentId": "sterling",
+      "match": {
+        "channel": "discord",
+        "accountId": "main",
+        "peer": {
+          "kind": "channel",
+          "id": "1467174412615942186"
+        }
+      },
+      "acp": {
+        "label": "sterling-forex"
+      }
+    },
+    {
+      "type": "acp",
+      "agentId": "bitcoin-bob",
+      "match": {
+        "channel": "discord",
+        "accountId": "main",
+        "peer": {
+          "kind": "channel",
+          "id": "1467174512377200640"
+        }
+      },
+      "acp": {
+        "label": "bitcoin-bob-crypto"
+      }
+    }
+  ],
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "anthropic/claude-haiku-4-5-20251001"
+      },
+      "workspace": "C:\\Users\\jackw\\.openclaw\\workspace",
+      "heartbeat": {
+        "every": "0m",
+        "target": "none",
+        "lightContext": true,
+        "ackMaxChars": 300
+      }
+    },
+    "list": [
+      {
+        "id": "chief",
+        "default": true,
+        "identity": {
+          "name": "Chief",
+          "emoji": "🗡️",
+          "theme": "cyan"
+        },
+        "workspace": "C:\\Users\\jackw\\.openclaw\\workspace",
+        "model": {
+          "primary": "anthropic/claude-sonnet-4-6"
+        }
+      },
+      {
+        "id": "overseer",
+        "identity": {
+          "name": "The Overseer",
+          "emoji": "👁️",
+          "theme": "red"
+        },
+        "workspace": "C:\\Users\\jackw\\.openclaw\\agents\\overseer",
+        "model": {
+          "primary": "anthropic/claude-sonnet-4-6"
+        }
+      },
+      {
+        "id": "professor",
+        "identity": {
+          "name": "The Professor",
+          "emoji": "🎓",
+          "theme": "purple"
+        },
+        "workspace": "C:\\Users\\jackw\\.openclaw\\agents\\professor",
+        "model": {
+          "primary": "anthropic/claude-haiku-4-5-20251001"
+        }
+      },
+      {
+        "id": "auditor",
+        "identity": {
+          "name": "The Auditor",
+          "emoji": "🔍",
+          "theme": "gray"
+        },
+        "workspace": "C:\\Users\\jackw\\.openclaw\\agents\\auditor",
+        "model": {
+          "primary": "anthropic/claude-haiku-4-5-20251001"
+        }
+      },
+      {
+        "id": "sterling",
+        "identity": {
+          "name": "Sterling",
+          "emoji": "💷",
+          "theme": "green"
+        },
+        "workspace": "C:\\Users\\jackw\\.openclaw\\agents\\sterling",
+        "model": {
+          "primary": "anthropic/claude-haiku-4-5-20251001"
+        }
+      },
+      {
+        "id": "bitcoin-bob",
+        "identity": {
+          "name": "Bitcoin Bob",
+          "emoji": "₿",
+          "theme": "orange"
+        },
+        "workspace": "C:\\Users\\jackw\\.openclaw\\agents\\bitcoin-bob",
+        "model": {
+          "primary": "anthropic/claude-haiku-4-5-20251001"
+        }
+      },
+      {
+        "id": "pivot-pete",
+        "identity": {
+          "name": "Pivot Pete",
+          "emoji": "📐",
+          "theme": "yellow"
+        },
+        "workspace": "C:\\Users\\jackw\\.openclaw\\agents\\pivot-pete",
+        "model": {
+          "primary": "anthropic/claude-haiku-4-5-20251001"
+        }
+      },
+      {
+        "id": "boba",
+        "identity": {
+          "name": "Boba",
+          "emoji": "🧋",
+          "theme": "pink"
+        },
+        "workspace": "C:\\Users\\jackw\\.openclaw\\agents\\boba",
+        "model": {
+          "primary": "anthropic/claude-haiku-4-5-20251001"
+        }
+      },
+      {
+        "id": "spx-sniper",
+        "identity": {
+          "name": "SPX Sniper",
+          "emoji": "🎯",
+          "theme": "blue"
+        },
+        "workspace": "C:\\Users\\jackw\\.openclaw\\agents\\spx-sniper",
+        "model": {
+          "primary": "anthropic/claude-haiku-4-5-20251001"
+        }
+      }
+    ]
+  },
+  "cron": {
+    "enabled": true,
+    "maxConcurrentRuns": 3,
+    "sessionRetention": "48h",
+    "runLog": {
+      "maxBytes": "5mb",
+      "keepLines": 5000
+    }
+  },
+  "gateway": {
+    "mode": "local",
+    "auth": {
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
+    },
+    "bind": "loopback",
+    "port": 3001
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "agent_id": "bitcoin_bob",
+  "saved_at": "2026-03-16T16:05:20.894677",
+  "state": {
+    "zones_by_pair": {
+      "BTC-USD": [
+        {
+          "created_at": "2026-03-14 23:00",
+          "type": "DEMAND",
+          "top": 70805.84,
+          "bottom": 70711.98,
+          "entry": 70805.84,
+          "stop_loss": 70693.21,
+          "take_profit": 71087.41,
+          "status": "PENDING",
+          "triggered": false
+        }
+      ],
+      "ETH-USD": [
+        {
+          "created_at": "2026-03-15 22:00",
+          "type": "DEMAND",
+          "top": 2143.74,
+          "bottom": 2124.14,
+          "entry": 2143.74,
+          "stop_loss": 2120.23,
+          "take_profit": 2202.51,
+          "status": "PENDING",
+          "triggered": false
+        }
+      ],
+      "SOL-USD": [
+        {
+          "created_at": "2026-03-15 22:00",
+          "type": "DEMAND",
+          "top": 89.92,
+          "bottom": 88.66,
+          "entry": 89.92,
+          "stop_loss": 88.41,
+          "take_profit": 93.7,
+          "status": "PENDING",
+          "triggered": false
+        },
+        {
+          "created_at": "2026-03-14 23:00",
+          "type": "DEMAND",
+          "top": 87.43,
+          "bottom": 87.28,
+          "entry": 87.43,
+          "stop_loss": 87.25,
+          "take_profit": 87.88,
+          "status": "PENDING",
+          "triggered": false
+        }
+      ]
+    },
+    "active_trades": [],
+    "scan_count": 1
+  }
+}

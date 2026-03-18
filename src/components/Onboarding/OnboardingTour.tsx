@@ -129,18 +129,22 @@ export default function OnboardingTour() {
     const { userPreferences, updatePreferences, user } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
-    const [isVisible, setIsVisible] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
     const [isCompleting, setIsCompleting] = useState(false);
-    const [hasDismissed, setHasDismissed] = useState(() => {
-        // Check localStorage on initial mount for instant persistence
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('onboarding_dismissed') === 'true';
-        }
-        return false;
-    });
     const [isAutoPlaying, setIsAutoPlaying] = useState(true);
     const [showWizard, setShowWizard] = useState(false);
+    
+    // Check localStorage FIRST - if dismissed, never show
+    const [hasDismissed, setHasDismissed] = useState(true); // Default to true (hidden)
+    const [isVisible, setIsVisible] = useState(false);
+    
+    // Initialize hasDismissed from localStorage on mount
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const dismissed = localStorage.getItem('onboarding_dismissed') === 'true';
+            setHasDismissed(dismissed);
+        }
+    }, []);
 
     const handleDeployAgent = async (agentData: any) => {
         const response = await fetch('/api/agents', {

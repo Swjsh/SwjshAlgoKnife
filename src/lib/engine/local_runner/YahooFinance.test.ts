@@ -1,28 +1,28 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { YahooFinance } from './YahooFinance';
 
-// Mock fetch globally
-global.fetch = vi.fn();
-
 describe('YahooFinance Multi-Pair Poller', () => {
   let yahooFx: YahooFinance;
   let emittedPrices: any[] = [];
+  let fetchMock: any;
 
   beforeEach(() => {
     yahooFx = new YahooFinance();
     emittedPrices = [];
 
+    // Per-test fetch mock (avoids cross-file mock interference when vitest runs tests in parallel)
+    fetchMock = vi.fn();
+    (globalThis as any).fetch = fetchMock;
+
     // Capture emitted price events
     yahooFx.on('price', (tick) => {
       emittedPrices.push(tick);
     });
-
-    // Clear all mocks
-    vi.clearAllMocks();
   });
 
   afterEach(() => {
     yahooFx.stop();
+    vi.restoreAllMocks();
   });
 
   describe('Initialization', () => {
@@ -55,7 +55,7 @@ describe('YahooFinance Multi-Pair Poller', () => {
       (yahooFx as any).isRunning = true;
 
       // Mock fetch response for EURUSD
-      (global.fetch as any).mockResolvedValueOnce({
+      fetchMock.mockResolvedValueOnce({
         json: async () => ({
           chart: {
             result: [{
@@ -89,7 +89,7 @@ describe('YahooFinance Multi-Pair Poller', () => {
       ];
 
       mockPairs.forEach(pair => {
-        (global.fetch as any).mockResolvedValueOnce({
+        fetchMock.mockResolvedValueOnce({
           json: async () => ({
             chart: {
               result: [{
@@ -115,7 +115,7 @@ describe('YahooFinance Multi-Pair Poller', () => {
     });
 
     it('should handle fetch errors gracefully', async () => {
-      (global.fetch as any).mockRejectedValueOnce(new Error('Network error'));
+      fetchMock.mockRejectedValueOnce(new Error('Network error'));
 
       // Should not throw
       await expect((yahooFx as any).fetchPrice('EURUSD=X', 'EURUSD')).resolves.not.toThrow();
@@ -128,7 +128,7 @@ describe('YahooFinance Multi-Pair Poller', () => {
       (yahooFx as any).isRunning = true;
       const mockTime = 1672531200;
 
-      (global.fetch as any).mockResolvedValueOnce({
+      fetchMock.mockResolvedValueOnce({
         json: async () => ({
           chart: {
             result: [{
@@ -148,7 +148,7 @@ describe('YahooFinance Multi-Pair Poller', () => {
 
     it('should use fallback timestamp if not provided', async () => {
       (yahooFx as any).isRunning = true;
-      (global.fetch as any).mockResolvedValueOnce({
+      fetchMock.mockResolvedValueOnce({
         json: async () => ({
           chart: {
             result: [{
@@ -194,7 +194,7 @@ describe('YahooFinance Multi-Pair Poller', () => {
 
   describe('Price Validation', () => {
     it('should only emit when price is available', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
+      fetchMock.mockResolvedValueOnce({
         json: async () => ({
           chart: {
             result: [{
@@ -207,6 +207,7 @@ describe('YahooFinance Multi-Pair Poller', () => {
         })
       });
 
+      (yahooFx as any).isRunning = true;
       await (yahooFx as any).fetchPrice('EURUSD=X', 'EURUSD');
 
       expect(emittedPrices.length).toBe(0);
@@ -223,7 +224,7 @@ describe('YahooFinance Multi-Pair Poller', () => {
       ];
 
       for (const pair of testPairs) {
-        (global.fetch as any).mockResolvedValueOnce({
+        fetchMock.mockResolvedValueOnce({
           json: async () => ({
             chart: {
               result: [{

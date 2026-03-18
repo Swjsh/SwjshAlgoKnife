@@ -20,6 +20,7 @@ interface Trade {
     exit?: number;
     stop?: number;
     side?: string;
+    type?: string;
     pnl?: number;
     status?: string;
     created_at?: string;
@@ -69,7 +70,8 @@ export function AgentProvider({ children }: { children: ReactNode }) {
             const res = await fetch('/api/agents');
             if (!res.ok) throw new Error('Failed to fetch agent data');
             const data = await res.json();
-            setAgents(data);
+            // API returns { agents: {...}, system: {...} }, extract the agents object
+            setAgents(data.agents || data);
             setLastUpdate(new Date());
             setError(null);
         } catch (err: any) {
@@ -84,8 +86,8 @@ export function AgentProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         fetchAgents();
 
-        // Poll every 5 seconds
-        const interval = setInterval(fetchAgents, 5000);
+        // Poll every 30 seconds (reduce log noise)
+        const interval = setInterval(fetchAgents, 30000);
         return () => clearInterval(interval);
     }, []);
 

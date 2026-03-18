@@ -149,3 +149,8 @@
 :global([data-theme='nature']) .putText {
     color: #8a5a4a;
 }
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .container {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}

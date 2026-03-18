@@ -42,3 +42,8 @@
     background: var(--panel-bg);
     border-color: var(--panel-border);
 }
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .cardWrapper {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}

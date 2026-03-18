@@ -136,3 +136,13 @@
 .input:focus {
     outline: none;
 }
+/* LIGHT MODE OVERRIDES */
+:global([data-theme='light']) .chatContainer {
+    background: var(--bg-surface);
+    border-color: var(--border-base);
+}
+
+:global([data-theme='light']) .header {
+    background: var(--bg-subtle);
+    border-bottom-color: var(--border-base);
+}
