@@ -7,7 +7,7 @@ status: 📘 Reference
 
 ## Active Strategies
 
-SwjshAK implements 7 core trading strategies across multiple asset classes.
+SwjshAK implements **12 trading strategies** across multiple asset classes.
 
 | Strategy | Markets | Type | Status |
 |----------|---------|------|--------|
@@ -17,7 +17,12 @@ SwjshAK implements 7 core trading strategies across multiple asset classes.
 | [[Support Resistance]] | All | Zone Trading | ✅ Active |
 | [[Bollinger Breakout]] | All | Volatility | ✅ Active |
 | [[Three Ducks]] | Forex | Trend Following | ✅ Active |
-| Grid Trading | Crypto, Forex | Range Bound | 📋 Planned |
+| [[Grid Trading]] | Crypto | Range Bound | ✅ Active |
+| [[EMA Crossover ADX]] | Futures | Trend Following | ✅ Active |
+| [[Liquidity Scalper]] | Futures | Scalping | ✅ Active |
+| [[RSI Mean Reversion]] | Crypto | Mean Reversion | ✅ Active |
+| [[Set and Forget]] | Forex | Swing Trading | ✅ Active |
+| [[Pivot Strategy]] | Futures | Level Trading | ✅ Active |
 
 ---
 
@@ -233,24 +238,24 @@ Multi-timeframe trend alignment:
 
 ---
 
-## 7. Grid Trading (Planned)
+## 7. Grid Trading
 
-**Markets**: Crypto (stable ranges), Forex
+**File**: `src/lib/engine/strategies/gridTrading.ts`
+
+**Markets**: Crypto
 
 **Logic**:
-1. Define price range (e.g., BTC $60k-$70k)
-2. Place buy orders at intervals below current price
-3. Place sell orders at intervals above
-4. As price oscillates, profit from range
-5. Adjust grid if range breaks
+1. Track price from last grid level
+2. Price drops by grid size → BUY
+3. Price rises by grid size → SELL
+4. Reset grid level after each trade
 
 **Parameters**:
-- `gridLevels`: 10
-- `gridSpacing`: 1% per level
-- `rangeHigh`: Manual or dynamic
-- `rangeLow`: Manual or dynamic
+- `gridSize`: 0.5% (price move to trigger)
 
-**Status**: Not yet implemented
+**Best For**: Range-bound crypto markets
+
+See: [[Grid Trading]] for full details
 
 ---
 
@@ -385,9 +390,28 @@ ORDER BY total_pnl DESC;
 
 ## Related Pages
 
-- [[ORB]] - Opening Range Breakout details
-- [[VWAP Reversion]] - Mean reversion strategy
+### Core Strategies
+- [[ORB]] - Opening Range Breakout
+- [[VWAP Reversion]] - Mean reversion to VWAP
+- [[Support Resistance]] - Zone-based trading
+- [[Bollinger Breakout]] - Volatility expansion
 - [[Three Ducks]] - Multi-timeframe trend
+- [[Never Stopped Out]] - Advanced ORB
+
+### New Strategies (March 2026)
+- [[EMA Crossover ADX]] - Trend following with ADX filter
+- [[Liquidity Scalper]] - Institutional liquidity pools
+- [[RSI Mean Reversion]] - RSI extremes with confirmation
+- [[Grid Trading]] - Range-bound compounding
+- [[Set and Forget]] - Multi-TF swing trading
+- [[Pivot Strategy]] - Daily/weekly/monthly pivots
+
+### Agent Variants
+- [[Boba Options]] - Real SPY options trading
+- [[SPX Sniper Options]] - 0DTE options scalping
+
+### Infrastructure
 - [[Agent System]] - How strategies are executed
 - [[Risk Management]] - Position sizing
 - [[Universal Backtest]] - Testing framework
+- [[Intel Layer]] - Trade gating
