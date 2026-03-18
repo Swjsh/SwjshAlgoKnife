@@ -1,5 +1,8 @@
-# Contabo VPS Full Server Setup — Handoff Prompt for Claude CLI
+# Contabo VPS Full Server Setup
 
+> **SUPERSEDED**: The deployment is now automated. Use `deploy-contabo.sh` instead of following this manual guide.
+> For the Claude handoff prompt, see `CONTABO_CLAUDE_HANDOFF.md`.
+>
 > **SECURITY**: Server IP is stored in encrypted vault (`scripts/server_creds.py retrieve`). Never commit IPs to version control.
 
 ## Server Details

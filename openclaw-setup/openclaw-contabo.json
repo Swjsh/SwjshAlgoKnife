@@ -93,7 +93,7 @@
       "model": {
         "primary": "anthropic/claude-haiku-4-5-20251001"
       },
-      "workspace": "/home/jackw/.openclaw/workspace",
+      "workspace": "/root/.openclaw/workspace",
       "heartbeat": {
         "every": "0m",
         "target": "none",
@@ -110,7 +110,7 @@
           "emoji": "🗡️",
           "theme": "cyan"
         },
-        "workspace": "/home/jackw/.openclaw/workspace",
+        "workspace": "/root/.openclaw/workspace",
         "model": {
           "primary": "anthropic/claude-sonnet-4-6"
         }
@@ -122,7 +122,7 @@
           "emoji": "👁️",
           "theme": "red"
         },
-        "workspace": "/home/jackw/.openclaw/agents/overseer",
+        "workspace": "/root/.openclaw/agents/overseer",
         "model": {
           "primary": "anthropic/claude-sonnet-4-6"
         }
@@ -134,7 +134,7 @@
           "emoji": "🎓",
           "theme": "purple"
         },
-        "workspace": "/home/jackw/.openclaw/agents/professor",
+        "workspace": "/root/.openclaw/agents/professor",
         "model": {
           "primary": "anthropic/claude-haiku-4-5-20251001"
         }
@@ -146,7 +146,7 @@
           "emoji": "🔍",
           "theme": "gray"
         },
-        "workspace": "/home/jackw/.openclaw/agents/auditor",
+        "workspace": "/root/.openclaw/agents/auditor",
         "model": {
           "primary": "anthropic/claude-haiku-4-5-20251001"
         }
@@ -158,7 +158,7 @@
           "emoji": "💷",
           "theme": "green"
         },
-        "workspace": "/home/jackw/.openclaw/agents/sterling",
+        "workspace": "/root/.openclaw/agents/sterling",
         "model": {
           "primary": "anthropic/claude-haiku-4-5-20251001"
         }
@@ -170,7 +170,7 @@
           "emoji": "₿",
           "theme": "orange"
         },
-        "workspace": "/home/jackw/.openclaw/agents/bitcoin-bob",
+        "workspace": "/root/.openclaw/agents/bitcoin-bob",
         "model": {
           "primary": "anthropic/claude-haiku-4-5-20251001"
         }
@@ -182,7 +182,7 @@
           "emoji": "📐",
           "theme": "yellow"
         },
-        "workspace": "/home/jackw/.openclaw/agents/pivot-pete",
+        "workspace": "/root/.openclaw/agents/pivot-pete",
         "model": {
           "primary": "anthropic/claude-haiku-4-5-20251001"
         }
@@ -194,7 +194,7 @@
           "emoji": "🧋",
           "theme": "pink"
         },
-        "workspace": "/home/jackw/.openclaw/agents/boba",
+        "workspace": "/root/.openclaw/agents/boba",
         "model": {
           "primary": "anthropic/claude-haiku-4-5-20251001"
         }
@@ -206,7 +206,7 @@
           "emoji": "🎯",
           "theme": "blue"
         },
-        "workspace": "/home/jackw/.openclaw/agents/spx-sniper",
+        "workspace": "/root/.openclaw/agents/spx-sniper",
         "model": {
           "primary": "anthropic/claude-haiku-4-5-20251001"
         }
