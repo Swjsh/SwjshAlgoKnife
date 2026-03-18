@@ -21,3 +21,11 @@ Things we've discovered the hard way so we don't repeat the same mistakes.
 - **readBrainFile() needs path validation** — Without checking for `..` in the filename parameter, attackers can read arbitrary server files via `/api/brain?file=../../../etc/passwd`. Always validate and resolve paths.
 - **Trade status should include PENDING and REJECTED** — Inserting trades as 'OPEN' before broker confirmation means failed broker calls orphan fake 'LOSS' records. Insert as PENDING first, then update after broker confirms.
 - **CONTROL_API_KEY must be set in production** — Without it, anyone can killswitch the trading system or pause agents via unauthenticated POST to /api/control.
+
+## Brain Sync & Cron Jobs
+
+- **Emoji filenames break sync scripts** — Files like `🎯 Master Tracker.md` and `📅 Daily Log.md` get marked `[?]` (skipped) by sync-brain scripts. Use explicit file lists instead of glob patterns, or handle Unicode properly.
+- **New directories aren't auto-detected** — When `src/lib/intel/` added 9 new service directories (analysts/, darkpool/, etc.), the cron didn't notice. Add directory scanning to catch structural changes.
+- **Agent status requires reading JSON files** — Cron should poll `agent_logs.json`, `agent_state/*.json`, and `data/*_agent_status.json` to report live agent health. Git status alone misses runtime state.
+- **Uncommitted code creates brain drift** — If code sits uncommitted for days, the brain documents a reality that doesn't match the codebase. Add `git status` check to cron and alert on >10 uncommitted files.
+- **Intel Layer expanded to 18 sources (March 2026)** — Original 9 pillars + 9 new free sources. If adding new intel, update both `src/lib/intel/types.ts` AND the brain's System Architecture page.

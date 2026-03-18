@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 export type IntelSource =
+    // Original 9 sources (Premium + Free)
     | 'ORDER_FLOW'
     | 'SENTIMENT'
     | 'ONCHAIN_CONFLUENCE'
@@ -12,7 +13,17 @@ export type IntelSource =
     | 'FUNDING_OI'
     | 'MARKET_DATA'
     | 'ECON_CALENDAR'
-    | 'SOCIAL_FEED';
+    | 'SOCIAL_FEED'
+    // New 9 sources (Free tier - all zero-cost APIs)
+    | 'POLITICIAN_TRADES'    // Congressional stock trades (Capitol Trades, Quiver)
+    | 'INSIDER_FLOW'         // SEC Form 4 insider transactions
+    | 'ANALYST_RATINGS'      // Wall Street upgrades/downgrades
+    | 'ETF_FLOWS'            // BTC/ETH ETF fund flows
+    | 'OPTIONS_UNUSUAL'      // Unusual options activity
+    | 'DARK_POOL'            // Dark pool prints
+    | 'MACRO_SENTIMENT'      // AAII, CNN Fear/Greed, PMI
+    | 'TECHNICAL_LEVELS'     // Key S/R, pivots, moving averages
+    | 'VOLATILITY';          // VIX regime tracking
 
 export type IntelDirection = 'BULLISH' | 'BEARISH' | 'NEUTRAL' | 'ALERT';
 
@@ -55,6 +66,7 @@ export interface IntelScore {
  * Order flow is fleeting; on-chain/whale intel lasts longer.
  */
 export const INTEL_TTL_MS: Record<IntelSource, number> = {
+    // Original sources
     ORDER_FLOW:          15 * 60 * 1000,  // 15 minutes
     SENTIMENT:           30 * 60 * 1000,  // 30 minutes
     ONCHAIN_CONFLUENCE:  60 * 60 * 1000,  // 1 hour
@@ -64,6 +76,16 @@ export const INTEL_TTL_MS: Record<IntelSource, number> = {
     MARKET_DATA:         20 * 60 * 1000,  // 20 minutes (price/volume shifts fast)
     ECON_CALENDAR:      120 * 60 * 1000,  // 2 hours (events are scheduled)
     SOCIAL_FEED:         30 * 60 * 1000,  // 30 minutes (tweets are time-sensitive)
+    // New sources
+    POLITICIAN_TRADES:  240 * 60 * 1000,  // 4 hours (STOCK Act filings)
+    INSIDER_FLOW:       120 * 60 * 1000,  // 2 hours (Form 4 filings)
+    ANALYST_RATINGS:    120 * 60 * 1000,  // 2 hours (upgrades/downgrades)
+    ETF_FLOWS:           60 * 60 * 1000,  // 1 hour (daily flows, check frequently)
+    OPTIONS_UNUSUAL:     30 * 60 * 1000,  // 30 minutes (time-sensitive)
+    DARK_POOL:           45 * 60 * 1000,  // 45 minutes (large prints)
+    MACRO_SENTIMENT:    180 * 60 * 1000,  // 3 hours (weekly surveys)
+    TECHNICAL_LEVELS:    60 * 60 * 1000,  // 1 hour (pivot points, S/R)
+    VOLATILITY:          30 * 60 * 1000,  // 30 minutes (VIX changes quickly)
 };
 
 /**
@@ -85,27 +107,47 @@ const FREE_SOURCES_ONLY = process.env.FREE_SOURCES_ONLY === 'true';
 export const INTEL_WEIGHTS: Record<IntelSource, number> = FREE_SOURCES_ONLY
     ? {
         // Premium sources zeroed out — weight redistributed to free sources (sum = 1.0)
-        ORDER_FLOW:          parseFloat(process.env.INTEL_WEIGHT_ORDERFLOW  || '0'),
-        SENTIMENT:           parseFloat(process.env.INTEL_WEIGHT_SENTIMENT  || '0'),
-        ONCHAIN_CONFLUENCE:  parseFloat(process.env.INTEL_WEIGHT_ONCHAIN    || '0'),
-        WHALE_FLOW:          parseFloat(process.env.INTEL_WEIGHT_WHALE      || '0'),
-        FEAR_GREED:          parseFloat(process.env.INTEL_WEIGHT_FEARGREED  || '0.25'),  // crypto sentiment anchor
-        FUNDING_OI:          parseFloat(process.env.INTEL_WEIGHT_FUNDINGOI  || '0.22'),  // leverage positioning
-        MARKET_DATA:         parseFloat(process.env.INTEL_WEIGHT_MARKETDATA || '0.20'),  // price/volume momentum
-        ECON_CALENDAR:       parseFloat(process.env.INTEL_WEIGHT_ECONCAL    || '0.13'),  // event risk
-        SOCIAL_FEED:         parseFloat(process.env.INTEL_WEIGHT_SOCIAL     || '0.20'),  // headline risk
+        ORDER_FLOW:          parseFloat(process.env.INTEL_WEIGHT_ORDERFLOW       || '0'),
+        SENTIMENT:           parseFloat(process.env.INTEL_WEIGHT_SENTIMENT       || '0'),
+        ONCHAIN_CONFLUENCE:  parseFloat(process.env.INTEL_WEIGHT_ONCHAIN         || '0'),
+        WHALE_FLOW:          parseFloat(process.env.INTEL_WEIGHT_WHALE           || '0'),
+        FEAR_GREED:          parseFloat(process.env.INTEL_WEIGHT_FEARGREED       || '0.10'),  // crypto sentiment anchor
+        FUNDING_OI:          parseFloat(process.env.INTEL_WEIGHT_FUNDINGOI       || '0.10'),  // leverage positioning
+        MARKET_DATA:         parseFloat(process.env.INTEL_WEIGHT_MARKETDATA      || '0.10'),  // price/volume momentum
+        ECON_CALENDAR:       parseFloat(process.env.INTEL_WEIGHT_ECONCAL         || '0.06'),  // event risk
+        SOCIAL_FEED:         parseFloat(process.env.INTEL_WEIGHT_SOCIAL          || '0.10'),  // headline risk
+        // New free sources (redistributed weight)
+        POLITICIAN_TRADES:   parseFloat(process.env.INTEL_WEIGHT_POLITICIAN      || '0.10'),  // follow the money
+        INSIDER_FLOW:        parseFloat(process.env.INTEL_WEIGHT_INSIDER         || '0.08'),  // insider buying/selling
+        ANALYST_RATINGS:     parseFloat(process.env.INTEL_WEIGHT_ANALYST         || '0.06'),  // Wall Street consensus
+        ETF_FLOWS:           parseFloat(process.env.INTEL_WEIGHT_ETFFLOWS        || '0.08'),  // institutional flows
+        OPTIONS_UNUSUAL:     parseFloat(process.env.INTEL_WEIGHT_OPTIONS         || '0.07'),  // smart money bets
+        DARK_POOL:           parseFloat(process.env.INTEL_WEIGHT_DARKPOOL        || '0.05'),  // hidden liquidity
+        MACRO_SENTIMENT:     parseFloat(process.env.INTEL_WEIGHT_MACRO           || '0.06'),  // retail sentiment
+        TECHNICAL_LEVELS:    parseFloat(process.env.INTEL_WEIGHT_TECHNICAL       || '0.07'),  // key levels
+        VOLATILITY:          parseFloat(process.env.INTEL_WEIGHT_VOLATILITY      || '0.07'),  // regime detection
     }
     : {
-        // Full mode — all 9 sources active (premium + free)
-        ORDER_FLOW:          parseFloat(process.env.INTEL_WEIGHT_ORDERFLOW  || '0.25'),
-        SENTIMENT:           parseFloat(process.env.INTEL_WEIGHT_SENTIMENT  || '0.10'),
-        ONCHAIN_CONFLUENCE:  parseFloat(process.env.INTEL_WEIGHT_ONCHAIN    || '0.20'),
-        WHALE_FLOW:          parseFloat(process.env.INTEL_WEIGHT_WHALE      || '0.15'),
-        FEAR_GREED:          parseFloat(process.env.INTEL_WEIGHT_FEARGREED  || '0.08'),
-        FUNDING_OI:          parseFloat(process.env.INTEL_WEIGHT_FUNDINGOI  || '0.10'),
-        MARKET_DATA:         parseFloat(process.env.INTEL_WEIGHT_MARKETDATA || '0.07'),
-        ECON_CALENDAR:       parseFloat(process.env.INTEL_WEIGHT_ECONCAL    || '0.05'),
-        SOCIAL_FEED:         parseFloat(process.env.INTEL_WEIGHT_SOCIAL     || '0.12'),
+        // Full mode — all 18 sources active (premium + free)
+        ORDER_FLOW:          parseFloat(process.env.INTEL_WEIGHT_ORDERFLOW       || '0.15'),
+        SENTIMENT:           parseFloat(process.env.INTEL_WEIGHT_SENTIMENT       || '0.08'),
+        ONCHAIN_CONFLUENCE:  parseFloat(process.env.INTEL_WEIGHT_ONCHAIN         || '0.12'),
+        WHALE_FLOW:          parseFloat(process.env.INTEL_WEIGHT_WHALE           || '0.10'),
+        FEAR_GREED:          parseFloat(process.env.INTEL_WEIGHT_FEARGREED       || '0.05'),
+        FUNDING_OI:          parseFloat(process.env.INTEL_WEIGHT_FUNDINGOI       || '0.06'),
+        MARKET_DATA:         parseFloat(process.env.INTEL_WEIGHT_MARKETDATA      || '0.05'),
+        ECON_CALENDAR:       parseFloat(process.env.INTEL_WEIGHT_ECONCAL         || '0.04'),
+        SOCIAL_FEED:         parseFloat(process.env.INTEL_WEIGHT_SOCIAL          || '0.06'),
+        // New free sources
+        POLITICIAN_TRADES:   parseFloat(process.env.INTEL_WEIGHT_POLITICIAN      || '0.06'),
+        INSIDER_FLOW:        parseFloat(process.env.INTEL_WEIGHT_INSIDER         || '0.05'),
+        ANALYST_RATINGS:     parseFloat(process.env.INTEL_WEIGHT_ANALYST         || '0.04'),
+        ETF_FLOWS:           parseFloat(process.env.INTEL_WEIGHT_ETFFLOWS        || '0.05'),
+        OPTIONS_UNUSUAL:     parseFloat(process.env.INTEL_WEIGHT_OPTIONS         || '0.04'),
+        DARK_POOL:           parseFloat(process.env.INTEL_WEIGHT_DARKPOOL        || '0.03'),
+        MACRO_SENTIMENT:     parseFloat(process.env.INTEL_WEIGHT_MACRO           || '0.04'),
+        TECHNICAL_LEVELS:    parseFloat(process.env.INTEL_WEIGHT_TECHNICAL       || '0.04'),
+        VOLATILITY:          parseFloat(process.env.INTEL_WEIGHT_VOLATILITY      || '0.04'),
     };
 
 /**
@@ -135,15 +177,26 @@ export interface SourceMeta {
 }
 
 export const SOURCE_REGISTRY: Record<IntelSource, SourceMeta> = {
-    ORDER_FLOW:         { label: 'Order Flow',   color: '#06B6D4', emoji: '📊', healthKey: 'orderflow',     free: false },
-    SENTIMENT:          { label: 'Sentiment',    color: '#10B981', emoji: '📰', healthKey: 'sentiment',     free: false },
-    ONCHAIN_CONFLUENCE: { label: 'On-Chain',     color: '#F59E0B', emoji: '⛓️', healthKey: 'onchain',       free: false },
-    WHALE_FLOW:         { label: 'Whale Flow',   color: '#EF4444', emoji: '🐋', healthKey: 'whale',         free: false },
-    FEAR_GREED:         { label: 'Fear & Greed', color: '#8B5CF6', emoji: '😨', healthKey: 'feargreed',     free: true },
-    FUNDING_OI:         { label: 'Funding/OI',   color: '#EC4899', emoji: '💰', healthKey: 'fundingoi',     free: true },
-    MARKET_DATA:        { label: 'Market Data',  color: '#14B8A6', emoji: '📈', healthKey: 'marketdata',    free: true },
-    ECON_CALENDAR:      { label: 'Econ Cal',     color: '#F97316', emoji: '📅', healthKey: 'econcalendar',  free: true },
-    SOCIAL_FEED:        { label: 'Social Feed',  color: '#1DA1F2', emoji: '🐦', healthKey: 'socialfeed',   free: true },
+    // Original 9 sources
+    ORDER_FLOW:         { label: 'Order Flow',       color: '#06B6D4', emoji: '📊', healthKey: 'orderflow',         free: false },
+    SENTIMENT:          { label: 'Sentiment',        color: '#10B981', emoji: '📰', healthKey: 'sentiment',         free: false },
+    ONCHAIN_CONFLUENCE: { label: 'On-Chain',         color: '#F59E0B', emoji: '⛓️', healthKey: 'onchain',           free: false },
+    WHALE_FLOW:         { label: 'Whale Flow',       color: '#EF4444', emoji: '🐋', healthKey: 'whale',             free: false },
+    FEAR_GREED:         { label: 'Fear & Greed',     color: '#8B5CF6', emoji: '😨', healthKey: 'feargreed',         free: true },
+    FUNDING_OI:         { label: 'Funding/OI',       color: '#EC4899', emoji: '💰', healthKey: 'fundingoi',         free: true },
+    MARKET_DATA:        { label: 'Market Data',      color: '#14B8A6', emoji: '📈', healthKey: 'marketdata',        free: true },
+    ECON_CALENDAR:      { label: 'Econ Cal',         color: '#F97316', emoji: '📅', healthKey: 'econcalendar',      free: true },
+    SOCIAL_FEED:        { label: 'Social Feed',      color: '#1DA1F2', emoji: '🐦', healthKey: 'socialfeed',       free: true },
+    // New 9 sources (all free tier)
+    POLITICIAN_TRADES:  { label: 'Politician Trades', color: '#9333EA', emoji: '🏛️', healthKey: 'politiciantrades', free: true },
+    INSIDER_FLOW:       { label: 'Insider Flow',      color: '#DC2626', emoji: '👔', healthKey: 'insiderflow',      free: true },
+    ANALYST_RATINGS:    { label: 'Analyst Ratings',   color: '#2563EB', emoji: '📊', healthKey: 'analystratings',   free: true },
+    ETF_FLOWS:          { label: 'ETF Flows',         color: '#059669', emoji: '📦', healthKey: 'etfflows',         free: true },
+    OPTIONS_UNUSUAL:    { label: 'Unusual Options',   color: '#D97706', emoji: '🎯', healthKey: 'optionsunusual',   free: true },
+    DARK_POOL:          { label: 'Dark Pool',         color: '#374151', emoji: '🌑', healthKey: 'darkpool',         free: true },
+    MACRO_SENTIMENT:    { label: 'Macro Sentiment',   color: '#7C3AED', emoji: '🌍', healthKey: 'macrosentiment',   free: true },
+    TECHNICAL_LEVELS:   { label: 'Technical Levels',  color: '#0891B2', emoji: '📐', healthKey: 'technicallevels',  free: true },
+    VOLATILITY:         { label: 'Volatility',        color: '#E11D48', emoji: '📈', healthKey: 'volatility',       free: true },
 };
 
 /** All 9 source keys */

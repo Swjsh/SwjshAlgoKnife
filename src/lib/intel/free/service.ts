@@ -32,7 +32,24 @@ const state: FeedState = {
     running: false,
     startedAt: null,
     signalsPublished: 0,
-    perSourceCount: { feargreed: 0, fundingoi: 0, marketdata: 0, econcalendar: 0, socialfeed: 0 },
+    perSourceCount: {
+        // Original sources
+        feargreed: 0,
+        fundingoi: 0,
+        marketdata: 0,
+        econcalendar: 0,
+        socialfeed: 0,
+        // New sources (9 additional pillars)
+        politiciantrades: 0,
+        insiderflow: 0,
+        analystratings: 0,
+        etfflows: 0,
+        optionsunusual: 0,
+        darkpool: 0,
+        macrosentiment: 0,
+        technicallevels: 0,
+        volatility: 0,
+    },
     lastPoll: {},
     errors: {},
 };

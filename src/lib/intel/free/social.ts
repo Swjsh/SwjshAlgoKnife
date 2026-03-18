@@ -57,6 +57,7 @@ interface SocialFeedState {
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const ACCOUNTS: SocialAccount[] = [
+    // Original accounts
     {
         handle: 'realDonaldTrump',
         displayName: 'Donald Trump',
@@ -92,6 +93,80 @@ const ACCOUNTS: SocialAccount[] = [
         defaultSymbols: ['BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD'],
         category: 'NEWS',
     },
+    // NEW: Politician Trade Trackers
+    {
+        handle: 'congresstrading',
+        displayName: 'Congress Trading',
+        baseConfidence: 0.75,
+        defaultSymbols: ['BTCUSD', 'ETHUSD'],
+        category: 'POLITICS',
+    },
+    {
+        handle: 'capitoltrades',
+        displayName: 'Capitol Trades',
+        baseConfidence: 0.80,
+        defaultSymbols: ['BTCUSD', 'ETHUSD'],
+        category: 'POLITICS',
+    },
+    {
+        handle: 'QuiverQuant',
+        displayName: 'Quiver Quantitative',
+        baseConfidence: 0.75,
+        defaultSymbols: ['BTCUSD', 'ETHUSD'],
+        category: 'POLITICS',
+    },
+    // NEW: Macro/Market Intelligence
+    {
+        handle: 'zaborsky',
+        displayName: 'Lawrence McDonald',
+        baseConfidence: 0.70,
+        defaultSymbols: ['BTCUSD', 'ETHUSD', 'EURUSD'],
+        category: 'NEWS',
+    },
+    {
+        handle: 'MacroAlf',
+        displayName: 'Macro Alf',
+        baseConfidence: 0.70,
+        defaultSymbols: ['BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD'],
+        category: 'NEWS',
+    },
+    {
+        handle: 'KobeissiLetter',
+        displayName: 'The Kobeissi Letter',
+        baseConfidence: 0.70,
+        defaultSymbols: ['BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD'],
+        category: 'NEWS',
+    },
+    // NEW: Crypto-specific
+    {
+        handle: 'WatcherGuru',
+        displayName: 'Watcher Guru',
+        baseConfidence: 0.65,
+        defaultSymbols: ['BTCUSD', 'ETHUSD'],
+        category: 'CRYPTO',
+    },
+    {
+        handle: 'CryptoCred',
+        displayName: 'Crypto Cred',
+        baseConfidence: 0.65,
+        defaultSymbols: ['BTCUSD', 'ETHUSD'],
+        category: 'CRYPTO',
+    },
+    // NEW: ETF & Institutional Flow
+    {
+        handle: 'EricBalchunas',
+        displayName: 'Eric Balchunas',
+        baseConfidence: 0.85,
+        defaultSymbols: ['BTCUSD', 'ETHUSD'],
+        category: 'NEWS',
+    },
+    {
+        handle: 'jaboreum',
+        displayName: 'James Seyffart',
+        baseConfidence: 0.85,
+        defaultSymbols: ['BTCUSD', 'ETHUSD'],
+        category: 'NEWS',
+    },
 ];
 
 /** RSS proxy URL generators for Twitter/X — tried in order, first success wins */
@@ -119,7 +194,8 @@ interface RSSChannel {
     headers: Record<string, string>;
 }
 
-const RSS_CHANNELS: RSSChannel[] = [
+export const RSS_CHANNELS: RSSChannel[] = [
+    // Original channels
     {
         name: 'reddit_wsb',
         // Public Reddit RSS — no auth, no key, 60 req/min generous limit
@@ -140,6 +216,64 @@ const RSS_CHANNELS: RSSChannel[] = [
         category: 'FILINGS',
         headers: { 'User-Agent': 'SwjshAK-Intel/1.0 (research bot)' },
     },
+    // NEW: Additional Reddit communities
+    {
+        name: 'reddit_bitcoin',
+        url: 'https://www.reddit.com/r/Bitcoin/new/.rss',
+        displayName: 'Reddit r/Bitcoin',
+        baseConfidence: 0.50,
+        defaultSymbols: ['BTCUSD'],
+        category: 'SOCIAL',
+        headers: { 'User-Agent': 'SwjshAK-Intel/1.0 (research bot)' },
+    },
+    {
+        name: 'reddit_cryptocurrency',
+        url: 'https://www.reddit.com/r/CryptoCurrency/new/.rss',
+        displayName: 'Reddit r/CryptoCurrency',
+        baseConfidence: 0.50,
+        defaultSymbols: ['BTCUSD', 'ETHUSD'],
+        category: 'SOCIAL',
+        headers: { 'User-Agent': 'SwjshAK-Intel/1.0 (research bot)' },
+    },
+    {
+        name: 'reddit_stocks',
+        url: 'https://www.reddit.com/r/stocks/new/.rss',
+        displayName: 'Reddit r/stocks',
+        baseConfidence: 0.45,
+        defaultSymbols: ['BTCUSD', 'ETHUSD'],
+        category: 'SOCIAL',
+        headers: { 'User-Agent': 'SwjshAK-Intel/1.0 (research bot)' },
+    },
+    // NEW: SEC Form 4 (insider transactions)
+    {
+        name: 'sec_edgar_form4',
+        url: 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=4&dateb=&owner=include&count=40&search_text=&output=atom',
+        displayName: 'SEC EDGAR Form 4',
+        baseConfidence: 0.60,
+        defaultSymbols: [],
+        category: 'FILINGS',
+        headers: { 'User-Agent': 'SwjshAK-Intel/1.0 (research bot)' },
+    },
+    // NEW: Forex Factory calendar (RSS)
+    {
+        name: 'forex_factory',
+        url: 'https://www.forexfactory.com/ffcal_week_this.xml',
+        displayName: 'Forex Factory Calendar',
+        baseConfidence: 0.55,
+        defaultSymbols: ['EURUSD', 'GBPUSD'],
+        category: 'NEWS',
+        headers: { 'User-Agent': 'SwjshAK-Intel/1.0 (research bot)' },
+    },
+    // NEW: Investing.com economic news RSS
+    {
+        name: 'investing_news',
+        url: 'https://www.investing.com/rss/news_25.rss',
+        displayName: 'Investing.com News',
+        baseConfidence: 0.50,
+        defaultSymbols: ['BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD'],
+        category: 'NEWS',
+        headers: { 'User-Agent': 'SwjshAK-Intel/1.0 (research bot)' },
+    },
 ];
 
 const POLL_INTERVAL = 2 * 60 * 1000; // 2 minutes
@@ -157,7 +291,7 @@ interface KeywordRule {
     tag: string;
 }
 
-const KEYWORD_RULES: KeywordRule[] = [
+export const KEYWORD_RULES: KeywordRule[] = [
     // ── Crypto-specific ──
     { pattern: /\bbitcoin\b/i,                    direction: 'ALERT',   confidenceBoost: 0.1,  symbols: ['BTCUSD'], tag: 'Bitcoin' },
     { pattern: /\b(btc|crypto)\b/i,               direction: 'ALERT',   confidenceBoost: 0.1,  symbols: ['BTCUSD', 'ETHUSD'], tag: 'Crypto' },
@@ -166,6 +300,28 @@ const KEYWORD_RULES: KeywordRule[] = [
     { pattern: /\bcrypto.*(ban|crack|regulate)/i,  direction: 'BEARISH', confidenceBoost: 0.25, symbols: ['BTCUSD', 'ETHUSD'], tag: 'Crypto Regulation' },
     { pattern: /\bcrypto.*(adopt|reserve|legal)/i, direction: 'BULLISH', confidenceBoost: 0.25, symbols: ['BTCUSD', 'ETHUSD'], tag: 'Crypto Adoption' },
     { pattern: /\bstrategic.*reserve\b/i,          direction: 'BULLISH', confidenceBoost: 0.3,  symbols: ['BTCUSD'], tag: 'Strategic Reserve' },
+
+    // ── POLITICIAN TRADES (NEW) ──
+    { pattern: /\b(congress|senator|representative).*(bought|purchased|buy)/i, direction: 'BULLISH', confidenceBoost: 0.30, tag: 'Congress Trade' },
+    { pattern: /\b(congress|senator|representative).*(sold|sells|sell)/i,       direction: 'BEARISH', confidenceBoost: 0.25, tag: 'Congress Trade' },
+    { pattern: /\bpelosi\b.*(bought|purchased|buy|call)/i,                       direction: 'BULLISH', confidenceBoost: 0.35, tag: 'Pelosi Trade' },
+    { pattern: /\bpelosi\b.*(sold|sells|sell|put)/i,                             direction: 'BEARISH', confidenceBoost: 0.30, tag: 'Pelosi Trade' },
+    { pattern: /\b(senate|house).*(disclosure|filing|report)/i,                  direction: 'ALERT',   confidenceBoost: 0.20, tag: 'Senate Filing' },
+    { pattern: /\bstock\s*act\b/i,                                                direction: 'ALERT',   confidenceBoost: 0.15, tag: 'STOCK Act' },
+    { pattern: /\btuberville\b.*(trade|bought|sold)/i,                           direction: 'ALERT',   confidenceBoost: 0.25, tag: 'Tuberville Trade' },
+    { pattern: /\bcapitol\s*trades?\b/i,                                          direction: 'ALERT',   confidenceBoost: 0.20, tag: 'Capitol Trades' },
+
+    // ── ETF FLOWS (NEW) ──
+    { pattern: /\b(ibit|fbtc|gbtc|etha|feth)\b.*\binflow/i,                      direction: 'BULLISH', confidenceBoost: 0.25, symbols: ['BTCUSD', 'ETHUSD'], tag: 'ETF Inflow' },
+    { pattern: /\b(ibit|fbtc|gbtc|etha|feth)\b.*\boutflow/i,                     direction: 'BEARISH', confidenceBoost: 0.25, symbols: ['BTCUSD', 'ETHUSD'], tag: 'ETF Outflow' },
+    { pattern: /\bspot\s*(btc|bitcoin|eth|ethereum)\s*etf\b/i,                   direction: 'ALERT',   confidenceBoost: 0.20, symbols: ['BTCUSD', 'ETHUSD'], tag: 'Spot ETF' },
+    { pattern: /\bblackrock\b.*\b(bitcoin|btc|eth)\b/i,                           direction: 'ALERT',   confidenceBoost: 0.20, symbols: ['BTCUSD', 'ETHUSD'], tag: 'BlackRock Crypto' },
+
+    // ── INSIDER TRADING (NEW) ──
+    { pattern: /\bform\s*4\b/i,                                                   direction: 'ALERT',   confidenceBoost: 0.15, tag: 'Form 4 Filing' },
+    { pattern: /\b(ceo|cfo|director)\b.*(bought|purchased|buy)/i,                direction: 'BULLISH', confidenceBoost: 0.25, tag: 'Insider Buy' },
+    { pattern: /\b(ceo|cfo|director)\b.*(sold|sells|sell)/i,                     direction: 'BEARISH', confidenceBoost: 0.20, tag: 'Insider Sell' },
+    { pattern: /\binsider\b.*(cluster|buying|accumulation)/i,                    direction: 'BULLISH', confidenceBoost: 0.30, tag: 'Insider Cluster Buy' },
 
     // ── Macro / Fed ──
     { pattern: /\b(rate cut|dovish|easing)\b/i,          direction: 'BULLISH', confidenceBoost: 0.2, tag: 'Dovish' },
