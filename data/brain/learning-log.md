@@ -76,6 +76,19 @@
 - Fix applied: system-architecture.md corrected to show `timestamp` as the date column.
 - Status: RESOLVED (brain corrected)
 
+### [2026-03-18] `intel_signals` and `intel_decision_log` are two distinct tables
+- Evidence: 2026-03-18 audit confirmed both tables exist: `intel_signals` (raw data bus inputs from 18 sources, 24 rows, ECON_CALENDAR/MARKET_DATA sources confirmed), `intel_decision_log` (trade gating scores, 24 rows). Prior brain docs referred only to `intel_decision_log`. `intel_signals` was undocumented.
+- Impact: Any intel query counting "intel activity" must specify which table. The two counts are coincidentally equal (24 each) but represent different things.
+- Fix applied: system-architecture.md updated with both tables, schemas, and distinction.
+- Status: RESOLVED (brain corrected)
+
+### [2026-03-18] Undocumented agents: Crypto Cody and Digital Dash
+- Evidence: `run_crypto_cody.py` and `run_digital_dash.py` found in scripts/ during audit run #7. Both have full AGENT_STATUS_UPDATE patterns, direct Alpaca integration, and documentation headers. Neither appears in agents_db.json, brain files, or master-tracker.
+- Root Cause: Likely prototype agents or parallel development tracks never formally onboarded.
+- Impact: These agents could theoretically trade if launched manually, but are not tracked or monitored by the brain/Chief system.
+- Recommendation: Jack must clarify status — integrate or deprecate. If they trade, they MUST be in agents_db.json.
+- Status: CONFIRMED (pattern persists — agents exist, undocumented). Queued as GAP-013.
+
 ### [2026-03-17] agent_feedback_log has 0 rows — Professor→Agent learning loop broken
 - Evidence: 24 intel_decision_log rows (Intel IS firing), 0 agent_feedback_log rows. Professor exists, runs EOD, but grades are not being written back to agent memory files.
 - Impact: Agents cannot learn from Professor grades. Behavioral evolution disabled.

@@ -209,6 +209,28 @@ after Jack fixes it → fix gets added to playbook → brain never forgets a fai
 | MED | Confirm ORB Runner architecture | code | `run_orb_agent.ts` exists. `orb_engine.py` does NOT exist. `orb.ts` strategy file exists. Clarify: is ORB entirely TypeScript (use `orb.ts` strategy engine via agent_runner.ts) or does it need a Python process like the other agents? Document the answer and wire accordingly. |
 | LOW | Document `transactions` table in db.ts | brain/code | `transactions` table confirmed in journal.db schema but NOT documented in db.ts schema or system-architecture.md. Brain updated. Code: add table definition comment to db.ts. Purpose unclear — may be for multi-user billing (Phase 5) or general ledger. Jack should confirm. |
 | MED | Fix `/api/agents` staleness masking | code | `/api/agents` route injects live `last_updated` at read time, overwriting the frozen Feb 2026 timestamps from agents_db.json. This hides agent runner staleness from the dashboard. Fix: pass through raw `last_updated` from agents_db.json and add a separate `api_last_checked` field. Confirmed as of 2026-03-17 audit run #5. |
+| MED | Clarify dual Boba/SPX engine files | code | `boba_options_engine.py` and `spx_sniper_options_engine.py` both exist alongside `boba_trades_engine.py` and `spx_sniper_engine.py`. agent_runner uses `run_boba.py` and `run_spx_sniper.py` (wrapping the `_trades_engine` and `_engine` variants). The `*_options_engine.py` files appear to be deprecated or future. Jack: confirm which is active and remove or document the other. (GAP-012) |
+| MED | Clarify Crypto Cody and Digital Dash agent status | brain | `run_crypto_cody.py` and `run_digital_dash.py` exist in scripts/ with full AGENT_STATUS_UPDATE patterns and direct Alpaca integration. NOT documented in agents_db.json or brain files. Are these prototype agents being tested? Legacy? Future? Jack must clarify — either add to the roster and brain, or mark deprecated and remove from scripts/. (GAP-013) |
+
+---
+
+## Session Log — 2026-03-17 (09:02 PM ET)
+
+### System Builder Audit Run #7 (late evening)
+- Audited 8 brain files, 9 agent memory files, 16 strategy files (+4 test), full DB schema (11 tables), APIs, .env.local, scripts/
+- **Gaps found this run: 2 new (both MED) + 11 carry-forward confirmed open**
+- **New finding #1 — Dual engine files (MED, GAP-012):** Both `boba_options_engine.py` + `boba_trades_engine.py` and `spx_sniper_engine.py` + `spx_sniper_options_engine.py` exist. agent_runner.ts uses `run_boba.py` and `run_spx_sniper.py` (wrapping the primary variants). `*_options_engine.py` files are undocumented and of unknown status — may be deprecated or planned replacements. Queued for Jack clarification.
+- **New finding #2 — Undocumented agents (MED, GAP-013):** `run_crypto_cody.py` and `run_digital_dash.py` found in scripts/. Both are full agent runners with AGENT_STATUS_UPDATE patterns and direct Alpaca API integration. Neither appears in agents_db.json or brain docs. Prototype agents or legacy? Jack must clarify.
+- **DB update:** `transactions` table now has 1 row ($100,000 initial deposit, 2026-03-15). Was 0 last run. `accounts` master balance = $100,000. Confirmed this is Phase 5 multi-user architecture seed data, NOT Jack's $10k paper account. The two systems are separate.
+- **intel tables clarified:** `intel_signals` ≠ `intel_decision_log`. Two distinct tables. `intel_signals` = raw data bus inputs from 18 sources (ECON_CALENDAR, MARKET_DATA, etc.), 24 rows. `intel_decision_log` = scoring/gating decisions, 24 rows. Brain now documents both separately.
+- **agent_runner.ts confirmed:** Uses `run_boba.py`, `run_spx_sniper.py`, `run_pivot_pete.py`, `run_bitcoin_bob.py`. ORB Runner uses `run_orb_agent.ts` (TypeScript). `sterling_fx_engine.py` called directly. Pattern: Python engines launched via their `run_*.py` wrapper scripts.
+- **agents_db.json:** Still frozen at Feb 2026. 7th consecutive audit with no live agent updates. GAP-002 persists — this is now 30+ hours with no agent runner activity.
+- **Brain fixes applied this run:**
+  - `system-architecture.md` — Python Agents section rewritten: dual engine ambiguity documented, undocumented agents flagged, agent_runner wiring confirmed. DB schema updated: `intel_signals` fully documented, `intel_preflight_log` documented, `accounts`/`transactions` clarified as Phase 5 architecture. Known Architecture Gaps section added: GAP-001 through GAP-013 with severity, status, description. This file is now the authoritative architecture reference.
+  - `master-tracker.md` — 2 new queue items added (GAP-012, GAP-013). Session log this entry. Queue total: 15 items (5 HIGH, 6 MED, 4 LOW).
+- **Queue status:** 15 items total (5 HIGH, 6 MED, 4 LOW). 0 items closed — Jack has not yet applied code fixes.
+- **Roadmap:** Phase 1 ✅ | Phase 2 IN PROGRESS — 5 blockers unchanged
+- **⚠️ PERSISTENT ESCALATION:** GAP-002 (agent runner not updating) now persists across 7 audit runs spanning ~30 hours. No trades possible. Learning loops cannot begin. This remains the single most critical operational gap.
 
 ---
 
