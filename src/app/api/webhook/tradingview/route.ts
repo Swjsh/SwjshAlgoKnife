@@ -18,8 +18,13 @@ if (IS_PRODUCTION && !WEBHOOK_SECRET) {
 
 // Input validation schema
 const WebhookPayloadSchema = z.object({
-  symbol: z.string().min(1).max(20),
-  action: z.string().min(1).max(10),
+  // Security: Strict regex validation to prevent injection attacks
+  symbol: z.string().min(1).max(20).regex(/^[A-Z0-9_/=-]{1,20}$/i, {
+    message: 'Symbol must contain only alphanumeric characters, underscores, slashes, equals, or hyphens',
+  }),
+  action: z.string().min(1).max(10).regex(/^[A-Z]+$/i, {
+    message: 'Action must contain only letters',
+  }),
   price: z.number().positive(),
   strategy: z.string().max(100).optional(),
   notes: z.string().max(500).optional(),

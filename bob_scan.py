@@ -1,65 +1,69 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""Bitcoin Bob 4-hour scan"""
-
 import yfinance as yf
 import pandas as pd
+from datetime import datetime, timedelta
 import numpy as np
 
+# Fetch 1H data for last 30 days
+end = datetime.now()
+start = end - timedelta(days=30)
+
 symbols = ['BTC-USD', 'ETH-USD']
-
 for sym in symbols:
-    print(f'\n=== {sym} ===')
-    
-    # 1H chart (last 30 days for impulse detection)
-    df_1h = yf.download(sym, period='30d', interval='1h', progress=False)
-    
-    if len(df_1h) > 0:
-        # Calculate 20-period ATR
-        df_1h['tr1'] = df_1h['High'] - df_1h['Low']
-        df_1h['tr2'] = abs(df_1h['High'] - df_1h['Close'].shift(1))
-        df_1h['tr3'] = abs(df_1h['Low'] - df_1h['Close'].shift(1))
-        df_1h['tr'] = df_1h[['tr1', 'tr2', 'tr3']].max(axis=1)
-        df_1h['atr'] = df_1h['tr'].rolling(20).mean()
-        df_1h['body'] = abs(df_1h['Close'] - df_1h['Open'])
+    print(f'\n=== {sym} 1H Chart (Last 30 Days) ===')
+    try:
+        data = yf.download(sym, start=start, end=end, interval='1h', progress=False)
         
-        # Get current state
-        current_price = df_1h['Close'].iloc[-1]
-        latest_high = df_1h['High'].iloc[-1]
-        latest_low = df_1h['Low'].iloc[-1]
-        latest_body = df_1h['body'].iloc[-1]
-        latest_atr = df_1h['atr'].iloc[-1]
-        latest_vol = df_1h['Volume'].iloc[-1]
-        vol_avg_20 = df_1h['Volume'].rolling(20).mean().iloc[-1]
+        if data.empty:
+            print('No data')
+            continue
         
-        print(f'Current price: {current_price:.2f}')
-        print(f'1H Range: {latest_low:.2f} - {latest_high:.2f}')
-        print(f'\nTechnical metrics:')
-        print(f'  ATR(20): {latest_atr:.2f}')
-        print(f'  Latest candle body: {latest_body:.2f}')
-        print(f'  Body/ATR ratio: {latest_body/latest_atr:.2f}x (impulse threshold: 2.5x)')
+        # Recent 20 candles (20 hours)
+        recent = data.tail(20)
         
-        if vol_avg_20 > 0:
-            vol_ratio = latest_vol / vol_avg_20
-            print(f'  Volume ratio: {vol_ratio:.2f}x (20-period avg)')
+        # Calculate ATR (14-period)
+        high_low = recent['High'] - recent['Low']
+        high_close = abs(recent['High'] - recent['Close'].shift())
+        low_close = abs(recent['Low'] - recent['Close'].shift())
+        tr = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+        atr = tr.rolling(14).mean().iloc[-1]
+        
+        print(f'ATR(14): {float(atr):.2f}')
+        
+        # Latest candles
+        latest = recent.iloc[-5:]
+        print(f'\nRecent candles (last 5H):')
+        for idx, row in latest.iterrows():
+            body = float(abs(row['Close'] - row['Open']))
+            ts = idx.strftime('%Y-%m-%d %H:%M')
+            ratio = body / float(atr) if float(atr) > 0 else 0
+            o = float(row["Open"])
+            h = float(row["High"])
+            l = float(row["Low"])
+            c = float(row["Close"])
+            print(f'  {ts} | O:{o:.2f} H:{h:.2f} L:{l:.2f} C:{c:.2f} | Body:{body:.2f} | {ratio:.1f}x ATR')
+        
+        # Check for impulses in last 10 candles
+        last_10 = data.tail(10)
+        impulses = []
+        for i in range(1, len(last_10)):
+            candle = last_10.iloc[i]
+            body = float(abs(candle['Close'] - candle['Open']))
+            atr_val = float(atr)
+            if body >= 2.5 * atr_val:
+                direction = 'UP' if candle['Close'] > candle['Open'] else 'DOWN'
+                impulses.append({
+                    'time': last_10.index[i].strftime('%Y-%m-%d %H:%M'),
+                    'body': body,
+                    'ratio': body / atr_val,
+                    'direction': direction
+                })
+        
+        if impulses:
+            print(f'\nIMPULSES DETECTED ({len(impulses)}):')
+            for imp in impulses:
+                print(f'  {imp["time"]} | {imp["direction"]:4s} | {imp["ratio"]:.1f}x ATR')
         else:
-            vol_ratio = 0
-        
-        # Impulse detection
-        is_impulse = latest_body >= 2.5 * latest_atr
-        has_vol = vol_ratio >= 1.5
-        
-        print(f'\nSetup status:')
-        if is_impulse:
-            print(f'  [IMPULSE] Body {latest_body:.2f} >= 2.5x ATR {latest_atr:.2f}')
-            if has_vol:
-                print(f'  [VOLUME OK] {vol_ratio:.2f}x avg')
-            else:
-                print(f'  [NO VOLUME] {vol_ratio:.2f}x avg - need 1.5x+')
-        else:
-            print(f'  [NO IMPULSE] Body {latest_body:.2f} < 2.5x ATR {latest_atr:.2f}')
-            print(f'  Market is choppy/ranging')
-
-print('\n' + '='*50)
-print('SCAN SUMMARY (Monday 2026-03-16 20:03 EST)')
-print('='*50)
+            print(f'\nNo impulses (>2.5x ATR) in last 10 candles. Market is choppy.')
+            
+    except Exception as e:
+        print(f'Error: {e}')

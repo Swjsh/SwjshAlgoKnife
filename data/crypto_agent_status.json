@@ -1,116 +1,63 @@
 {
-  "last_updated": "2025-12-31T17:47:15.287225",
+  "id": "bitcoin_bob",
+  "name": "Bitcoin Bob",
   "status": "ACTIVE",
-  "active_pairs": 5,
+  "last_updated": "2026-03-17T16:04:38.332031",
+  "active_pairs": 3,
+  "scan_count": 1,
   "pending_orders": [
     {
-      "created_at": "2025-12-31 16:00",
-      "type": "SUPPLY",
-      "top": 0.12,
-      "bottom": 0.12,
-      "entry": 0.12,
-      "stop_loss": 0.12,
+      "created_at": "2026-03-14 23:00",
+      "type": "DEMAND",
+      "top": 70805.84,
+      "bottom": 70711.98,
+      "entry": 70805.84,
+      "stop_loss": 70693.21,
+      "take_profit": 71087.41,
       "status": "PENDING",
-      "ticker": "DOGE-USD"
+      "triggered": false
     },
     {
-      "created_at": "2025-12-31 15:00",
-      "type": "SUPPLY",
-      "top": 0.12,
-      "bottom": 0.12,
-      "entry": 0.12,
-      "stop_loss": 0.12,
+      "created_at": "2026-03-15 22:00",
+      "type": "DEMAND",
+      "top": 2143.74,
+      "bottom": 2124.14,
+      "entry": 2143.74,
+      "stop_loss": 2120.23,
+      "take_profit": 2202.51,
       "status": "PENDING",
-      "ticker": "DOGE-USD"
+      "triggered": false
     },
     {
-      "created_at": "2025-12-29 09:00",
-      "type": "SUPPLY",
-      "top": 89694.11,
-      "bottom": 89399.91,
-      "entry": 89399.91,
-      "stop_loss": 89752.95,
+      "created_at": "2026-03-15 22:00",
+      "type": "DEMAND",
+      "top": 89.92,
+      "bottom": 88.66,
+      "entry": 89.92,
+      "stop_loss": 88.41,
+      "take_profit": 93.7,
       "status": "PENDING",
-      "ticker": "BTC-USD"
+      "triggered": false
     },
     {
-      "created_at": "2025-12-22 19:00",
-      "type": "SUPPLY",
-      "top": 0.13,
-      "bottom": 0.13,
-      "entry": 0.13,
-      "stop_loss": 0.14,
+      "created_at": "2026-03-14 23:00",
+      "type": "DEMAND",
+      "top": 87.43,
+      "bottom": 87.28,
+      "entry": 87.43,
+      "stop_loss": 87.25,
+      "take_profit": 87.88,
       "status": "PENDING",
-      "ticker": "DOGE-USD"
-    },
-    {
-      "created_at": "2025-12-15 14:00",
-      "type": "SUPPLY",
-      "top": 3156.65,
-      "bottom": 3130.66,
-      "entry": 3130.66,
-      "stop_loss": 3161.85,
-      "status": "PENDING",
-      "ticker": "ETH-USD"
-    },
-    {
-      "created_at": "2025-12-15 14:00",
-      "type": "SUPPLY",
-      "top": 0.14,
-      "bottom": 0.14,
-      "entry": 0.14,
-      "stop_loss": 0.14,
-      "status": "PENDING",
-      "ticker": "DOGE-USD"
-    },
-    {
-      "created_at": "2025-12-12 15:00",
-      "type": "SUPPLY",
-      "top": 92589.55,
-      "bottom": 92012.87,
-      "entry": 92012.87,
-      "stop_loss": 92704.88,
-      "status": "PENDING",
-      "ticker": "BTC-USD"
-    },
-    {
-      "created_at": "2025-12-12 15:00",
-      "type": "SUPPLY",
-      "top": 3245.81,
-      "bottom": 3221.59,
-      "entry": 3221.59,
-      "stop_loss": 3250.66,
-      "status": "PENDING",
-      "ticker": "ETH-USD"
-    },
-    {
-      "created_at": "2025-12-12 15:00",
-      "type": "SUPPLY",
-      "top": 139.26,
-      "bottom": 138.5,
-      "entry": 138.5,
-      "stop_loss": 139.42,
-      "status": "PENDING",
-      "ticker": "SOL-USD"
-    },
-    {
-      "created_at": "2025-12-12 15:00",
-      "type": "SUPPLY",
-      "top": 0.14,
-      "bottom": 0.14,
-      "entry": 0.14,
-      "stop_loss": 0.14,
-      "status": "PENDING",
-      "ticker": "DOGE-USD"
+      "triggered": false
     }
   ],
-  "total_zones_found": 10,
-  "equity_curve": [
-    {
-      "date": "2025-01-01",
-      "balance": 5000
-    }
-  ],
+  "active_trades": [],
+  "live_prices": {
+    "BTC-USD": 74510.2265625,
+    "ETH-USD": 2322.238037109375,
+    "SOL-USD": 94.70230865478516
+  },
+  "total_zones_found": 4,
   "performance": {
     "win_rate": 0,
     "total_pnl": 0,

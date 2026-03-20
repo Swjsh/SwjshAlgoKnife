@@ -1,16 +1,7 @@
 import sqlite3
-
-conn = sqlite3.connect(r'C:\Users\jackw\Desktop\SwjshAlgoKnife\journal.db')
+conn = sqlite3.connect('journal.db')
 cur = conn.cursor()
-cur.execute("""SELECT symbol, direction, ROUND(entry_price,5) as entry, status, entry_date 
-             FROM trades 
-             WHERE status='OPEN' 
-             AND (symbol LIKE '%USD%' OR symbol LIKE '%GBP%' OR symbol LIKE '%EUR%' OR symbol LIKE '%JPY%')
-             ORDER BY entry_date DESC""")
-rows = cur.fetchall()
-if rows:
-    for row in rows:
-        print(row)
-else:
-    print("No open positions")
+cur.execute("""SELECT symbol, direction, status, ROUND(pnl,2) as pnl, entry_date, ROUND(entry_price,2) as entry FROM trades WHERE (symbol LIKE '%BTC%' OR symbol LIKE '%ETH%') AND entry_date >= datetime('now','-24 hours') ORDER BY entry_date DESC""")
+for row in cur.fetchall():
+    print(row)
 conn.close()

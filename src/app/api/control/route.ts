@@ -2,7 +2,12 @@
  * /api/control — LLM Control API for SwjshAlgoKnife
  *
  * Serves as the programmatic interface for LLM agents to query system status
- * and execute control commands. No authentication required (internal/local use).
+ * and execute control commands.
+ *
+ * SECURITY (updated 2026-03-18):
+ *   - Authentication REQUIRED in production (X-Control-Key header)
+ *   - Rate limited: 60 req/min GET, 30 req/min POST
+ *   - Localhost access allowed in development without key
  *
  * GET  /api/control   — Full system status snapshot
  * POST /api/control   — Execute control commands (pause, resume, restart, etc.)
@@ -56,6 +61,47 @@ interface ControlCommand {
   timestamp: string;
   status: 'pending' | 'completed' | 'failed';
 }
+
+// ============================================================================
+// Rate Limiting (Security Fix: Prevent DoS on control endpoints)
+// ============================================================================
+
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+
+const controlRateLimitStore = new Map<string, RateLimitEntry>();
+
+function checkRateLimit(
+  clientIp: string,
+  max: number = 60,
+  windowSeconds: number = 60
+): { allowed: boolean; remaining: number; resetAt: number } {
+  const now = Date.now();
+  const key = `control:${clientIp}`;
+  const entry = controlRateLimitStore.get(key);
+
+  if (!entry || now > entry.resetAt) {
+    const resetAt = now + windowSeconds * 1000;
+    controlRateLimitStore.set(key, { count: 1, resetAt });
+    return { allowed: true, remaining: max - 1, resetAt };
+  }
+
+  entry.count++;
+  const remaining = Math.max(0, max - entry.count);
+  return { allowed: entry.count <= max, remaining, resetAt: entry.resetAt };
+}
+
+// Cleanup stale rate limit entries every 10 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of controlRateLimitStore) {
+    if (now > entry.resetAt) {
+      controlRateLimitStore.delete(key);
+    }
+  }
+}, 10 * 60 * 1000);
 
 // ============================================================================
 // Helpers
@@ -225,17 +271,50 @@ POST /api/control
 }
 
 // ============================================================================
-// Auth Helper — Optional API key guard
+// Auth Helper — REQUIRED API key guard (Security Fix: fail closed)
 // ============================================================================
 
 /**
- * Verify the Control API key if CONTROL_API_KEY env var is set.
- * When the env var is NOT set, all requests are allowed (local/internal use).
- * When set, requests must include: X-Control-Key: <key>
+ * Verify the Control API key. Authentication is ALWAYS required.
+ * In production, CONTROL_API_KEY must be set or requests are rejected.
+ * Requests must include: X-Control-Key: <key>
+ *
+ * Security Note: Changed from "open by default" to "closed by default"
+ * to prevent unauthorized access to trading controls.
  */
 function checkAuth(req: NextRequest): NextResponse | null {
   const requiredKey = process.env.CONTROL_API_KEY;
-  if (!requiredKey) return null; // No key configured — open access
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // Security: Fail closed - require auth in production
+  if (!requiredKey) {
+    if (isProduction) {
+      console.error('CRITICAL: CONTROL_API_KEY not set in production!');
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Service misconfiguration. Contact administrator.',
+          timestamp: new Date().toISOString(),
+        },
+        { status: 500 }
+      );
+    }
+    // In development, warn but allow localhost access
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+                     req.headers.get('x-real-ip') || '';
+    if (!clientIp.includes('127.0.0.1') && !clientIp.includes('::1') && clientIp !== 'localhost') {
+      console.warn('Control API accessed without auth from non-localhost:', clientIp);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Unauthorized. Set CONTROL_API_KEY for production use.',
+          timestamp: new Date().toISOString(),
+        },
+        { status: 401 }
+      );
+    }
+    return null; // Allow localhost in dev without key
+  }
 
   const providedKey = req.headers.get('x-control-key');
   if (!providedKey || providedKey !== requiredKey) {
@@ -256,6 +335,23 @@ function checkAuth(req: NextRequest): NextResponse | null {
 // ============================================================================
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
+  // Security: Rate limiting
+  const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+                   req.headers.get('x-real-ip') || 'unknown';
+  const { allowed, remaining, resetAt } = checkRateLimit(clientIp, 60, 60);
+  if (!allowed) {
+    return NextResponse.json(
+      { success: false, error: 'Rate limit exceeded', timestamp: new Date().toISOString() },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil((resetAt - Date.now()) / 1000)),
+          'X-RateLimit-Remaining': String(remaining),
+        },
+      }
+    );
+  }
+
   const authError = checkAuth(req);
   if (authError) return authError;
 
@@ -314,6 +410,23 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 // ============================================================================
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  // Security: Stricter rate limiting for POST (commands can change state)
+  const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+                   req.headers.get('x-real-ip') || 'unknown';
+  const { allowed, remaining, resetAt } = checkRateLimit(clientIp, 30, 60); // 30/min for commands
+  if (!allowed) {
+    return NextResponse.json(
+      { success: false, error: 'Rate limit exceeded', timestamp: new Date().toISOString() },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil((resetAt - Date.now()) / 1000)),
+          'X-RateLimit-Remaining': String(remaining),
+        },
+      }
+    );
+  }
+
   const authError = checkAuth(req);
   if (authError) return authError;
 

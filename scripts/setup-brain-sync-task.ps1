@@ -26,11 +26,11 @@ if ($existing) {
     Write-Host 'Removed existing task' -ForegroundColor Yellow
 }
 
-# Create trigger: Every 5 minutes
-$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 5)
+# Create trigger: Daily at 6 AM
+$trigger = New-ScheduledTaskTrigger -Daily -At '6:00AM'
 
-# Create action: Run PowerShell script
-$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-ExecutionPolicy Bypass -NoProfile -File `"$SyncScript`""
+# Create action: Run PowerShell script (hidden, no window popup)
+$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -File `"$SyncScript`""
 
 # Create settings
 $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Minutes 5) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
@@ -44,7 +44,7 @@ $task = Get-ScheduledTask -TaskName $TaskName -EA SilentlyContinue
 if ($task) {
     Write-Host '[OK] Task registered successfully!' -ForegroundColor Green
     Write-Host "Task Name: $TaskName"
-    Write-Host 'Schedule: Every 5 minutes'
+    Write-Host 'Schedule: Daily at 6:00 AM'
     Write-Host ''
     Write-Host 'Verify with: schtasks /query /tn SwjshAK-BrainSync /v' -ForegroundColor Yellow
 } else {

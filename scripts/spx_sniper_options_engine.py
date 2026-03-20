@@ -21,6 +21,7 @@ Changes from spx_sniper_engine.py:
   ✅ Daily trade count limit (max 2 losers = done for the day)
 """
 
+import os
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -55,7 +56,9 @@ MIN_OPEN_INTEREST   = 200
 MAX_SPREAD_PCT      = 10.0           # Tight spreads for scalps
 STATUS_FILE         = Path(__file__).parent.parent / 'data' / 'spx_agent_status.json'
 WEBHOOK_URL         = "http://localhost:3000/api/webhook/tradingview"
-WEBHOOK_SECRET      = "swjshak-tv-webhook-2026"
+WEBHOOK_SECRET      = os.getenv("WEBHOOK_SECRET")
+if not WEBHOOK_SECRET:
+    raise RuntimeError("WEBHOOK_SECRET environment variable is required")
 
 EST = pytz.timezone('US/Eastern')
 

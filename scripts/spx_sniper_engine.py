@@ -11,6 +11,7 @@ SPX Sniper Agent — 0DTE Options Scalper (Proxy via SPY)
 • Broadcasts AGENT_STATUS_UPDATE for the dashboard
 """
 
+import os
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -32,7 +33,9 @@ MAX_OPEN_TRADES    = 1               # 0DTE = one at a time
 RISK_REWARD        = 1.5
 STATUS_FILE        = Path(__file__).parent.parent / 'data' / 'spx_agent_status.json'
 WEBHOOK_URL        = "http://localhost:3000/api/webhook/tradingview"
-WEBHOOK_SECRET     = "swjshak-tv-webhook-2026"
+WEBHOOK_SECRET     = os.getenv("WEBHOOK_SECRET")
+if not WEBHOOK_SECRET:
+    raise RuntimeError("WEBHOOK_SECRET environment variable is required")
 
 EST = pytz.timezone('US/Eastern')
 

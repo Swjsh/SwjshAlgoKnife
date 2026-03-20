@@ -9,6 +9,7 @@ Bitcoin Bob Agent - Crypto Supply & Demand Zone Trader
 • 100% paper — uses Alpaca Paper via the webhook → executor → Alpaca chain
 """
 
+import os
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -22,7 +23,9 @@ from data_feeds import build_feed_for_agent, get_latest_price
 
 # ── Config ────────────────────────────────────────────────────────────────────
 WEBHOOK_URL       = "http://localhost:3000/api/webhook/tradingview"
-WEBHOOK_SECRET    = "swjshak-tv-webhook-2026"   # must match .env.local WEBHOOK_SECRET
+WEBHOOK_SECRET    = os.getenv("WEBHOOK_SECRET")
+if not WEBHOOK_SECRET:
+    raise RuntimeError("WEBHOOK_SECRET environment variable is required")
 PAIRS             = ['BTC-USD', 'ETH-USD', 'SOL-USD']
 TIMEFRAME         = '1h'
 PERIOD            = '30d'

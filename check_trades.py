@@ -2,17 +2,23 @@ import sqlite3
 
 conn = sqlite3.connect('journal.db')
 cursor = conn.cursor()
+
+# Check recent BTC/ETH trades
 cursor.execute("""
-SELECT symbol, direction, ROUND(entry_price,5) as entry, status, entry_date 
+SELECT symbol, direction, status, ROUND(pnl, 2) as pnl, entry_date, ROUND(entry_price, 2) as entry 
 FROM trades 
-WHERE status='OPEN' 
-AND (symbol LIKE '%USD%' OR symbol LIKE '%GBP%' OR symbol LIKE '%EUR%' OR symbol LIKE '%JPY%') 
+WHERE (symbol LIKE '%BTC%' OR symbol LIKE '%ETH%') 
+AND entry_date >= datetime('now','-24 hours') 
 ORDER BY entry_date DESC
 """)
-rows = cursor.fetchall()
-if rows:
-    for row in rows:
-        print(row)
+
+trades = cursor.fetchall()
+
+if trades:
+    print("=== Recent BTC/ETH Trades (24h) ===")
+    for trade in trades:
+        print(f"{trade[0]} | {trade[1]} | {trade[2]} | P&L: ${trade[3]} | Entry: ${trade[5]} | {trade[4]}")
 else:
-    print("No open FX positions")
+    print("No recent BTC/ETH trades in last 24 hours")
+
 conn.close()

@@ -40,5 +40,19 @@
     "content": "Bitcoin Bob online - scanning BTC-USD, ETH-USD, SOL-USD",
     "type": "status",
     "id": "crypto-1773691459"
+  },
+  {
+    "timestamp": "2026-03-17T16:04:37.740285",
+    "agentId": "crypto",
+    "content": "BTC impulse found. That's a huge wick.",
+    "type": "status",
+    "id": "crypto-1773777877"
+  },
+  {
+    "timestamp": "2026-03-17T16:04:37.744863",
+    "agentId": "crypto",
+    "content": "\ud83d\ude80 Bitcoin Bob online \u2014 scanning BTC-USD, ETH-USD, SOL-USD",
+    "type": "status",
+    "id": "crypto-1773777877"
   }
 ]

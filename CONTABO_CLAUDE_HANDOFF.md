@@ -63,7 +63,7 @@ apt-get install -y git
 If repo is NOT cloned:
 ```bash
 cd /root
-git clone https://github.com/SwjshDev/SwjshAlgoKnife.git
+git clone https://github.com/Swjsh/SwjshAlgoKnife.git
 cd SwjshAlgoKnife
 ```
 

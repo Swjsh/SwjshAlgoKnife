@@ -9,6 +9,7 @@ Boba — Options S&D Zone Trader (Paper via SPY Proxy)
 • Broadcasts AGENT_STATUS_UPDATE for the dashboard
 """
 
+import os
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -30,7 +31,9 @@ SL_PCT              = 0.015          # 1.5% stop (tighter for equity proxy)
 TP_PCT              = 0.03           # 3% target (simulates options leverage gain)
 STATUS_FILE         = Path(__file__).parent.parent / 'data' / 'boba_agent_status.json'
 WEBHOOK_URL         = "http://localhost:3000/api/webhook/tradingview"
-WEBHOOK_SECRET      = "swjshak-tv-webhook-2026"
+WEBHOOK_SECRET      = os.getenv("WEBHOOK_SECRET")
+if not WEBHOOK_SECRET:
+    raise RuntimeError("WEBHOOK_SECRET environment variable is required")
 
 EST = pytz.timezone('US/Eastern')
 
