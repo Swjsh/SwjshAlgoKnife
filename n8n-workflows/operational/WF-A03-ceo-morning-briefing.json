@@ -1,0 +1,649 @@
+{
+  "name": "WF-A03 CEO Morning Briefing",
+  "nodes": [
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1-5"
+            }
+          ]
+        }
+      },
+      "notes": "Triggers at 8:00 AM ET on weekdays (Mon-Fri). Server timezone must be set to America/New_York."
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000002",
+      "name": "Fetch System Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [250, 100],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/control",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches current system status including agent states and killswitch status"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000003",
+      "name": "Fetch Yesterday Trades",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [250, 250],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'http://localhost:3000/api/trades?startDate=' + $now.minus({days: 1}).toFormat('yyyy-MM-dd') + '&endDate=' + $now.minus({days: 1}).toFormat('yyyy-MM-dd') }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches all trades from yesterday for P&L calculation"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000004",
+      "name": "Fetch Agent Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [250, 400],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/agents",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches status of all trading agents"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000005",
+      "name": "Fetch Open Positions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [250, 550],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/brokers/positions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches current open positions across all brokers"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000006",
+      "name": "Fetch Fear Greed Index",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [250, 700],
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.alternative.me/fng/",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Fetches Crypto Fear & Greed Index for market sentiment"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000007",
+      "name": "Fetch Economic Calendar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [250, 850],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://nfs.faireconomy.media/ff_calendar_thisweek.json' }}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Fetches economic events from ForexFactory for today"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000008",
+      "name": "Merge All Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [550, 400],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "notes": "Combines all parallel API responses into single item for processing"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000009",
+      "name": "Calculate Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 400],
+      "parameters": {
+        "jsCode": "// Aggregate all data from parallel fetches\nconst systemStatus = $('Fetch System Status').first()?.json || {};\nconst trades = $('Fetch Yesterday Trades').first()?.json?.trades || [];\nconst agents = $('Fetch Agent Status').first()?.json?.agents || [];\nconst positions = $('Fetch Open Positions').first()?.json?.positions || [];\nconst fearGreed = $('Fetch Fear Greed Index').first()?.json?.data?.[0] || {};\nconst calendar = $('Fetch Economic Calendar').first()?.json || [];\n\n// Calculate trading metrics\nconst yesterdayPnL = trades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);\nconst winningTrades = trades.filter(t => parseFloat(t.pnl) > 0);\nconst losingTrades = trades.filter(t => parseFloat(t.pnl) < 0);\nconst winRate = trades.length > 0 ? (winningTrades.length / trades.length * 100) : 0;\nconst avgWin = winningTrades.length > 0 ? winningTrades.reduce((s, t) => s + parseFloat(t.pnl), 0) / winningTrades.length : 0;\nconst avgLoss = losingTrades.length > 0 ? losingTrades.reduce((s, t) => s + parseFloat(t.pnl), 0) / losingTrades.length : 0;\n\n// Calculate agent health\nconst runningAgents = agents.filter(a => a.status === 'running' || a.status === 'active');\nconst stoppedAgents = agents.filter(a => a.status === 'stopped' || a.status === 'paused');\nconst errorAgents = agents.filter(a => a.status === 'error');\n\n// Calculate open exposure\nconst openExposure = positions.reduce((sum, p) => sum + Math.abs(parseFloat(p.marketValue) || parseFloat(p.notional) || 0), 0);\nconst unrealizedPnL = positions.reduce((sum, p) => sum + (parseFloat(p.unrealizedPnl) || 0), 0);\n\n// Filter today's high-impact economic events\nconst today = new Date().toISOString().split('T')[0];\nconst todayEvents = Array.isArray(calendar) ? calendar.filter(e => {\n  const eventDate = e.date?.split(' ')?.[0] || '';\n  return eventDate.includes(today.substring(5)) && e.impact === 'High';\n}) : [];\n\n// Determine overall system health\nlet systemHealth = 'HEALTHY';\nlet healthColor = 3066993; // Green\nif (errorAgents.length > 0 || systemStatus.killswitch) {\n  systemHealth = 'CRITICAL';\n  healthColor = 15158332; // Red\n} else if (stoppedAgents.length > agents.length * 0.3) {\n  systemHealth = 'DEGRADED';\n  healthColor = 16776960; // Yellow\n}\n\n// Determine P&L sentiment\nlet pnlEmoji = '';\nlet pnlColor = 3066993;\nif (yesterdayPnL >= 500) {\n  pnlEmoji = ':rocket:';\n  pnlColor = 3066993;\n} else if (yesterdayPnL >= 0) {\n  pnlEmoji = ':white_check_mark:';\n  pnlColor = 3066993;\n} else if (yesterdayPnL >= -200) {\n  pnlEmoji = ':warning:';\n  pnlColor = 16776960;\n} else {\n  pnlEmoji = ':x:';\n  pnlColor = 15158332;\n}\n\nreturn {\n  json: {\n    date: new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),\n    timestamp: new Date().toISOString(),\n    \n    trading: {\n      yesterdayPnL: yesterdayPnL.toFixed(2),\n      tradeCount: trades.length,\n      winRate: winRate.toFixed(1),\n      avgWin: avgWin.toFixed(2),\n      avgLoss: avgLoss.toFixed(2),\n      pnlEmoji,\n      pnlColor\n    },\n    \n    system: {\n      health: systemHealth,\n      healthColor,\n      killswitchActive: systemStatus.killswitch || false,\n      totalAgents: agents.length,\n      runningAgents: runningAgents.length,\n      stoppedAgents: stoppedAgents.length,\n      errorAgents: errorAgents.length,\n      agentDetails: agents.map(a => ({ name: a.name, status: a.status }))\n    },\n    \n    exposure: {\n      openPositionCount: positions.length,\n      totalExposure: openExposure.toFixed(2),\n      unrealizedPnL: unrealizedPnL.toFixed(2)\n    },\n    \n    market: {\n      fearGreedValue: fearGreed.value || 'N/A',\n      fearGreedClassification: fearGreed.value_classification || 'N/A',\n      todayHighImpactEvents: todayEvents.map(e => `${e.title} (${e.country})`).slice(0, 5)\n    },\n    \n    rawData: {\n      trades: trades.slice(0, 10), // Limit for AI context\n      positions,\n      agents\n    }\n  }\n};"
+      },
+      "notes": "Calculates all metrics from raw data: P&L, win rate, agent health, exposure, market sentiment"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000010",
+      "name": "Check Data Quality",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1050, 400],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-quality",
+              "leftValue": "={{ $json.system.totalAgents }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "notes": "Validates that we have meaningful data before generating briefing"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000011",
+      "name": "Generate AI Briefing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1300, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 1024,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are the executive briefing assistant for SwjshAK autonomous trading system.\\n\\nGenerate a concise CEO morning briefing based on this data:\\n\\n## TRADING PERFORMANCE\\n- Yesterday P&L: ${{ $json.trading.yesterdayPnL }}\\n- Trade Count: {{ $json.trading.tradeCount }}\\n- Win Rate: {{ $json.trading.winRate }}%\\n- Avg Win: ${{ $json.trading.avgWin }}\\n- Avg Loss: ${{ $json.trading.avgLoss }}\\n\\n## SYSTEM STATUS\\n- Overall Health: {{ $json.system.health }}\\n- Killswitch: {{ $json.system.killswitchActive ? 'ACTIVE' : 'Normal' }}\\n- Agents: {{ $json.system.runningAgents }}/{{ $json.system.totalAgents }} running\\n- Agents in Error: {{ $json.system.errorAgents }}\\n\\n## OPEN EXPOSURE\\n- Position Count: {{ $json.exposure.openPositionCount }}\\n- Total Exposure: ${{ $json.exposure.totalExposure }}\\n- Unrealized P&L: ${{ $json.exposure.unrealizedPnL }}\\n\\n## MARKET CONTEXT\\n- Fear & Greed: {{ $json.market.fearGreedValue }} ({{ $json.market.fearGreedClassification }})\\n- Today's High-Impact Events: {{ $json.market.todayHighImpactEvents.join(', ') || 'None scheduled' }}\\n\\nFormat your response as:\\n\\n**PERFORMANCE** (2-3 bullets on yesterday's trading)\\n**SYSTEM** (1-2 bullets on health)\\n**EXPOSURE** (1 bullet on risk)\\n**MARKET** (1-2 bullets on context)\\n**ACTION ITEMS** (2-3 specific recommendations for today)\\n\\nBe direct, use emojis sparingly, max 300 words.\"\n    }\n  ]\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "anthropic-api-key",
+          "name": "Anthropic API Key"
+        }
+      },
+      "notes": "Calls Claude API to generate intelligent morning briefing from metrics"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000012",
+      "name": "Generate Fallback Briefing",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 500],
+      "parameters": {
+        "jsCode": "// Fallback when data quality check fails\nconst metrics = $('Calculate Metrics').first()?.json || {};\n\nconst fallbackContent = `**SYSTEM STATUS: Data Collection Issue**\n\nUnable to collect complete system data for morning briefing.\n\n**Available Data:**\n- Agents detected: ${metrics.system?.totalAgents || 0}\n- System health: ${metrics.system?.health || 'UNKNOWN'}\n\n**ACTION REQUIRED:**\n1. Check SwjshAK dashboard manually\n2. Verify all API endpoints are responding\n3. Review agent runner logs for errors\n\n*This is an automated fallback message. Normal briefings will resume when data collection is restored.*`;\n\nreturn {\n  json: {\n    content: [{\n      type: 'text',\n      text: fallbackContent\n    }],\n    isFallback: true,\n    metrics\n  }\n};"
+      },
+      "notes": "Generates a simple fallback message when data quality is insufficient"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000013",
+      "name": "Merge Briefing Paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1550, 400],
+      "parameters": {
+        "mode": "chooseBranch",
+        "output": "input1"
+      },
+      "notes": "Combines AI briefing and fallback paths"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000014",
+      "name": "Format Discord Embed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1800, 400],
+      "parameters": {
+        "jsCode": "const aiResponse = $json;\nconst metrics = $('Calculate Metrics').first()?.json;\n\n// Extract briefing text from AI response or fallback\nlet briefingText = '';\nif (aiResponse?.content?.[0]?.text) {\n  briefingText = aiResponse.content[0].text;\n} else if (aiResponse?.isFallback) {\n  briefingText = aiResponse.content?.[0]?.text || 'Briefing generation failed';\n}\n\n// Determine embed color based on P&L\nlet embedColor = 3066993; // Default green\nif (metrics?.trading?.pnlColor) {\n  embedColor = metrics.trading.pnlColor;\n}\nif (metrics?.system?.health === 'CRITICAL') {\n  embedColor = 15158332; // Red\n} else if (metrics?.system?.health === 'DEGRADED') {\n  embedColor = 16776960; // Yellow\n}\n\n// Build Discord embed structure\nconst embed = {\n  title: `:sunrise: CEO Morning Briefing - ${metrics?.date || new Date().toLocaleDateString()}`,\n  description: briefingText.substring(0, 4000), // Discord limit\n  color: embedColor,\n  fields: [\n    {\n      name: ':chart_with_upwards_trend: P&L',\n      value: `$${metrics?.trading?.yesterdayPnL || '0.00'}`,\n      inline: true\n    },\n    {\n      name: ':dart: Win Rate',\n      value: `${metrics?.trading?.winRate || '0'}%`,\n      inline: true\n    },\n    {\n      name: ':robot: Agents',\n      value: `${metrics?.system?.runningAgents || 0}/${metrics?.system?.totalAgents || 0}`,\n      inline: true\n    },\n    {\n      name: ':scales: Exposure',\n      value: `$${metrics?.exposure?.totalExposure || '0.00'}`,\n      inline: true\n    },\n    {\n      name: ':thermometer: Fear/Greed',\n      value: `${metrics?.market?.fearGreedValue || 'N/A'} (${metrics?.market?.fearGreedClassification || 'N/A'})`,\n      inline: true\n    },\n    {\n      name: ':shield: System',\n      value: metrics?.system?.health || 'UNKNOWN',\n      inline: true\n    }\n  ],\n  footer: {\n    text: 'SwjshAK Autonomous Trading | CEO Briefing v1.0'\n  },\n  timestamp: new Date().toISOString()\n};\n\nreturn {\n  json: {\n    embed,\n    briefingText,\n    metrics,\n    channelId: process.env.DISCORD_CEO_CHANNEL_ID || 'ceo-briefing'\n  }\n};"
+      },
+      "notes": "Formats the briefing as a rich Discord embed with color-coded status"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000015",
+      "name": "Post to Discord",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2050, 300],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.channelId }}"
+        },
+        "content": "",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts the formatted briefing embed to #ceo-briefing Discord channel"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000016",
+      "name": "Log to Audit Trail",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2050, 500],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/audit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event\": \"ceo_briefing_sent\",\n  \"timestamp\": \"{{ $now.toISO() }}\",\n  \"workflow\": \"WF-A03\",\n  \"data\": {\n    \"pnl\": \"{{ $('Calculate Metrics').first().json.trading.yesterdayPnL }}\",\n    \"systemHealth\": \"{{ $('Calculate Metrics').first().json.system.health }}\",\n    \"agentsRunning\": {{ $('Calculate Metrics').first().json.system.runningAgents }},\n    \"briefingLength\": {{ $json.briefingText.length }}\n  }\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Logs briefing event to audit trail for historical tracking"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000017",
+      "name": "Check Critical Alerts",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2300, 400],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-critical",
+              "leftValue": "={{ $('Calculate Metrics').first().json.system.health }}",
+              "rightValue": "CRITICAL",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "notes": "Checks if system health is CRITICAL to trigger escalation"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000018",
+      "name": "Send Critical Alert",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2550, 300],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_ALERTS_CHANNEL_ID || 'alerts' }}"
+        },
+        "content": ":rotating_light: **CRITICAL SYSTEM ALERT** :rotating_light:\n\nMorning briefing detected critical issues requiring immediate attention.\n\n**System Status:** {{ $('Calculate Metrics').first().json.system.health }}\n**Killswitch:** {{ $('Calculate Metrics').first().json.system.killswitchActive ? 'ACTIVE' : 'Normal' }}\n**Agents in Error:** {{ $('Calculate Metrics').first().json.system.errorAgents }}\n\n<@&role-id> Please investigate immediately.",
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Sends critical alert to #alerts channel with @mention for urgent issues"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000019",
+      "name": "Workflow Complete",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [2800, 400],
+      "parameters": {},
+      "notes": "End node - workflow completed successfully"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000020",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 600],
+      "parameters": {},
+      "notes": "Catches any errors in this workflow"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000021",
+      "name": "Format Error Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [250, 600],
+      "parameters": {
+        "jsCode": "const error = $json;\n\nconst errorEmbed = {\n  title: ':warning: CEO Briefing Workflow Error',\n  description: `The morning briefing workflow encountered an error.`,\n  color: 15158332, // Red\n  fields: [\n    {\n      name: 'Error Message',\n      value: error.execution?.error?.message?.substring(0, 1000) || 'Unknown error',\n      inline: false\n    },\n    {\n      name: 'Failed Node',\n      value: error.execution?.error?.node?.name || 'Unknown',\n      inline: true\n    },\n    {\n      name: 'Execution ID',\n      value: error.execution?.id || 'Unknown',\n      inline: true\n    },\n    {\n      name: 'Timestamp',\n      value: new Date().toISOString(),\n      inline: true\n    }\n  ],\n  footer: {\n    text: 'WF-A03 Error Handler'\n  }\n};\n\nreturn {\n  json: {\n    embed: errorEmbed,\n    errorDetails: error\n  }\n};"
+      },
+      "notes": "Formats error details for Discord notification"
+    },
+    {
+      "id": "a1b2c3d4-0001-4000-8000-000000000022",
+      "name": "Post Error to Discord",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [500, 600],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_ERRORS_CHANNEL_ID || 'n8n-errors' }}"
+        },
+        "content": "",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts error notification to #n8n-errors channel"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          { "node": "Fetch System Status", "type": "main", "index": 0 },
+          { "node": "Fetch Yesterday Trades", "type": "main", "index": 0 },
+          { "node": "Fetch Agent Status", "type": "main", "index": 0 },
+          { "node": "Fetch Open Positions", "type": "main", "index": 0 },
+          { "node": "Fetch Fear Greed Index", "type": "main", "index": 0 },
+          { "node": "Fetch Economic Calendar", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch System Status": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch Yesterday Trades": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Fetch Agent Status": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 2 }
+        ]
+      ]
+    },
+    "Fetch Open Positions": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 3 }
+        ]
+      ]
+    },
+    "Fetch Fear Greed Index": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 4 }
+        ]
+      ]
+    },
+    "Fetch Economic Calendar": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 5 }
+        ]
+      ]
+    },
+    "Merge All Data": {
+      "main": [
+        [
+          { "node": "Calculate Metrics", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Calculate Metrics": {
+      "main": [
+        [
+          { "node": "Check Data Quality", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Check Data Quality": {
+      "main": [
+        [
+          { "node": "Generate AI Briefing", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Generate Fallback Briefing", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Generate AI Briefing": {
+      "main": [
+        [
+          { "node": "Merge Briefing Paths", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Generate Fallback Briefing": {
+      "main": [
+        [
+          { "node": "Merge Briefing Paths", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Merge Briefing Paths": {
+      "main": [
+        [
+          { "node": "Format Discord Embed", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Format Discord Embed": {
+      "main": [
+        [
+          { "node": "Post to Discord", "type": "main", "index": 0 },
+          { "node": "Log to Audit Trail", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Post to Discord": {
+      "main": [
+        [
+          { "node": "Check Critical Alerts", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Log to Audit Trail": {
+      "main": [
+        [
+          { "node": "Check Critical Alerts", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Check Critical Alerts": {
+      "main": [
+        [
+          { "node": "Send Critical Alert", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Send Critical Alert": {
+      "main": [
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          { "node": "Format Error Message", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Format Error Message": {
+      "main": [
+        [
+          { "node": "Post Error to Discord", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "operational" },
+    { "name": "daily" },
+    { "name": "ceo-briefing" }
+  ],
+  "triggerCount": 1,
+  "versionId": "1.0.0",
+  "meta": {
+    "instanceId": "swjshak-n8n",
+    "templateCredsSetupCompleted": false
+  }
+}

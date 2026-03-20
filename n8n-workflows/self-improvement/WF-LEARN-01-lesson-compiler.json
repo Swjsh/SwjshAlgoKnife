@@ -1,0 +1,964 @@
+{
+  "name": "WF-LEARN-01: Weekly Lesson Compiler",
+  "nodes": [
+    {
+      "id": "learn01-0001",
+      "name": "Schedule: Friday 5PM ET",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 400],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 17 * * 5"
+            }
+          ]
+        }
+      },
+      "notes": "Triggers every Friday at 5 PM ET to compile weekly lessons after market close"
+    },
+    {
+      "id": "learn01-0002",
+      "name": "Set: Week Boundaries",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 400],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "name": "weekStart",
+              "value": "={{ $now.minus({ days: 5 }).startOf('day').toISO() }}",
+              "type": "string"
+            },
+            {
+              "name": "weekEnd",
+              "value": "={{ $now.endOf('day').toISO() }}",
+              "type": "string"
+            },
+            {
+              "name": "weekNumber",
+              "value": "={{ $now.weekNumber }}",
+              "type": "number"
+            },
+            {
+              "name": "year",
+              "value": "={{ $now.year }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "notes": "Calculate week boundaries (Mon-Fri) for data fetching"
+    },
+    {
+      "id": "learn01-0003",
+      "name": "HTTP: Fetch Week Trade Grades",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 200],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'http://localhost:3000/api/trades?startDate=' + $json.weekStart + '&endDate=' + $json.weekEnd + '&includeGrades=true' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches all trades with grades from this week"
+    },
+    {
+      "id": "learn01-0004",
+      "name": "HTTP: Fetch LEARN Jira Tickets",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 350],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://swjshak.atlassian.net/rest/api/3/search?jql=project=LEARN AND created >= \"' + DateTime.fromISO($json.weekStart).toFormat('yyyy-MM-dd') + '\" ORDER BY created DESC&maxResults=100' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "jira-api-auth",
+          "name": "Jira API Basic Auth"
+        }
+      },
+      "notes": "Fetches all LEARN tickets created this week from Jira"
+    },
+    {
+      "id": "learn01-0005",
+      "name": "HTTP: Fetch Pattern Detections",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 500],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'http://localhost:3000/api/patterns?from=' + $json.weekStart + '&to=' + $json.weekEnd }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches pattern detections from SC01 workflow this week"
+    },
+    {
+      "id": "learn01-0006",
+      "name": "HTTP: Fetch Hypotheses Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 650],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/hypotheses?status=active",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches active hypotheses being tracked"
+    },
+    {
+      "id": "learn01-0007",
+      "name": "HTTP: Fetch Previous Lessons",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 800],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/brain/lessons?limit=50",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches previous lessons to check for recurrence"
+    },
+    {
+      "id": "learn01-0008",
+      "name": "Merge: All Data Sources",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [780, 500],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "notes": "Combines all parallel API responses"
+    },
+    {
+      "id": "learn01-0009",
+      "name": "Code: Aggregate by Dimensions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 500],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Gather data from all sources\nconst weekBounds = $('Set: Week Boundaries').first().json;\nconst tradesData = $('HTTP: Fetch Week Trade Grades').first()?.json || {};\nconst jiraData = $('HTTP: Fetch LEARN Jira Tickets').first()?.json || {};\nconst patternsData = $('HTTP: Fetch Pattern Detections').first()?.json || {};\nconst hypothesesData = $('HTTP: Fetch Hypotheses Status').first()?.json || {};\nconst previousLessons = $('HTTP: Fetch Previous Lessons').first()?.json?.lessons || [];\n\nconst trades = tradesData.trades || [];\nconst jiraIssues = jiraData.issues || [];\nconst patterns = patternsData.patterns || [];\nconst hypotheses = hypothesesData.hypotheses || [];\n\n// Initialize aggregations\nconst aggregations = {\n  byStrategy: {},\n  byPatternType: {},\n  byTimeOfDay: {\n    premarket: { trades: [], avgGrade: 0, totalPnL: 0 },\n    opening: { trades: [], avgGrade: 0, totalPnL: 0 },\n    midday: { trades: [], avgGrade: 0, totalPnL: 0 },\n    closing: { trades: [], avgGrade: 0, totalPnL: 0 },\n    afterhours: { trades: [], avgGrade: 0, totalPnL: 0 }\n  },\n  byAssetClass: {\n    crypto: { trades: [], avgGrade: 0, totalPnL: 0, winRate: 0 },\n    forex: { trades: [], avgGrade: 0, totalPnL: 0, winRate: 0 },\n    options: { trades: [], avgGrade: 0, totalPnL: 0, winRate: 0 },\n    futures: { trades: [], avgGrade: 0, totalPnL: 0, winRate: 0 },\n    equity: { trades: [], avgGrade: 0, totalPnL: 0, winRate: 0 }\n  },\n  byGrade: { A: [], B: [], C: [], D: [], F: [] },\n  byWeakness: {},\n  byLesson: {}\n};\n\n// Grade to numeric score mapping\nconst gradeToScore = { 'A': 95, 'A-': 90, 'B+': 87, 'B': 83, 'B-': 80, 'C+': 77, 'C': 73, 'C-': 70, 'D': 60, 'F': 40 };\n\n// Categorize asset class from symbol\nfunction getAssetClass(symbol) {\n  if (!symbol) return 'equity';\n  const sym = symbol.toUpperCase();\n  if (sym.includes('BTC') || sym.includes('ETH') || sym.includes('SOL') || sym.includes('USDT')) return 'crypto';\n  if (sym.includes('USD') || sym.includes('EUR') || sym.includes('GBP') || sym.includes('JPY') || sym.includes('CHF')) return 'forex';\n  if (sym.includes('SPY') || sym.includes('SPX') || sym.includes('0DTE') || /\\d{6}[CP]/.test(sym)) return 'options';\n  if (sym.includes('ES') || sym.includes('NQ') || sym.includes('MES') || sym.includes('MNQ') || sym.includes('/')) return 'futures';\n  return 'equity';\n}\n\n// Get time of day category\nfunction getTimeCategory(timestamp) {\n  if (!timestamp) return 'midday';\n  const hour = new Date(timestamp).getHours();\n  if (hour < 9 || (hour === 9 && new Date(timestamp).getMinutes() < 30)) return 'premarket';\n  if (hour < 11) return 'opening';\n  if (hour < 14) return 'midday';\n  if (hour < 16) return 'closing';\n  return 'afterhours';\n}\n\n// Process trades\ntrades.forEach(trade => {\n  const strategy = trade.strategy || 'unknown';\n  const assetClass = getAssetClass(trade.symbol);\n  const timeCategory = getTimeCategory(trade.entry_time);\n  const gradeKey = trade.grade?.charAt(0) || 'C';\n  const gradeScore = gradeToScore[trade.grade] || gradeToScore[gradeKey] || 73;\n  const pnl = parseFloat(trade.pnl) || 0;\n  \n  // By Strategy\n  if (!aggregations.byStrategy[strategy]) {\n    aggregations.byStrategy[strategy] = { trades: [], grades: [], totalPnL: 0, lessons: [], weaknesses: [] };\n  }\n  aggregations.byStrategy[strategy].trades.push(trade);\n  aggregations.byStrategy[strategy].grades.push(gradeScore);\n  aggregations.byStrategy[strategy].totalPnL += pnl;\n  if (trade.lessons) aggregations.byStrategy[strategy].lessons.push(...(Array.isArray(trade.lessons) ? trade.lessons : [trade.lessons]));\n  if (trade.weaknesses) aggregations.byStrategy[strategy].weaknesses.push(...(Array.isArray(trade.weaknesses) ? trade.weaknesses : [trade.weaknesses]));\n  \n  // By Time of Day\n  aggregations.byTimeOfDay[timeCategory].trades.push(trade);\n  aggregations.byTimeOfDay[timeCategory].totalPnL += pnl;\n  \n  // By Asset Class\n  aggregations.byAssetClass[assetClass].trades.push(trade);\n  aggregations.byAssetClass[assetClass].totalPnL += pnl;\n  \n  // By Grade\n  if (aggregations.byGrade[gradeKey]) {\n    aggregations.byGrade[gradeKey].push(trade);\n  }\n  \n  // Track weaknesses\n  if (trade.weaknesses && Array.isArray(trade.weaknesses)) {\n    trade.weaknesses.forEach(w => {\n      if (!aggregations.byWeakness[w]) aggregations.byWeakness[w] = { count: 0, trades: [] };\n      aggregations.byWeakness[w].count++;\n      aggregations.byWeakness[w].trades.push(trade.id || trade.tradeId);\n    });\n  }\n  \n  // Track lessons\n  if (trade.lessons && Array.isArray(trade.lessons)) {\n    trade.lessons.forEach(l => {\n      if (!aggregations.byLesson[l]) aggregations.byLesson[l] = { count: 0, strategies: new Set(), firstSeen: trade.entry_time };\n      aggregations.byLesson[l].count++;\n      aggregations.byLesson[l].strategies.add(strategy);\n    });\n  }\n});\n\n// Process patterns from SC01\npatterns.forEach(pattern => {\n  const patternKey = pattern.dimension + ':' + pattern.key;\n  if (!aggregations.byPatternType[patternKey]) {\n    aggregations.byPatternType[patternKey] = { occurrences: 0, significance: [], recommendations: [] };\n  }\n  aggregations.byPatternType[patternKey].occurrences++;\n  if (pattern.significance) aggregations.byPatternType[patternKey].significance.push(pattern.significance);\n  if (pattern.recommendation) aggregations.byPatternType[patternKey].recommendations.push(pattern.recommendation);\n});\n\n// Calculate averages and rates\nObject.values(aggregations.byTimeOfDay).forEach(cat => {\n  if (cat.trades.length > 0) {\n    const scores = cat.trades.map(t => gradeToScore[t.grade] || gradeToScore[t.grade?.charAt(0)] || 73);\n    cat.avgGrade = scores.reduce((a, b) => a + b, 0) / scores.length;\n  }\n});\n\nObject.values(aggregations.byAssetClass).forEach(cat => {\n  if (cat.trades.length > 0) {\n    const scores = cat.trades.map(t => gradeToScore[t.grade] || gradeToScore[t.grade?.charAt(0)] || 73);\n    cat.avgGrade = scores.reduce((a, b) => a + b, 0) / scores.length;\n    cat.winRate = cat.trades.filter(t => (parseFloat(t.pnl) || 0) > 0).length / cat.trades.length * 100;\n  }\n});\n\nObject.values(aggregations.byStrategy).forEach(strat => {\n  if (strat.grades.length > 0) {\n    strat.avgGrade = strat.grades.reduce((a, b) => a + b, 0) / strat.grades.length;\n    strat.winRate = strat.trades.filter(t => (parseFloat(t.pnl) || 0) > 0).length / strat.trades.length * 100;\n  }\n});\n\n// Convert lesson sets to arrays\nObject.values(aggregations.byLesson).forEach(l => {\n  l.strategies = Array.from(l.strategies);\n});\n\n// Find recurring lessons (appeared in previous weeks)\nconst recurringLessons = [];\nObject.entries(aggregations.byLesson).forEach(([lesson, data]) => {\n  const previousMatch = previousLessons.find(pl => \n    pl.lesson?.toLowerCase().includes(lesson.toLowerCase().substring(0, 30)) ||\n    lesson.toLowerCase().includes(pl.lesson?.toLowerCase().substring(0, 30) || '')\n  );\n  if (previousMatch) {\n    recurringLessons.push({\n      lesson: lesson,\n      thisWeekCount: data.count,\n      previousOccurrences: previousMatch.occurrences || 1,\n      firstSeen: previousMatch.firstSeen || data.firstSeen,\n      weeksRecurring: Math.ceil((Date.now() - new Date(previousMatch.firstSeen || data.firstSeen).getTime()) / (7 * 24 * 60 * 60 * 1000))\n    });\n  }\n});\n\n// Build summary statistics\nconst summary = {\n  weekNumber: weekBounds.weekNumber,\n  year: weekBounds.year,\n  totalTrades: trades.length,\n  totalPnL: trades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0),\n  avgGrade: trades.length > 0 ? trades.reduce((sum, t) => sum + (gradeToScore[t.grade] || gradeToScore[t.grade?.charAt(0)] || 73), 0) / trades.length : 0,\n  winRate: trades.length > 0 ? trades.filter(t => (parseFloat(t.pnl) || 0) > 0).length / trades.length * 100 : 0,\n  jiraTicketsCreated: jiraIssues.length,\n  patternsDetected: patterns.length,\n  activeHypotheses: hypotheses.length,\n  uniqueWeaknesses: Object.keys(aggregations.byWeakness).length,\n  uniqueLessons: Object.keys(aggregations.byLesson).length,\n  recurringLessonsCount: recurringLessons.length\n};\n\n// Identify worst performing areas\nconst worstTimeOfDay = Object.entries(aggregations.byTimeOfDay)\n  .filter(([_, data]) => data.trades.length >= 3)\n  .sort((a, b) => a[1].avgGrade - b[1].avgGrade)[0];\n\nconst worstAssetClass = Object.entries(aggregations.byAssetClass)\n  .filter(([_, data]) => data.trades.length >= 3)\n  .sort((a, b) => a[1].avgGrade - b[1].avgGrade)[0];\n\nconst worstStrategy = Object.entries(aggregations.byStrategy)\n  .filter(([_, data]) => data.trades.length >= 2)\n  .sort((a, b) => a[1].avgGrade - b[1].avgGrade)[0];\n\nconst topWeaknesses = Object.entries(aggregations.byWeakness)\n  .sort((a, b) => b[1].count - a[1].count)\n  .slice(0, 5);\n\nreturn {\n  json: {\n    summary,\n    aggregations,\n    insights: {\n      worstTimeOfDay: worstTimeOfDay ? { time: worstTimeOfDay[0], avgGrade: worstTimeOfDay[1].avgGrade, tradeCount: worstTimeOfDay[1].trades.length } : null,\n      worstAssetClass: worstAssetClass ? { class: worstAssetClass[0], avgGrade: worstAssetClass[1].avgGrade, tradeCount: worstAssetClass[1].trades.length } : null,\n      worstStrategy: worstStrategy ? { strategy: worstStrategy[0], avgGrade: worstStrategy[1].avgGrade, tradeCount: worstStrategy[1].trades.length } : null,\n      topWeaknesses: topWeaknesses.map(([w, d]) => ({ weakness: w, count: d.count })),\n      recurringLessons\n    },\n    jiraIssues: jiraIssues.map(i => ({ key: i.key, summary: i.fields?.summary, labels: i.fields?.labels })),\n    patterns: patterns,\n    hypotheses: hypotheses,\n    previousLessons: previousLessons.slice(0, 20)\n  }\n};"
+      },
+      "notes": "Aggregates all data by strategy, pattern type, time of day, and asset class"
+    },
+    {
+      "id": "learn01-0010",
+      "name": "If: Has Sufficient Data",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1220, 500],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "sufficient-data",
+              "leftValue": "={{ $json.summary.totalTrades }}",
+              "rightValue": 5,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "notes": "Checks if we have enough trades to generate meaningful insights"
+    },
+    {
+      "id": "learn01-0011",
+      "name": "Code: Build AI Synthesis Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1440, 400],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const data = $json;\n\nconst prompt = `You are the Chief Learning Officer for SwjshAK autonomous trading system. Your job is to synthesize weekly trading lessons into actionable insights.\n\n## WEEK ${data.summary.weekNumber} SUMMARY (${data.summary.year})\n\n### TRADING PERFORMANCE\n- Total Trades: ${data.summary.totalTrades}\n- Total P&L: $${data.summary.totalPnL.toFixed(2)}\n- Average Grade: ${data.summary.avgGrade.toFixed(1)}/100\n- Win Rate: ${data.summary.winRate.toFixed(1)}%\n\n### JIRA LEARN TICKETS CREATED: ${data.summary.jiraTicketsCreated}\n${data.jiraIssues.slice(0, 10).map(i => `- ${i.key}: ${i.summary}`).join('\\n')}\n\n### PATTERNS DETECTED THIS WEEK: ${data.summary.patternsDetected}\n${Object.entries(data.aggregations.byPatternType).slice(0, 5).map(([k, v]) => `- ${k}: ${v.occurrences} occurrences`).join('\\n')}\n\n### PERFORMANCE BY STRATEGY\n${Object.entries(data.aggregations.byStrategy).map(([s, d]) => `- ${s}: ${d.trades.length} trades, avg grade ${d.avgGrade?.toFixed(1) || 'N/A'}, $${d.totalPnL.toFixed(2)} P&L, ${d.winRate?.toFixed(1) || 0}% win rate`).join('\\n')}\n\n### PERFORMANCE BY TIME OF DAY\n${Object.entries(data.aggregations.byTimeOfDay).filter(([_, d]) => d.trades.length > 0).map(([t, d]) => `- ${t}: ${d.trades.length} trades, avg grade ${d.avgGrade?.toFixed(1) || 'N/A'}, $${d.totalPnL.toFixed(2)} P&L`).join('\\n')}\n\n### PERFORMANCE BY ASSET CLASS\n${Object.entries(data.aggregations.byAssetClass).filter(([_, d]) => d.trades.length > 0).map(([c, d]) => `- ${c}: ${d.trades.length} trades, avg grade ${d.avgGrade?.toFixed(1) || 'N/A'}, $${d.totalPnL.toFixed(2)} P&L, ${d.winRate?.toFixed(1) || 0}% win rate`).join('\\n')}\n\n### TOP WEAKNESSES IDENTIFIED\n${data.insights.topWeaknesses.map(w => `- \"${w.weakness}\": ${w.count} occurrences`).join('\\n')}\n\n### RECURRING LESSONS (NOT LEARNING!)\n${data.insights.recurringLessons.map(l => `- \"${l.lesson.substring(0, 60)}...\": ${l.weeksRecurring} weeks recurring, ${l.thisWeekCount} this week`).join('\\n') || 'None detected - good job!'}\n\n### ACTIVE HYPOTHESES BEING TRACKED: ${data.hypotheses.length}\n${data.hypotheses.slice(0, 5).map(h => `- ${h.patternKey}: ${h.hypothesis?.substring(0, 50) || 'No description'}...`).join('\\n')}\n\n---\n\n## YOUR TASK\n\nSynthesize this data into a weekly learning report. Provide JSON:\n\n{\n  \"weekSummary\": \"2-3 sentence high-level summary of the week's trading and lessons\",\n  \"topInsights\": [\n    {\n      \"category\": \"strategy|timing|asset|pattern|psychological\",\n      \"insight\": \"Clear, actionable insight statement\",\n      \"evidence\": \"Data points supporting this insight\",\n      \"priority\": \"high|medium|low\",\n      \"actionRequired\": \"Specific action to take\"\n    }\n  ],\n  \"strategiesNeedingWork\": [\n    {\n      \"strategy\": \"name\",\n      \"issue\": \"what's wrong\",\n      \"suggestedFix\": \"how to address\"\n    }\n  ],\n  \"worstPerformingArea\": {\n    \"area\": \"time/asset/strategy name\",\n    \"type\": \"time_of_day|asset_class|strategy\",\n    \"recommendation\": \"what to do about it\"\n  },\n  \"recurringMistakes\": [\n    {\n      \"mistake\": \"description\",\n      \"weeksRecurring\": number,\n      \"rootCause\": \"hypothesized root cause\",\n      \"breakingAction\": \"specific action to break the pattern\"\n    }\n  ],\n  \"winningPatterns\": [\n    \"Things that worked well this week\"\n  ],\n  \"nextWeekFocus\": [\n    \"Top 3 priorities for next week\"\n  ],\n  \"learningScore\": {\n    \"score\": 0-100,\n    \"rationale\": \"Why this score - are we learning from mistakes?\"\n  },\n  \"brainFileUpdates\": [\n    {\n      \"section\": \"strategies|patterns|timing|psychology\",\n      \"content\": \"What to add/update in the brain knowledge base\"\n    }\n  ]\n}\n\nBe brutally honest. If we're repeating mistakes, call it out. If strategies are underperforming, flag them. The goal is continuous improvement.`;\n\nreturn {\n  json: {\n    prompt: prompt,\n    rawData: data\n  }\n};"
+      },
+      "notes": "Builds comprehensive prompt for Claude to synthesize lessons"
+    },
+    {
+      "id": "learn01-0012",
+      "name": "HTTP: Call Claude for Synthesis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1660, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 4096,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.prompt) }}\n    }\n  ]\n}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "anthropic-api-key",
+          "name": "Anthropic API Key"
+        }
+      },
+      "notes": "Calls Claude API to synthesize all data into actionable insights"
+    },
+    {
+      "id": "learn01-0013",
+      "name": "Code: Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1880, 400],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = $json;\nconst rawData = $('Code: Build AI Synthesis Prompt').first().json.rawData;\n\nlet synthesis;\n\ntry {\n  const content = response.content?.[0]?.text || '';\n  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n  synthesis = jsonMatch ? JSON.parse(jsonMatch[0]) : { error: 'Could not parse AI response' };\n} catch (e) {\n  synthesis = {\n    weekSummary: 'AI synthesis parsing failed - review raw data manually',\n    topInsights: [{ category: 'error', insight: 'Parsing failed: ' + e.message, evidence: 'N/A', priority: 'high', actionRequired: 'Manual review' }],\n    strategiesNeedingWork: [],\n    worstPerformingArea: null,\n    recurringMistakes: [],\n    winningPatterns: [],\n    nextWeekFocus: ['Fix AI parsing', 'Review raw data', 'Manual lesson extraction'],\n    learningScore: { score: 50, rationale: 'Could not properly analyze due to parsing error' },\n    brainFileUpdates: [],\n    _parseError: e.message\n  };\n}\n\n// Add metadata\nsynthesis.metadata = {\n  weekNumber: rawData.summary.weekNumber,\n  year: rawData.summary.year,\n  generatedAt: new Date().toISOString(),\n  totalTrades: rawData.summary.totalTrades,\n  totalPnL: rawData.summary.totalPnL\n};\n\n// Add raw summary for reference\nsynthesis.rawSummary = rawData.summary;\nsynthesis.rawInsights = rawData.insights;\n\nreturn { json: synthesis };"
+      },
+      "notes": "Parses and validates AI synthesis response"
+    },
+    {
+      "id": "learn01-0014",
+      "name": "Code: Format Brain Updates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2100, 300],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const synthesis = $json;\n\n// Format lessons for brain file\nconst lessonsMarkdown = `# Weekly Lessons - Week ${synthesis.metadata.weekNumber} (${synthesis.metadata.year})\n\n> Generated: ${synthesis.metadata.generatedAt}\n> Trades: ${synthesis.metadata.totalTrades} | P&L: $${synthesis.metadata.totalPnL?.toFixed(2) || '0.00'}\n\n## Summary\n${synthesis.weekSummary}\n\n## Learning Score: ${synthesis.learningScore?.score || 'N/A'}/100\n${synthesis.learningScore?.rationale || ''}\n\n## Top Insights\n${(synthesis.topInsights || []).map((i, idx) => `\n### ${idx + 1}. [${i.priority?.toUpperCase() || 'MEDIUM'}] ${i.category}\n**Insight:** ${i.insight}\n**Evidence:** ${i.evidence}\n**Action:** ${i.actionRequired}\n`).join('')}\n\n## Strategies Needing Work\n${(synthesis.strategiesNeedingWork || []).map(s => `- **${s.strategy}**: ${s.issue} - *Fix: ${s.suggestedFix}*`).join('\\n') || 'None identified'}\n\n## Recurring Mistakes (STOP REPEATING!)\n${(synthesis.recurringMistakes || []).map(m => `\n### ${m.mistake}\n- Recurring for: ${m.weeksRecurring} weeks\n- Root cause: ${m.rootCause}\n- **Break it:** ${m.breakingAction}\n`).join('') || 'No recurring mistakes - excellent!'}\n\n## What Worked Well\n${(synthesis.winningPatterns || []).map(w => `- ${w}`).join('\\n') || 'Need more data to identify patterns'}\n\n## Next Week Focus\n${(synthesis.nextWeekFocus || []).map((f, i) => `${i + 1}. ${f}`).join('\\n')}\n\n---\n*Auto-generated by WF-LEARN-01 Lesson Compiler*\n`;\n\nreturn {\n  json: {\n    synthesis,\n    lessonsMarkdown,\n    brainUpdates: synthesis.brainFileUpdates || [],\n    fileName: `lessons-week-${synthesis.metadata.weekNumber}-${synthesis.metadata.year}.md`\n  }\n};"
+      },
+      "notes": "Formats lessons into markdown for Brain file updates"
+    },
+    {
+      "id": "learn01-0015",
+      "name": "HTTP: Update Brain Lessons File",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2320, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/brain/lessons",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fileName\": {{ JSON.stringify($json.fileName) }},\n  \"content\": {{ JSON.stringify($json.lessonsMarkdown) }},\n  \"metadata\": {\n    \"weekNumber\": {{ $json.synthesis.metadata.weekNumber }},\n    \"year\": {{ $json.synthesis.metadata.year }},\n    \"learningScore\": {{ $json.synthesis.learningScore?.score || 50 }},\n    \"totalTrades\": {{ $json.synthesis.metadata.totalTrades }}\n  }\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Updates brain/lessons.md with weekly lessons"
+    },
+    {
+      "id": "learn01-0016",
+      "name": "HTTP: Store Lessons in DB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2320, 350],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/lessons",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ weekNumber: $json.synthesis.metadata.weekNumber, year: $json.synthesis.metadata.year, synthesis: $json.synthesis, learningScore: $json.synthesis.learningScore?.score || 50, generatedAt: new Date().toISOString() }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Stores lessons in database for historical tracking"
+    },
+    {
+      "id": "learn01-0017",
+      "name": "Jira: Create LEARN Summary Ticket",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2320, 500],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "LEARN",
+        "issueType": "Story",
+        "additionalFields": {
+          "summary": "={{ `[WEEKLY] Week ${$json.synthesis.metadata.weekNumber} Learning Summary - Score: ${$json.synthesis.learningScore?.score || 'N/A'}/100` }}",
+          "description": "={{ `Weekly Learning Synthesis\\n\\nWeek: ${$json.synthesis.metadata.weekNumber} (${$json.synthesis.metadata.year})\\nTrades: ${$json.synthesis.metadata.totalTrades}\\nP&L: $${$json.synthesis.metadata.totalPnL?.toFixed(2) || '0.00'}\\nLearning Score: ${$json.synthesis.learningScore?.score || 'N/A'}/100\\n\\n${$json.synthesis.learningScore?.rationale || ''}\\n\\n---\\n\\nSUMMARY:\\n${$json.synthesis.weekSummary}\\n\\n---\\n\\nTOP INSIGHTS:\\n${($json.synthesis.topInsights || []).map((i, idx) => `${idx+1}. [${i.priority}] ${i.insight}`).join('\\n')}\\n\\n---\\n\\nSTRATEGIES NEEDING WORK:\\n${($json.synthesis.strategiesNeedingWork || []).map(s => `- ${s.strategy}: ${s.issue}`).join('\\n') || 'None'}\\n\\n---\\n\\nRECURRING MISTAKES:\\n${($json.synthesis.recurringMistakes || []).map(m => `- ${m.mistake} (${m.weeksRecurring} weeks)`).join('\\n') || 'None'}\\n\\n---\\n\\nNEXT WEEK FOCUS:\\n${($json.synthesis.nextWeekFocus || []).map((f, i) => `${i+1}. ${f}`).join('\\n')}` }}",
+          "labels": [
+            "weekly-summary",
+            "auto-generated",
+            "={{ `week-${$json.synthesis.metadata.weekNumber}` }}",
+            "={{ $json.synthesis.learningScore?.score >= 70 ? 'learning-well' : 'needs-improvement' }}"
+          ],
+          "priority": "={{ $json.synthesis.learningScore?.score < 50 ? 'High' : 'Medium' }}"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Creates LEARN summary ticket with week's learnings"
+    },
+    {
+      "id": "learn01-0018",
+      "name": "Merge: All Update Paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [2540, 350],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      },
+      "notes": "Combines all update operations"
+    },
+    {
+      "id": "learn01-0019",
+      "name": "Code: Format Discord Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2760, 350],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const formatData = $('Code: Format Brain Updates').first().json;\nconst synthesis = formatData.synthesis;\n\n// Determine embed color based on learning score\nlet embedColor = 3066993; // Green\nif (synthesis.learningScore?.score < 50) {\n  embedColor = 15158332; // Red\n} else if (synthesis.learningScore?.score < 70) {\n  embedColor = 16776960; // Yellow\n}\n\n// Build fields for embed\nconst fields = [\n  {\n    name: ':chart_with_upwards_trend: P&L',\n    value: `$${synthesis.metadata?.totalPnL?.toFixed(2) || '0.00'}`,\n    inline: true\n  },\n  {\n    name: ':1234: Trades',\n    value: `${synthesis.metadata?.totalTrades || 0}`,\n    inline: true\n  },\n  {\n    name: ':brain: Learning Score',\n    value: `${synthesis.learningScore?.score || 'N/A'}/100`,\n    inline: true\n  }\n];\n\n// Add top insights\nif (synthesis.topInsights?.length > 0) {\n  const insightText = synthesis.topInsights.slice(0, 3)\n    .map((i, idx) => `${idx + 1}. **[${i.priority}]** ${i.insight.substring(0, 100)}`)\n    .join('\\n');\n  fields.push({\n    name: ':bulb: Top Insights',\n    value: insightText || 'None',\n    inline: false\n  });\n}\n\n// Add strategies needing work\nif (synthesis.strategiesNeedingWork?.length > 0) {\n  fields.push({\n    name: ':warning: Strategies Needing Work',\n    value: synthesis.strategiesNeedingWork.slice(0, 3).map(s => `- ${s.strategy}`).join('\\n'),\n    inline: true\n  });\n}\n\n// Add recurring mistakes if any\nif (synthesis.recurringMistakes?.length > 0) {\n  fields.push({\n    name: ':rotating_light: Recurring Mistakes',\n    value: synthesis.recurringMistakes.slice(0, 2).map(m => `- ${m.mistake.substring(0, 50)}... (${m.weeksRecurring}w)`).join('\\n'),\n    inline: true\n  });\n}\n\n// Add next week focus\nif (synthesis.nextWeekFocus?.length > 0) {\n  fields.push({\n    name: ':dart: Next Week Focus',\n    value: synthesis.nextWeekFocus.map((f, i) => `${i + 1}. ${f.substring(0, 80)}`).join('\\n'),\n    inline: false\n  });\n}\n\nconst embed = {\n  title: `:book: Weekly Learning Report - Week ${synthesis.metadata?.weekNumber || '?'}`,\n  description: synthesis.weekSummary?.substring(0, 500) || 'Weekly lesson compilation complete.',\n  color: embedColor,\n  fields: fields,\n  footer: {\n    text: `SwjshAK Learning System | Score: ${synthesis.learningScore?.score || 'N/A'}/100`\n  },\n  timestamp: new Date().toISOString()\n};\n\nreturn {\n  json: {\n    embed,\n    synthesis,\n    channelId: process.env.DISCORD_CEO_CHANNEL_ID || 'ceo-briefing'\n  }\n};"
+      },
+      "notes": "Formats the weekly learning report as a rich Discord embed"
+    },
+    {
+      "id": "learn01-0020",
+      "name": "Discord: Post Weekly Learning Report",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2980, 250],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.channelId }}"
+        },
+        "content": "",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts the weekly learning report to #ceo-briefing"
+    },
+    {
+      "id": "learn01-0021",
+      "name": "If: Recurring Mistakes Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2980, 450],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-recurring",
+              "leftValue": "={{ $json.synthesis.recurringMistakes?.length || 0 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "notes": "Checks if recurring mistakes were found that need escalation"
+    },
+    {
+      "id": "learn01-0022",
+      "name": "Jira: Create INFRA Tickets for Recurring Issues",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [3200, 350],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "notes": "Splits recurring mistakes into individual items for ticket creation"
+    },
+    {
+      "id": "learn01-0023",
+      "name": "Code: Prepare Recurring Mistake Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3200, 200],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const synthesis = $('Code: Format Discord Report').first().json.synthesis;\nconst recurringMistakes = synthesis.recurringMistakes || [];\n\n// Only escalate mistakes recurring 3+ weeks\nconst escalatableItems = recurringMistakes\n  .filter(m => m.weeksRecurring >= 3)\n  .map(m => ({\n    json: {\n      mistake: m.mistake,\n      weeksRecurring: m.weeksRecurring,\n      rootCause: m.rootCause,\n      breakingAction: m.breakingAction,\n      weekNumber: synthesis.metadata?.weekNumber,\n      year: synthesis.metadata?.year\n    }\n  }));\n\nreturn escalatableItems.length > 0 ? escalatableItems : [{ json: { skip: true } }];"
+      },
+      "notes": "Prepares recurring mistakes for INFRA ticket creation"
+    },
+    {
+      "id": "learn01-0024",
+      "name": "If: Not Skip",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [3420, 350],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "not-skip",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "notes": "Filters out skip items"
+    },
+    {
+      "id": "learn01-0025",
+      "name": "Jira: Create INFRA Ticket (Recurring Pattern)",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [3640, 250],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "INFRA",
+        "issueType": "Task",
+        "additionalFields": {
+          "summary": "={{ `[RECURRING ${$json.weeksRecurring}w] ${$json.mistake.substring(0, 60)}` }}",
+          "description": "={{ `RECURRING MISTAKE - REQUIRES INTERVENTION\\n\\nThis mistake has been repeating for ${$json.weeksRecurring} consecutive weeks.\\n\\n**Mistake:** ${$json.mistake}\\n\\n**Hypothesized Root Cause:**\\n${$json.rootCause}\\n\\n**Suggested Breaking Action:**\\n${$json.breakingAction}\\n\\n---\\n\\nThis pattern has persisted despite being identified in multiple weekly reviews. A systematic fix is required.\\n\\nSuggested approaches:\\n1. Add automated guard rails\\n2. Modify strategy parameters\\n3. Add pre-trade checklist item\\n4. Implement cooldown period\\n\\nIdentified in Week ${$json.weekNumber} (${$json.year}) learning report.` }}",
+          "labels": [
+            "recurring-mistake",
+            "needs-fix",
+            "auto-escalated",
+            "={{ `weeks-${$json.weeksRecurring}` }}"
+          ],
+          "priority": "High"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Creates INFRA ticket for recurring mistakes that need systematic fixes"
+    },
+    {
+      "id": "learn01-0026",
+      "name": "HTTP: Log to Audit Trail",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3200, 550],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/audit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event\": \"weekly_lesson_compiled\",\n  \"timestamp\": \"{{ $now.toISO() }}\",\n  \"workflow\": \"WF-LEARN-01\",\n  \"data\": {\n    \"weekNumber\": {{ $json.synthesis?.metadata?.weekNumber || 0 }},\n    \"year\": {{ $json.synthesis?.metadata?.year || 2026 }},\n    \"learningScore\": {{ $json.synthesis?.learningScore?.score || 0 }},\n    \"totalTrades\": {{ $json.synthesis?.metadata?.totalTrades || 0 }},\n    \"insightsGenerated\": {{ $json.synthesis?.topInsights?.length || 0 }},\n    \"recurringMistakes\": {{ $json.synthesis?.recurringMistakes?.length || 0 }}\n  }\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Logs lesson compilation event to audit trail"
+    },
+    {
+      "id": "learn01-0027",
+      "name": "Workflow Complete",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [3640, 550],
+      "parameters": {},
+      "notes": "End node - weekly lesson compilation complete"
+    },
+    {
+      "id": "learn01-0028",
+      "name": "Code: Generate Fallback Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1440, 600],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const data = $json;\n\nreturn {\n  json: {\n    synthesis: {\n      weekSummary: `Week ${data.summary?.weekNumber || '?'} had insufficient trading data (${data.summary?.totalTrades || 0} trades). Minimum 5 trades required for meaningful analysis.`,\n      topInsights: [{\n        category: 'data',\n        insight: 'Insufficient trading volume for pattern analysis',\n        evidence: `Only ${data.summary?.totalTrades || 0} trades this week`,\n        priority: 'low',\n        actionRequired: 'Continue trading to build data set'\n      }],\n      strategiesNeedingWork: [],\n      worstPerformingArea: null,\n      recurringMistakes: [],\n      winningPatterns: [],\n      nextWeekFocus: ['Increase trading activity', 'Focus on quality setups', 'Build data for analysis'],\n      learningScore: { score: 50, rationale: 'Insufficient data to assess learning progress' },\n      brainFileUpdates: [],\n      metadata: {\n        weekNumber: data.summary?.weekNumber || 0,\n        year: data.summary?.year || 2026,\n        generatedAt: new Date().toISOString(),\n        totalTrades: data.summary?.totalTrades || 0,\n        totalPnL: data.summary?.totalPnL || 0\n      }\n    },\n    rawSummary: data.summary,\n    isMinimalReport: true\n  }\n};"
+      },
+      "notes": "Generates a minimal report when insufficient data is available"
+    },
+    {
+      "id": "learn01-0029",
+      "name": "Merge: Normal and Fallback Paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [2100, 500],
+      "parameters": {
+        "mode": "chooseBranch",
+        "output": "input1"
+      },
+      "notes": "Combines normal and fallback synthesis paths"
+    },
+    {
+      "id": "learn01-0030",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 700],
+      "parameters": {},
+      "notes": "Catches workflow errors"
+    },
+    {
+      "id": "learn01-0031",
+      "name": "Code: Format Error Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 700],
+      "parameters": {
+        "jsCode": "const error = $json;\n\nconst errorEmbed = {\n  title: ':warning: Weekly Lesson Compiler Error',\n  description: 'WF-LEARN-01 encountered an error during weekly lesson compilation.',\n  color: 15158332,\n  fields: [\n    {\n      name: 'Error Message',\n      value: error.execution?.error?.message?.substring(0, 1000) || 'Unknown error',\n      inline: false\n    },\n    {\n      name: 'Failed Node',\n      value: error.execution?.error?.node?.name || 'Unknown',\n      inline: true\n    },\n    {\n      name: 'Execution ID',\n      value: error.execution?.id || 'Unknown',\n      inline: true\n    }\n  ],\n  footer: {\n    text: 'WF-LEARN-01 Error Handler'\n  },\n  timestamp: new Date().toISOString()\n};\n\nreturn { json: { embed: errorEmbed } };"
+      },
+      "notes": "Formats error for Discord notification"
+    },
+    {
+      "id": "learn01-0032",
+      "name": "Discord: Post Error",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [440, 700],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_ERRORS_CHANNEL_ID || 'n8n-errors' }}"
+        },
+        "content": "",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts error notification to #n8n-errors"
+    },
+    {
+      "id": "learn01-sticky-01",
+      "name": "Note: Workflow Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-200, 200],
+      "parameters": {
+        "content": "## WF-LEARN-01: Weekly Lesson Compiler\n\n**Schedule:** Every Friday at 5 PM ET\n\n**Purpose:** Compile all trading lessons from the week into actionable insights\n\n### Data Sources:\n1. Trade grades from SwjshAK API\n2. LEARN Jira tickets\n3. Pattern detections from SC01\n4. Active hypotheses\n5. Previous lessons (recurrence check)\n\n### Aggregation Dimensions:\n- By Strategy\n- By Pattern Type\n- By Time of Day\n- By Asset Class\n\n### Outputs:\n- Brain file update (lessons.md)\n- LEARN summary ticket\n- Discord weekly report\n- INFRA tickets for recurring issues\n\n### Learning Score:\nTracks if we're learning from mistakes (0-100)"
+      }
+    },
+    {
+      "id": "learn01-sticky-02",
+      "name": "Note: Recurrence Tracking",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [2980, 600],
+      "parameters": {
+        "content": "## Recurrence Tracking\n\nIf the same lesson/mistake appears for 3+ weeks:\n1. Auto-escalate to INFRA project\n2. Flag as \"needs systematic fix\"\n3. Include in weekly report\n\nThis ensures recurring issues get addressed at the system level, not just noted."
+      }
+    }
+  ],
+  "connections": {
+    "Schedule: Friday 5PM ET": {
+      "main": [
+        [
+          { "node": "Set: Week Boundaries", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Set: Week Boundaries": {
+      "main": [
+        [
+          { "node": "HTTP: Fetch Week Trade Grades", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch LEARN Jira Tickets", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch Pattern Detections", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch Hypotheses Status", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch Previous Lessons", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Fetch Week Trade Grades": {
+      "main": [
+        [
+          { "node": "Merge: All Data Sources", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Fetch LEARN Jira Tickets": {
+      "main": [
+        [
+          { "node": "Merge: All Data Sources", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "HTTP: Fetch Pattern Detections": {
+      "main": [
+        [
+          { "node": "Merge: All Data Sources", "type": "main", "index": 2 }
+        ]
+      ]
+    },
+    "HTTP: Fetch Hypotheses Status": {
+      "main": [
+        [
+          { "node": "Merge: All Data Sources", "type": "main", "index": 3 }
+        ]
+      ]
+    },
+    "HTTP: Fetch Previous Lessons": {
+      "main": [
+        [
+          { "node": "Merge: All Data Sources", "type": "main", "index": 4 }
+        ]
+      ]
+    },
+    "Merge: All Data Sources": {
+      "main": [
+        [
+          { "node": "Code: Aggregate by Dimensions", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Aggregate by Dimensions": {
+      "main": [
+        [
+          { "node": "If: Has Sufficient Data", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "If: Has Sufficient Data": {
+      "main": [
+        [
+          { "node": "Code: Build AI Synthesis Prompt", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Code: Generate Fallback Report", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Build AI Synthesis Prompt": {
+      "main": [
+        [
+          { "node": "HTTP: Call Claude for Synthesis", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Call Claude for Synthesis": {
+      "main": [
+        [
+          { "node": "Code: Parse AI Response", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Parse AI Response": {
+      "main": [
+        [
+          { "node": "Merge: Normal and Fallback Paths", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Generate Fallback Report": {
+      "main": [
+        [
+          { "node": "Merge: Normal and Fallback Paths", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Merge: Normal and Fallback Paths": {
+      "main": [
+        [
+          { "node": "Code: Format Brain Updates", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Format Brain Updates": {
+      "main": [
+        [
+          { "node": "HTTP: Update Brain Lessons File", "type": "main", "index": 0 },
+          { "node": "HTTP: Store Lessons in DB", "type": "main", "index": 0 },
+          { "node": "Jira: Create LEARN Summary Ticket", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Update Brain Lessons File": {
+      "main": [
+        [
+          { "node": "Merge: All Update Paths", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Store Lessons in DB": {
+      "main": [
+        [
+          { "node": "Merge: All Update Paths", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Jira: Create LEARN Summary Ticket": {
+      "main": [
+        [
+          { "node": "Merge: All Update Paths", "type": "main", "index": 2 }
+        ]
+      ]
+    },
+    "Merge: All Update Paths": {
+      "main": [
+        [
+          { "node": "Code: Format Discord Report", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Format Discord Report": {
+      "main": [
+        [
+          { "node": "Discord: Post Weekly Learning Report", "type": "main", "index": 0 },
+          { "node": "If: Recurring Mistakes Found", "type": "main", "index": 0 },
+          { "node": "HTTP: Log to Audit Trail", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Discord: Post Weekly Learning Report": {
+      "main": [
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "If: Recurring Mistakes Found": {
+      "main": [
+        [
+          { "node": "Code: Prepare Recurring Mistake Items", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Prepare Recurring Mistake Items": {
+      "main": [
+        [
+          { "node": "Jira: Create INFRA Tickets for Recurring Issues", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Jira: Create INFRA Tickets for Recurring Issues": {
+      "main": [
+        [
+          { "node": "If: Not Skip", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "If: Not Skip": {
+      "main": [
+        [
+          { "node": "Jira: Create INFRA Ticket (Recurring Pattern)", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Jira: Create INFRA Ticket (Recurring Pattern)": {
+      "main": [
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Log to Audit Trail": {
+      "main": [
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          { "node": "Code: Format Error Message", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Format Error Message": {
+      "main": [
+        [
+          { "node": "Discord: Post Error", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "self-improvement" },
+    { "name": "weekly" },
+    { "name": "learning" },
+    { "name": "lesson-compiler" }
+  ],
+  "triggerCount": 1,
+  "versionId": "1.0.0",
+  "meta": {
+    "instanceId": "swjshak-n8n",
+    "templateCredsSetupCompleted": false
+  }
+}

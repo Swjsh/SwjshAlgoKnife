@@ -1,0 +1,1522 @@
+{
+  "name": "WF-S02: Self-Healing Incident Response",
+  "nodes": [
+    {
+      "id": "webhook-alert",
+      "name": "Webhook: Alert Received",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 200],
+      "webhookId": "incident-alert-webhook",
+      "parameters": {
+        "path": "webhook/alert",
+        "httpMethod": "POST",
+        "authentication": "headerAuth",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "webhook-auth-cred",
+          "name": "Webhook Header Auth"
+        }
+      }
+    },
+    {
+      "id": "schedule-health-check",
+      "name": "Schedule: Health Check (2 min)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 400],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 2
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fetch-system-health",
+      "name": "HTTP: Fetch System Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 400],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/control",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "detect-issues",
+      "name": "Code: Detect Issues from Health Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 400],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const healthData = $input.first().json;\nconst alerts = [];\nconst now = Date.now();\n\n// Check agents\nconst agents = healthData.agents || [];\nagents.forEach(agent => {\n  const lastHeartbeat = agent.lastHeartbeat ? new Date(agent.lastHeartbeat).getTime() : 0;\n  const minutesSince = (now - lastHeartbeat) / 60000;\n  \n  if (agent.status === 'error' || agent.status === 'crashed') {\n    alerts.push({\n      type: 'agent_crashed',\n      component: agent.id,\n      componentName: agent.name,\n      severity: 'P1',\n      message: `Agent ${agent.name} has crashed`,\n      context: { status: agent.status, lastHeartbeat: agent.lastHeartbeat }\n    });\n  } else if (minutesSince > 15) {\n    alerts.push({\n      type: 'agent_unresponsive',\n      component: agent.id,\n      componentName: agent.name,\n      severity: 'P2',\n      message: `Agent ${agent.name} unresponsive for ${minutesSince.toFixed(0)} minutes`,\n      context: { lastHeartbeat: agent.lastHeartbeat, minutesSince }\n    });\n  } else if (minutesSince > 5) {\n    alerts.push({\n      type: 'agent_stale',\n      component: agent.id,\n      componentName: agent.name,\n      severity: 'P3',\n      message: `Agent ${agent.name} heartbeat delayed (${minutesSince.toFixed(0)} min)`,\n      context: { lastHeartbeat: agent.lastHeartbeat, minutesSince }\n    });\n  }\n});\n\n// Check system metrics\nif (healthData.system) {\n  if (healthData.system.memoryUsage > 90) {\n    alerts.push({\n      type: 'high_memory',\n      component: 'system',\n      componentName: 'System',\n      severity: 'P2',\n      message: `High memory usage: ${healthData.system.memoryUsage}%`,\n      context: { memoryUsage: healthData.system.memoryUsage }\n    });\n  }\n  \n  if (healthData.system.cpuUsage > 85) {\n    alerts.push({\n      type: 'high_cpu',\n      component: 'system',\n      componentName: 'System',\n      severity: 'P3',\n      message: `High CPU usage: ${healthData.system.cpuUsage}%`,\n      context: { cpuUsage: healthData.system.cpuUsage }\n    });\n  }\n}\n\n// Check database\nif (healthData.database && !healthData.database.connected) {\n  alerts.push({\n    type: 'database_down',\n    component: 'database',\n    componentName: 'Database',\n    severity: 'P1',\n    message: 'Database connection lost',\n    context: { lastError: healthData.database.lastError }\n  });\n}\n\n// Check broker connections\nif (healthData.brokers) {\n  healthData.brokers.forEach(broker => {\n    if (!broker.connected) {\n      alerts.push({\n        type: 'broker_disconnected',\n        component: broker.id,\n        componentName: broker.name,\n        severity: 'P1',\n        message: `Broker ${broker.name} disconnected`,\n        context: { lastError: broker.lastError }\n      });\n    }\n  });\n}\n\n// Add metadata to each alert\nalerts.forEach(alert => {\n  alert.detectedAt = new Date().toISOString();\n  alert.source = 'proactive_health_check';\n  alert.retryCount = 0;\n});\n\nreturn alerts.length > 0 \n  ? alerts.map(a => ({ json: a }))\n  : [{ json: { noAlerts: true } }];"
+      }
+    },
+    {
+      "id": "normalize-webhook-alert",
+      "name": "Code: Normalize Webhook Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 200],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const input = $json;\n\n// Normalize incoming webhook alert to standard format\nconst alert = {\n  type: input.type || input.alertType || 'unknown',\n  component: input.component || input.agentId || input.service || 'unknown',\n  componentName: input.componentName || input.name || input.component || 'Unknown',\n  severity: normalizeSeverity(input.severity || input.priority || 'P3'),\n  message: input.message || input.description || 'Alert received',\n  context: input.context || input.data || {},\n  detectedAt: input.timestamp || new Date().toISOString(),\n  source: 'webhook',\n  retryCount: 0\n};\n\nfunction normalizeSeverity(s) {\n  const upper = String(s).toUpperCase();\n  if (upper === 'CRITICAL' || upper === 'P1' || upper === '1') return 'P1';\n  if (upper === 'HIGH' || upper === 'P2' || upper === '2') return 'P2';\n  if (upper === 'MEDIUM' || upper === 'P3' || upper === '3') return 'P3';\n  if (upper === 'LOW' || upper === 'P4' || upper === '4') return 'P4';\n  return 'P3'; // Default\n}\n\nreturn { json: alert };"
+      }
+    },
+    {
+      "id": "merge-alerts",
+      "name": "Merge: Combine Alert Sources",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [660, 300],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "filter-no-alerts",
+      "name": "If: Has Alerts",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [880, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.noAlerts }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "switch-severity",
+      "name": "Switch: Classify Severity",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1100, 300],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "outputKey": "P1_critical",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.severity }}",
+                    "rightValue": "P1",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "P2_high",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.severity }}",
+                    "rightValue": "P2",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "P3_medium",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.severity }}",
+                    "rightValue": "P3",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "P4_low",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.severity }}",
+                    "rightValue": "P4",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      }
+    },
+    {
+      "id": "classify-p1",
+      "name": "Code: Classify P1 Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 100],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const alert = $json;\n\n// Determine auto-fix capability and strategy for P1 incidents\nconst autoFixMap = {\n  'agent_crashed': { canFix: true, strategy: 'restart_agent', command: 'restart' },\n  'agent_unresponsive': { canFix: true, strategy: 'restart_agent', command: 'restart' },\n  'database_down': { canFix: false, strategy: 'escalate_immediate', command: null },\n  'broker_disconnected': { canFix: true, strategy: 'reconnect_broker', command: 'reconnect' },\n  'service_down': { canFix: true, strategy: 'restart_service', command: 'docker_restart' }\n};\n\nconst fixInfo = autoFixMap[alert.type] || { canFix: false, strategy: 'escalate_immediate', command: null };\n\nreturn {\n  json: {\n    ...alert,\n    canAutoFix: fixInfo.canFix,\n    fixStrategy: fixInfo.strategy,\n    fixCommand: fixInfo.command,\n    maxRetries: 3,\n    retryDelaySeconds: 30,\n    escalationTarget: 'chief',\n    requiresPostMortem: true\n  }\n};"
+      }
+    },
+    {
+      "id": "classify-p2",
+      "name": "Code: Classify P2 Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 260],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const alert = $json;\n\n// Determine auto-fix for P2 incidents\nconst autoFixMap = {\n  'agent_unresponsive': { canFix: true, strategy: 'restart_agent', command: 'restart' },\n  'high_memory': { canFix: true, strategy: 'clear_cache', command: 'cache_clear' },\n  'api_timeout': { canFix: true, strategy: 'retry_connection', command: 'reconnect' },\n  'queue_backup': { canFix: true, strategy: 'flush_queue', command: 'queue_flush' }\n};\n\nconst fixInfo = autoFixMap[alert.type] || { canFix: false, strategy: 'log_and_alert', command: null };\n\nreturn {\n  json: {\n    ...alert,\n    canAutoFix: fixInfo.canFix,\n    fixStrategy: fixInfo.strategy,\n    fixCommand: fixInfo.command,\n    maxRetries: 2,\n    retryDelaySeconds: 45,\n    escalationTarget: 'system_channel',\n    requiresPostMortem: true\n  }\n};"
+      }
+    },
+    {
+      "id": "classify-p3",
+      "name": "Code: Classify P3 Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 420],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const alert = $json;\n\n// P3 - Medium priority, mostly logging\nconst autoFixMap = {\n  'agent_stale': { canFix: true, strategy: 'restart_agent', command: 'restart' },\n  'high_cpu': { canFix: false, strategy: 'log_and_monitor', command: null },\n  'slow_response': { canFix: false, strategy: 'log_and_monitor', command: null },\n  'disk_warning': { canFix: false, strategy: 'log_and_alert', command: null }\n};\n\nconst fixInfo = autoFixMap[alert.type] || { canFix: false, strategy: 'log_only', command: null };\n\nreturn {\n  json: {\n    ...alert,\n    canAutoFix: fixInfo.canFix,\n    fixStrategy: fixInfo.strategy,\n    fixCommand: fixInfo.command,\n    maxRetries: 1,\n    retryDelaySeconds: 60,\n    escalationTarget: 'logs_channel',\n    requiresPostMortem: false\n  }\n};"
+      }
+    },
+    {
+      "id": "classify-p4",
+      "name": "Code: Classify P4 Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 580],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const alert = $json;\n\n// P4 - Low priority, logging only\nreturn {\n  json: {\n    ...alert,\n    canAutoFix: false,\n    fixStrategy: 'log_only',\n    fixCommand: null,\n    maxRetries: 0,\n    retryDelaySeconds: 0,\n    escalationTarget: 'none',\n    requiresPostMortem: false\n  }\n};"
+      }
+    },
+    {
+      "id": "merge-classified",
+      "name": "Merge: Combine Classified",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1540, 300],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "if-can-autofix",
+      "name": "If: Can Auto-Fix",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1760, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.canAutoFix }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "switch-fix-strategy",
+      "name": "Switch: Fix Strategy",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1980, 200],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "outputKey": "restart_agent",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.fixStrategy }}",
+                    "rightValue": "restart_agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "restart_service",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.fixStrategy }}",
+                    "rightValue": "restart_service",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "clear_cache",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.fixStrategy }}",
+                    "rightValue": "clear_cache",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "reconnect_broker",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.fixStrategy }}",
+                    "rightValue": "reconnect_broker",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      }
+    },
+    {
+      "id": "fix-restart-agent",
+      "name": "HTTP: Restart Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, 40],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/control",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ command: 'restart', agentId: $json.component }) }}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "fix-restart-service",
+      "name": "HTTP: Restart Service (Docker)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, 140],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/control",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ command: 'docker_restart', service: $json.component }) }}",
+        "options": {
+          "timeout": 60000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "fix-clear-cache",
+      "name": "HTTP: Clear Cache",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, 240],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/control",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ command: 'cache_clear', target: $json.component }) }}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "fix-reconnect-broker",
+      "name": "HTTP: Reconnect Broker",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, 340],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/control",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ command: 'reconnect', brokerId: $json.component }) }}",
+        "options": {
+          "timeout": 45000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "merge-fix-attempts",
+      "name": "Merge: Fix Attempts",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [2420, 200],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "wait-after-fix",
+      "name": "Wait: 30s for Fix",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [2640, 200],
+      "parameters": {
+        "unit": "seconds",
+        "amount": 30
+      }
+    },
+    {
+      "id": "verify-fix",
+      "name": "HTTP: Verify Fix",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2860, 200],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://localhost:3000/api/agents/{{ $json.component }}/status",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "check-fix-success",
+      "name": "If: Fix Successful",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [3080, 200],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "or",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "running",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "healthy",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "leftValue": "={{ $json.connected }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "set-resolved",
+      "name": "Set: Mark Resolved",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [3300, 100],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "name": "status",
+              "value": "resolved",
+              "type": "string"
+            },
+            {
+              "name": "resolvedAt",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "name": "resolutionMethod",
+              "value": "auto_fix",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "include": "all"
+        }
+      }
+    },
+    {
+      "id": "check-retry-count",
+      "name": "Code: Check Retry Count",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3300, 300],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const alert = $('If: Can Auto-Fix').first().json;\nconst currentRetry = (alert.retryCount || 0) + 1;\n\nreturn {\n  json: {\n    ...alert,\n    retryCount: currentRetry,\n    canRetry: currentRetry < alert.maxRetries,\n    status: 'fix_failed'\n  }\n};"
+      }
+    },
+    {
+      "id": "if-can-retry",
+      "name": "If: Can Retry",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [3520, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.canRetry }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "wait-before-retry",
+      "name": "Wait: Before Retry",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [3740, 200],
+      "parameters": {
+        "unit": "seconds",
+        "amount": "={{ $json.retryDelaySeconds || 30 }}"
+      }
+    },
+    {
+      "id": "set-escalate",
+      "name": "Set: Mark for Escalation",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [3740, 400],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "name": "status",
+              "value": "escalated",
+              "type": "string"
+            },
+            {
+              "name": "escalatedAt",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "name": "requires_human",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {
+          "include": "all"
+        }
+      }
+    },
+    {
+      "id": "set-no-fix-needed",
+      "name": "Set: No Auto-Fix (Log Only)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1980, 400],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "name": "status",
+              "value": "logged",
+              "type": "string"
+            },
+            {
+              "name": "requires_human",
+              "value": "={{ ['P1', 'P2'].includes($json.severity) }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {
+          "include": "all"
+        }
+      }
+    },
+    {
+      "id": "merge-all-outcomes",
+      "name": "Merge: All Outcomes",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [4100, 300],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "aggregate-results",
+      "name": "Code: Aggregate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4320, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const items = $input.all();\nconst results = items.map(i => i.json);\n\nconst resolved = results.filter(r => r.status === 'resolved');\nconst escalated = results.filter(r => r.status === 'escalated' || r.requires_human);\nconst logged = results.filter(r => r.status === 'logged');\n\nconst summary = {\n  timestamp: new Date().toISOString(),\n  total: results.length,\n  resolved: resolved.length,\n  escalated: escalated.length,\n  logged: logged.length,\n  details: results,\n  hasEscalations: escalated.length > 0,\n  hasP1: results.some(r => r.severity === 'P1'),\n  hasP2: results.some(r => r.severity === 'P2')\n};\n\nreturn { json: summary };"
+      }
+    },
+    {
+      "id": "if-has-escalations",
+      "name": "If: Has Escalations",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [4540, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.hasEscalations }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "discord-escalation",
+      "name": "Discord: Post Escalation Alert",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [4760, 200],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_CHIEF_CHANNEL }}",
+        "content": "@here INCIDENT ESCALATION - Auto-remediation failed",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "INCIDENT: Auto-remediation Failed",
+              "description": "={{ `${$json.escalated} incident(s) require human intervention.` }}",
+              "color": "15158332",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Total Incidents",
+                    "value": "={{ $json.total }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Auto-Resolved",
+                    "value": "={{ $json.resolved }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Escalated",
+                    "value": "={{ $json.escalated }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Affected Components",
+                    "value": "={{ $json.details.filter(d => d.requires_human).map(d => d.componentName).join(', ') }}",
+                    "inline": false
+                  }
+                ]
+              },
+              "footer": "SwjshAK Incident Response",
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "jira-pulse-critical",
+      "name": "Jira: Create PULSE Ticket (Critical)",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [4980, 200],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "PULSE",
+        "issueType": "Bug",
+        "additionalFields": {
+          "summary": "={{ `[INCIDENT] ${$json.details.filter(d => d.requires_human).map(d => d.componentName).join(', ')} - Auto-fix Failed` }}",
+          "description": "={{ `Incident Report\\n\\nTimestamp: ${$json.timestamp}\\nTotal Alerts: ${$json.total}\\nAuto-Resolved: ${$json.resolved}\\nEscalated: ${$json.escalated}\\n\\nEscalated Incidents:\\n${$json.details.filter(d => d.requires_human).map(d => `- ${d.componentName}: ${d.message} (${d.severity})`).join('\\n')}\\n\\nAuto-remediation attempts exhausted. Human intervention required.` }}",
+          "labels": [
+            "incident",
+            "escalation",
+            "{{ $json.hasP1 ? 'P1' : ($json.hasP2 ? 'P2' : 'P3') }}"
+          ],
+          "priority": "={{ $json.hasP1 ? 'Highest' : ($json.hasP2 ? 'High' : 'Medium') }}"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      }
+    },
+    {
+      "id": "if-post-mortem-needed",
+      "name": "If: Post-Mortem Needed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [5200, 200],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "or",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.hasP1 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            },
+            {
+              "leftValue": "={{ $json.hasP2 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "trigger-post-mortem",
+      "name": "HTTP: Trigger Post-Mortem Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [5420, 100],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.N8N_WEBHOOK_BASE }}/webhook/post-mortem",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ incidentSummary: $json, timestamp: new Date().toISOString() }) }}",
+        "options": {
+          "timeout": 15000
+        }
+      }
+    },
+    {
+      "id": "discord-auto-resolved",
+      "name": "Discord: Post Auto-Resolved",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [4760, 400],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_SYSTEM_CHANNEL }}",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "Incidents Auto-Resolved",
+              "description": "={{ `${$json.resolved} incident(s) were automatically resolved.` }}",
+              "color": "3066993",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Resolved",
+                    "value": "={{ $json.resolved }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Logged",
+                    "value": "={{ $json.logged }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Components",
+                    "value": "={{ $json.details.filter(d => d.status === 'resolved').map(d => d.componentName).join(', ') || 'N/A' }}",
+                    "inline": false
+                  }
+                ]
+              },
+              "footer": "SwjshAK Self-Healing",
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "log-incident",
+      "name": "HTTP: Log Incident to Database",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [5420, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/incidents",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "sticky-overview",
+      "name": "Note: Workflow Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-200, 0],
+      "parameters": {
+        "content": "## WF-S02: Self-Healing Incident Response\n\n**Triggers:**\n- Webhook: `/webhook/alert`\n- Schedule: Every 2 minutes\n\n**Purpose:** Detect and auto-remediate system issues\n\n### Severity Levels:\n- P1: Critical (crash, DB down, broker disconnect)\n- P2: High (unresponsive agent, high memory)\n- P3: Medium (stale heartbeat, high CPU)\n- P4: Low (informational)\n\n### Auto-Fix Strategies:\n- restart_agent: POST /api/control {restart}\n- restart_service: Docker restart\n- clear_cache: Cache invalidation\n- reconnect_broker: Broker reconnection\n\n### Retry Logic:\n- P1: 3 retries, 30s delay\n- P2: 2 retries, 45s delay\n- P3: 1 retry, 60s delay"
+      }
+    },
+    {
+      "id": "sticky-escalation",
+      "name": "Note: Escalation Path",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [4540, 0],
+      "parameters": {
+        "content": "## Escalation Path\n\n1. Auto-fix attempted\n2. If fails: Wait + Retry (up to maxRetries)\n3. If still fails: Mark for escalation\n4. Post to #chief Discord\n5. Create PULSE Jira ticket\n6. If P1/P2: Trigger post-mortem workflow\n\n### Post-Mortem (P1/P2 only):\n- Creates detailed incident timeline\n- Schedules review meeting\n- Generates lessons learned ticket"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: Alert Received": {
+      "main": [
+        [
+          {
+            "node": "Code: Normalize Webhook Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule: Health Check (2 min)": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Fetch System Health",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch System Health": {
+      "main": [
+        [
+          {
+            "node": "Code: Detect Issues from Health Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Detect Issues from Health Check": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine Alert Sources",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code: Normalize Webhook Alert": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine Alert Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge: Combine Alert Sources": {
+      "main": [
+        [
+          {
+            "node": "If: Has Alerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Has Alerts": {
+      "main": [
+        [
+          {
+            "node": "Switch: Classify Severity",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Switch: Classify Severity": {
+      "main": [
+        [
+          {
+            "node": "Code: Classify P1 Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Classify P2 Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Classify P3 Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Classify P4 Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Classify P3 Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Classify P1 Response": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine Classified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Classify P2 Response": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine Classified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Classify P3 Response": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine Classified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Classify P4 Response": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine Classified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge: Combine Classified": {
+      "main": [
+        [
+          {
+            "node": "If: Can Auto-Fix",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Can Auto-Fix": {
+      "main": [
+        [
+          {
+            "node": "Switch: Fix Strategy",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set: No Auto-Fix (Log Only)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Fix Strategy": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Restart Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Restart Service (Docker)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Clear Cache",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Reconnect Broker",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set: No Auto-Fix (Log Only)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Restart Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge: Fix Attempts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Restart Service (Docker)": {
+      "main": [
+        [
+          {
+            "node": "Merge: Fix Attempts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Clear Cache": {
+      "main": [
+        [
+          {
+            "node": "Merge: Fix Attempts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Reconnect Broker": {
+      "main": [
+        [
+          {
+            "node": "Merge: Fix Attempts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge: Fix Attempts": {
+      "main": [
+        [
+          {
+            "node": "Wait: 30s for Fix",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait: 30s for Fix": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Verify Fix",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Verify Fix": {
+      "main": [
+        [
+          {
+            "node": "If: Fix Successful",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Fix Successful": {
+      "main": [
+        [
+          {
+            "node": "Set: Mark Resolved",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Check Retry Count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: Mark Resolved": {
+      "main": [
+        [
+          {
+            "node": "Merge: All Outcomes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Check Retry Count": {
+      "main": [
+        [
+          {
+            "node": "If: Can Retry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Can Retry": {
+      "main": [
+        [
+          {
+            "node": "Wait: Before Retry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set: Mark for Escalation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait: Before Retry": {
+      "main": [
+        [
+          {
+            "node": "Switch: Fix Strategy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: Mark for Escalation": {
+      "main": [
+        [
+          {
+            "node": "Merge: All Outcomes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: No Auto-Fix (Log Only)": {
+      "main": [
+        [
+          {
+            "node": "Merge: All Outcomes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge: All Outcomes": {
+      "main": [
+        [
+          {
+            "node": "Code: Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Aggregate Results": {
+      "main": [
+        [
+          {
+            "node": "If: Has Escalations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Has Escalations": {
+      "main": [
+        [
+          {
+            "node": "Discord: Post Escalation Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Discord: Post Auto-Resolved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord: Post Escalation Alert": {
+      "main": [
+        [
+          {
+            "node": "Jira: Create PULSE Ticket (Critical)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jira: Create PULSE Ticket (Critical)": {
+      "main": [
+        [
+          {
+            "node": "If: Post-Mortem Needed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Post-Mortem Needed": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Trigger Post-Mortem Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Log Incident to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Trigger Post-Mortem Workflow": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Log Incident to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord: Post Auto-Resolved": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Log Incident to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "operations"
+    },
+    {
+      "name": "self-healing"
+    },
+    {
+      "name": "incident-response"
+    }
+  ],
+  "triggerCount": 2,
+  "updatedAt": "2026-03-20T00:00:00.000Z",
+  "versionId": "1"
+}

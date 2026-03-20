@@ -1,0 +1,918 @@
+{
+  "name": "WF-MGMT-02 Velocity Tracker",
+  "nodes": [
+    {
+      "id": "mgmt02-schedule-trigger",
+      "name": "Schedule: Sunday 8 PM ET",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 400],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 20 * * 0"
+            }
+          ]
+        }
+      },
+      "notes": "Triggers at 8:00 PM ET on Sundays for weekly velocity tracking"
+    },
+    {
+      "id": "mgmt02-fetch-12-weeks-velocity",
+      "name": "HTTP: Fetch 12 Weeks Velocity",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [280, 200],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/metrics/velocity?weeks=12",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches sprint velocity for last 12 weeks"
+    },
+    {
+      "id": "mgmt02-fetch-12-weeks-trades",
+      "name": "HTTP: Fetch 12 Weeks Trading",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [280, 340],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'http://localhost:3000/api/trades/summary?startDate=' + $now.minus({weeks: 12}).toFormat('yyyy-MM-dd') + '&endDate=' + $now.toFormat('yyyy-MM-dd') + '&groupBy=week' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches trading performance grouped by week for 12 weeks"
+    },
+    {
+      "id": "mgmt02-fetch-12-weeks-health",
+      "name": "HTTP: Fetch 12 Weeks System Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [280, 480],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/health/history?weeks=12",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches system health metrics for 12 weeks"
+    },
+    {
+      "id": "mgmt02-fetch-jira-throughput-trade",
+      "name": "Jira: Fetch TRADE Throughput",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [280, 620],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "TRADE",
+        "options": {
+          "jql": "project = TRADE AND status changed to Done AFTER -84d ORDER BY resolved DESC",
+          "maxResults": 500
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches TRADE tickets completed in last 12 weeks"
+    },
+    {
+      "id": "mgmt02-fetch-jira-throughput-infra",
+      "name": "Jira: Fetch INFRA Throughput",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [280, 760],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "INFRA",
+        "options": {
+          "jql": "project = INFRA AND status changed to Done AFTER -84d ORDER BY resolved DESC",
+          "maxResults": 500
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches INFRA tickets completed in last 12 weeks"
+    },
+    {
+      "id": "mgmt02-fetch-jira-throughput-learn",
+      "name": "Jira: Fetch LEARN Throughput",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [280, 900],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "LEARN",
+        "options": {
+          "jql": "project = LEARN AND status changed to Done AFTER -84d ORDER BY resolved DESC",
+          "maxResults": 500
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches LEARN tickets completed in last 12 weeks"
+    },
+    {
+      "id": "mgmt02-fetch-bug-resolution",
+      "name": "Jira: Fetch Bug Resolution Times",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [280, 1040],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "options": {
+          "jql": "issuetype = Bug AND resolved >= -84d ORDER BY resolved DESC",
+          "maxResults": 200
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches resolved bugs for time-to-resolution calculation"
+    },
+    {
+      "id": "mgmt02-merge-api-data",
+      "name": "Merge: API Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [560, 340],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "notes": "Combines velocity, trading, and health API data"
+    },
+    {
+      "id": "mgmt02-merge-jira-data",
+      "name": "Merge: Jira Throughput",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [560, 800],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "notes": "Combines Jira throughput data from all projects"
+    },
+    {
+      "id": "mgmt02-merge-all-data",
+      "name": "Merge: All Historical Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [800, 550],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "notes": "Combines all API and Jira data"
+    },
+    {
+      "id": "mgmt02-calculate-trends",
+      "name": "Code: Calculate Trends & Statistics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 550],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Get all data\nconst velocityData = $('HTTP: Fetch 12 Weeks Velocity').first()?.json?.weeks || [];\nconst tradingData = $('HTTP: Fetch 12 Weeks Trading').first()?.json?.weeks || [];\nconst healthData = $('HTTP: Fetch 12 Weeks System Health').first()?.json?.weeks || [];\nconst tradeTickets = $('Jira: Fetch TRADE Throughput').all().map(i => i.json);\nconst infraTickets = $('Jira: Fetch INFRA Throughput').all().map(i => i.json);\nconst learnTickets = $('Jira: Fetch LEARN Throughput').all().map(i => i.json);\nconst bugTickets = $('Jira: Fetch Bug Resolution Times').all().map(i => i.json);\n\n// Helper: Calculate linear regression for trend\nconst calculateTrend = (values) => {\n  if (values.length < 3) return { slope: 0, trend: 'insufficient_data', r2: 0 };\n  \n  const n = values.length;\n  const sumX = values.reduce((s, _, i) => s + i, 0);\n  const sumY = values.reduce((s, v) => s + v, 0);\n  const sumXY = values.reduce((s, v, i) => s + (i * v), 0);\n  const sumX2 = values.reduce((s, _, i) => s + (i * i), 0);\n  \n  const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);\n  const intercept = (sumY - slope * sumX) / n;\n  \n  // Calculate R-squared\n  const meanY = sumY / n;\n  const ssTotal = values.reduce((s, v) => s + Math.pow(v - meanY, 2), 0);\n  const ssResidual = values.reduce((s, v, i) => {\n    const predicted = slope * i + intercept;\n    return s + Math.pow(v - predicted, 2);\n  }, 0);\n  const r2 = ssTotal > 0 ? 1 - (ssResidual / ssTotal) : 0;\n  \n  // Determine trend direction\n  let trend = 'stable';\n  const slopePercent = meanY > 0 ? (slope / meanY * 100) : 0;\n  if (slopePercent > 5) trend = 'improving';\n  else if (slopePercent < -5) trend = 'declining';\n  \n  return { slope, trend, r2, slopePercent };\n};\n\n// Helper: Group tickets by week\nconst groupByWeek = (tickets) => {\n  const weeks = {};\n  tickets.forEach(t => {\n    const resolved = new Date(t.fields?.resolutiondate || t.fields?.updated);\n    const weekStart = new Date(resolved);\n    weekStart.setDate(weekStart.getDate() - weekStart.getDay());\n    const weekKey = weekStart.toISOString().split('T')[0];\n    if (!weeks[weekKey]) weeks[weekKey] = [];\n    weeks[weekKey].push(t);\n  });\n  return weeks;\n};\n\n// Calculate velocity trend\nconst velocityValues = velocityData.map(w => w.points || 0);\nconst velocityTrend = calculateTrend(velocityValues);\nconst avgVelocity = velocityValues.length > 0 \n  ? velocityValues.reduce((s, v) => s + v, 0) / velocityValues.length \n  : 0;\nconst lastWeekVelocity = velocityValues[velocityValues.length - 1] || 0;\n\n// Calculate trading P&L trend\nconst pnlValues = tradingData.map(w => parseFloat(w.totalPnL) || 0);\nconst pnlTrend = calculateTrend(pnlValues);\nconst totalPnL = pnlValues.reduce((s, v) => s + v, 0);\nconst avgWeeklyPnL = pnlValues.length > 0 ? totalPnL / pnlValues.length : 0;\nconst lastWeekPnL = pnlValues[pnlValues.length - 1] || 0;\n\n// Calculate win rate trend\nconst winRateValues = tradingData.map(w => parseFloat(w.winRate) || 50);\nconst winRateTrend = calculateTrend(winRateValues);\nconst avgWinRate = winRateValues.length > 0 \n  ? winRateValues.reduce((s, v) => s + v, 0) / winRateValues.length \n  : 50;\n\n// Calculate system health trend\nconst uptimeValues = healthData.map(w => parseFloat(w.uptimePercent) || 99);\nconst uptimeTrend = calculateTrend(uptimeValues);\nconst avgUptime = uptimeValues.length > 0 \n  ? uptimeValues.reduce((s, v) => s + v, 0) / uptimeValues.length \n  : 99;\n\n// Calculate ticket throughput by project\nconst tradeByWeek = groupByWeek(tradeTickets);\nconst infraByWeek = groupByWeek(infraTickets);\nconst learnByWeek = groupByWeek(learnTickets);\n\nconst throughputByProject = {\n  TRADE: {\n    total: tradeTickets.length,\n    weeklyAvg: tradeTickets.length / 12,\n    weeks: Object.entries(tradeByWeek).map(([w, t]) => ({ week: w, count: t.length }))\n  },\n  INFRA: {\n    total: infraTickets.length,\n    weeklyAvg: infraTickets.length / 12,\n    weeks: Object.entries(infraByWeek).map(([w, t]) => ({ week: w, count: t.length }))\n  },\n  LEARN: {\n    total: learnTickets.length,\n    weeklyAvg: learnTickets.length / 12,\n    weeks: Object.entries(learnByWeek).map(([w, t]) => ({ week: w, count: t.length }))\n  }\n};\n\n// Calculate bug resolution times\nconst bugResolutionTimes = bugTickets.map(b => {\n  const created = new Date(b.fields?.created);\n  const resolved = new Date(b.fields?.resolutiondate || b.fields?.updated);\n  return (resolved - created) / (1000 * 60 * 60); // hours\n}).filter(t => t > 0 && t < 10000); // Filter outliers\n\nconst avgBugResolution = bugResolutionTimes.length > 0 \n  ? bugResolutionTimes.reduce((s, t) => s + t, 0) / bugResolutionTimes.length \n  : 0;\nconst medianBugResolution = bugResolutionTimes.length > 0\n  ? bugResolutionTimes.sort((a, b) => a - b)[Math.floor(bugResolutionTimes.length / 2)]\n  : 0;\n\n// Bug rate trend (bugs per week)\nconst bugsByWeek = groupByWeek(bugTickets);\nconst bugRateValues = Object.values(bugsByWeek).map(bugs => bugs.length);\nconst bugRateTrend = calculateTrend(bugRateValues);\nconst avgBugRate = bugRateValues.length > 0 \n  ? bugRateValues.reduce((s, v) => s + v, 0) / bugRateValues.length \n  : 0;\n\n// Identify alerts for declining trends\nconst alerts = [];\nif (velocityTrend.trend === 'declining' && velocityTrend.r2 > 0.5) {\n  alerts.push({\n    type: 'velocity_decline',\n    severity: 'warning',\n    message: `Velocity declining by ${Math.abs(velocityTrend.slopePercent).toFixed(1)}% per week`,\n    metric: 'velocity',\n    r2: velocityTrend.r2\n  });\n}\n\nif (pnlTrend.trend === 'declining' && pnlTrend.r2 > 0.4) {\n  alerts.push({\n    type: 'pnl_decline',\n    severity: 'critical',\n    message: `Trading P&L declining trend detected`,\n    metric: 'pnl',\n    r2: pnlTrend.r2\n  });\n}\n\nif (uptimeTrend.trend === 'declining' && avgUptime < 99) {\n  alerts.push({\n    type: 'uptime_decline',\n    severity: 'critical',\n    message: `System uptime declining (avg: ${avgUptime.toFixed(2)}%)`,\n    metric: 'uptime',\n    r2: uptimeTrend.r2\n  });\n}\n\nif (bugRateTrend.trend === 'improving' && bugRateTrend.slope > 0.5) {\n  // Improving bug rate means more bugs (bad)\n  alerts.push({\n    type: 'bug_rate_increase',\n    severity: 'warning',\n    message: `Bug rate increasing by ${bugRateTrend.slope.toFixed(1)} bugs/week`,\n    metric: 'bugs',\n    r2: bugRateTrend.r2\n  });\n}\n\n// Check if last Sunday of month for monthly report\nconst today = new Date();\nconst nextSunday = new Date(today);\nnextSunday.setDate(today.getDate() + 7);\nconst isLastSundayOfMonth = nextSunday.getMonth() !== today.getMonth();\n\nreturn {\n  json: {\n    reportDate: today.toISOString(),\n    isMonthlyReport: isLastSundayOfMonth,\n    \n    velocity: {\n      current: lastWeekVelocity,\n      average: avgVelocity.toFixed(1),\n      trend: velocityTrend.trend,\n      slopePercent: velocityTrend.slopePercent.toFixed(2),\n      r2: velocityTrend.r2.toFixed(3),\n      history: velocityValues\n    },\n    \n    trading: {\n      lastWeekPnL: lastWeekPnL.toFixed(2),\n      totalPnL: totalPnL.toFixed(2),\n      avgWeeklyPnL: avgWeeklyPnL.toFixed(2),\n      trend: pnlTrend.trend,\n      avgWinRate: avgWinRate.toFixed(1),\n      winRateTrend: winRateTrend.trend,\n      history: pnlValues\n    },\n    \n    system: {\n      avgUptime: avgUptime.toFixed(2),\n      trend: uptimeTrend.trend,\n      history: uptimeValues\n    },\n    \n    throughput: throughputByProject,\n    \n    bugs: {\n      total: bugTickets.length,\n      avgResolutionHours: avgBugResolution.toFixed(1),\n      medianResolutionHours: medianBugResolution.toFixed(1),\n      avgPerWeek: avgBugRate.toFixed(1),\n      trend: bugRateTrend.slope > 0 ? 'increasing' : 'decreasing'\n    },\n    \n    alerts,\n    hasAlerts: alerts.length > 0,\n    criticalAlerts: alerts.filter(a => a.severity === 'critical').length,\n    \n    // Data for visualization\n    chartData: {\n      velocity: velocityValues,\n      pnl: pnlValues,\n      winRate: winRateValues,\n      uptime: uptimeValues,\n      bugRate: bugRateValues\n    }\n  }\n};"
+      },
+      "notes": "Calculates trends, statistics, and identifies alerts"
+    },
+    {
+      "id": "mgmt02-build-analysis-prompt",
+      "name": "Code: Build Trend Analysis Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 550],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $input.first().json;\n\nconst prompt = `You are a data analyst specializing in software development and trading system metrics.\n\nAnalyze these 12-week trends and provide insights with forecasts:\n\n## VELOCITY TREND\n- Current: ${data.velocity.current} story points\n- 12-week Average: ${data.velocity.average} points\n- Trend: ${data.velocity.trend} (${data.velocity.slopePercent}% per week)\n- R-squared: ${data.velocity.r2}\n- History: ${data.velocity.history.join(', ')}\n\n## TRADING PERFORMANCE\n- Last Week P&L: $${data.trading.lastWeekPnL}\n- 12-week Total: $${data.trading.totalPnL}\n- Weekly Average: $${data.trading.avgWeeklyPnL}\n- Trend: ${data.trading.trend}\n- Win Rate: ${data.trading.avgWinRate}% (${data.trading.winRateTrend})\n- P&L History: ${data.trading.history.join(', ')}\n\n## SYSTEM HEALTH\n- Average Uptime: ${data.system.avgUptime}%\n- Trend: ${data.system.trend}\n- History: ${data.system.history.join(', ')}\n\n## TICKET THROUGHPUT\n- TRADE: ${data.throughput.TRADE.total} tickets (${data.throughput.TRADE.weeklyAvg.toFixed(1)}/week)\n- INFRA: ${data.throughput.INFRA.total} tickets (${data.throughput.INFRA.weeklyAvg.toFixed(1)}/week)\n- LEARN: ${data.throughput.LEARN.total} tickets (${data.throughput.LEARN.weeklyAvg.toFixed(1)}/week)\n\n## BUG METRICS\n- Total Resolved: ${data.bugs.total}\n- Avg Resolution: ${data.bugs.avgResolutionHours} hours\n- Median Resolution: ${data.bugs.medianResolutionHours} hours\n- Rate Trend: ${data.bugs.trend}\n\n## ACTIVE ALERTS\n${data.alerts.length > 0 ? data.alerts.map(a => '- [' + a.severity.toUpperCase() + '] ' + a.message).join('\\n') : 'No active alerts'}\n\n${data.isMonthlyReport ? '## NOTE: This is a MONTHLY report - include month-over-month comparison' : ''}\n\n---\n\nProvide analysis in this format:\n\n## TREND INTERPRETATION\n(What the numbers mean for the business - 3-4 bullets)\n\n## FORECAST\n(Project next 2-4 weeks based on trends - be specific with numbers)\n\n## CONCERNS\n(Any worrying patterns or correlations - 2-3 items)\n\n## RECOMMENDATIONS\n(Specific actions to improve metrics - 3-4 actionable items)\n\n## POSITIVE MOMENTUM\n(Highlight improving areas - 2-3 wins)\n\nBe data-driven and specific. Reference actual numbers. Max 400 words.`;\n\nreturn {\n  json: {\n    prompt,\n    data,\n    isMonthlyReport: data.isMonthlyReport\n  }\n};"
+      },
+      "notes": "Builds prompt for Claude trend analysis"
+    },
+    {
+      "id": "mgmt02-call-claude",
+      "name": "HTTP: Call Claude for Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1550, 550],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 1500,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.prompt) }}\n    }\n  ]\n}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "anthropic-api-key",
+          "name": "Anthropic API Key"
+        }
+      },
+      "notes": "Calls Claude to analyze trends and generate insights"
+    },
+    {
+      "id": "mgmt02-parse-response",
+      "name": "Code: Parse Analysis Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1800, 550],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = $json;\nconst prevData = $('Code: Build Trend Analysis Prompt').first().json;\n\n// Extract analysis text\nlet analysisText = '';\nif (response?.content?.[0]?.text) {\n  analysisText = response.content[0].text;\n} else {\n  analysisText = 'Failed to generate trend analysis. Please review manually.';\n}\n\nreturn {\n  json: {\n    analysisText,\n    data: prevData.data,\n    isMonthlyReport: prevData.isMonthlyReport\n  }\n};"
+      },
+      "notes": "Parses Claude response"
+    },
+    {
+      "id": "mgmt02-check-alerts",
+      "name": "If: Has Declining Trends",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2050, 550],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-alerts",
+              "leftValue": "={{ $json.data.hasAlerts }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "notes": "Checks if there are any declining trend alerts"
+    },
+    {
+      "id": "mgmt02-create-alert-ticket",
+      "name": "Jira: Create MGMT Alert Ticket",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2300, 400],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "MGMT",
+        "issueType": "Task",
+        "additionalFields": {
+          "summary": "={{ `[TREND ALERT] ${$json.data.criticalAlerts > 0 ? 'CRITICAL: ' : ''}Declining metrics detected` }}",
+          "description": "={{ `Velocity Tracker Alert\\n\\nDeclining trends have been detected that require attention.\\n\\n## Active Alerts\\n${$json.data.alerts.map(a => '- [' + a.severity.toUpperCase() + '] ' + a.message + ' (R2: ' + a.r2.toFixed(2) + ')').join('\\n')}\\n\\n## Current Metrics\\n- Velocity: ${$json.data.velocity.current} points (${$json.data.velocity.trend})\\n- P&L: $${$json.data.trading.lastWeekPnL} (${$json.data.trading.trend})\\n- Uptime: ${$json.data.system.avgUptime}% (${$json.data.system.trend})\\n- Bug Rate: ${$json.data.bugs.avgPerWeek}/week (${$json.data.bugs.trend})\\n\\n## AI Analysis\\n${$json.analysisText.substring(0, 2000)}\\n\\n---\\nGenerated by WF-MGMT-02 Velocity Tracker` }}",
+          "labels": [
+            "trend-alert",
+            "velocity-tracker",
+            "auto-generated"
+          ],
+          "priority": "={{ $json.data.criticalAlerts > 0 ? 'High' : 'Medium' }}"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Creates MGMT alert ticket for declining trends"
+    },
+    {
+      "id": "mgmt02-discord-alert",
+      "name": "Discord: Post Trend Alert",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2550, 400],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_CEO_CHANNEL_ID || 'ceo-briefing' }}"
+        },
+        "content": "={{ $json.data.criticalAlerts > 0 ? ':rotating_light: **CRITICAL TREND ALERT**' : ':warning: **Trend Alert**' }}\n\nDeclining trends detected. Review required.\n\nMGMT ticket created: **{{ $('Jira: Create MGMT Alert Ticket').first().json.key }}**",
+        "options": {
+          "embeds": [
+            {
+              "title": "Velocity Tracker - Trend Alert",
+              "description": "={{ $json.data.alerts.map(a => '- [' + a.severity.toUpperCase() + '] ' + a.message).join('\\n') }}",
+              "color": "={{ $json.data.criticalAlerts > 0 ? 15158332 : 16776960 }}",
+              "fields": [
+                {
+                  "name": "Velocity",
+                  "value": "={{ $json.data.velocity.current + ' pts (' + $json.data.velocity.trend + ')' }}",
+                  "inline": true
+                },
+                {
+                  "name": "P&L",
+                  "value": "={{ '$' + $json.data.trading.lastWeekPnL + ' (' + $json.data.trading.trend + ')' }}",
+                  "inline": true
+                },
+                {
+                  "name": "Uptime",
+                  "value": "={{ $json.data.system.avgUptime + '% (' + $json.data.system.trend + ')' }}",
+                  "inline": true
+                }
+              ],
+              "footer": {
+                "text": "WF-MGMT-02 Velocity Tracker"
+              },
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts trend alert to Discord"
+    },
+    {
+      "id": "mgmt02-no-alert-path",
+      "name": "NoOp: No Alerts",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [2300, 700],
+      "parameters": {},
+      "notes": "No declining trends - continue normally"
+    },
+    {
+      "id": "mgmt02-merge-paths",
+      "name": "Merge: Alert Paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [2800, 550],
+      "parameters": {
+        "mode": "chooseBranch",
+        "output": "input1"
+      },
+      "notes": "Merges alert and no-alert paths"
+    },
+    {
+      "id": "mgmt02-check-monthly",
+      "name": "If: Is Monthly Report",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [3050, 550],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-monthly",
+              "leftValue": "={{ $('Code: Parse Analysis Response').first().json.isMonthlyReport }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "notes": "Checks if this is the last Sunday of the month"
+    },
+    {
+      "id": "mgmt02-format-monthly-report",
+      "name": "Code: Format Monthly Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3300, 400],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $('Code: Parse Analysis Response').first().json;\nconst metrics = data.data;\n\nconst monthName = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });\n\nconst embed = {\n  title: `:chart_with_upwards_trend: Monthly Trend Report - ${monthName}`,\n  description: data.analysisText.substring(0, 2000),\n  color: metrics.hasAlerts ? 16776960 : 3066993,\n  fields: [\n    {\n      name: ':dart: Velocity (12-wk avg)',\n      value: `${metrics.velocity.average} pts/week`,\n      inline: true\n    },\n    {\n      name: ':chart: Velocity Trend',\n      value: `${metrics.velocity.trend} (${metrics.velocity.slopePercent}%/wk)`,\n      inline: true\n    },\n    {\n      name: ':dollar: Total P&L (12 wks)',\n      value: `$${metrics.trading.totalPnL}`,\n      inline: true\n    },\n    {\n      name: ':dart: Avg Win Rate',\n      value: `${metrics.trading.avgWinRate}%`,\n      inline: true\n    },\n    {\n      name: ':shield: Avg Uptime',\n      value: `${metrics.system.avgUptime}%`,\n      inline: true\n    },\n    {\n      name: ':bug: Bug Resolution',\n      value: `${metrics.bugs.medianResolutionHours}h median`,\n      inline: true\n    },\n    {\n      name: ':ticket: TRADE Throughput',\n      value: `${metrics.throughput.TRADE.total} (${metrics.throughput.TRADE.weeklyAvg.toFixed(1)}/wk)`,\n      inline: true\n    },\n    {\n      name: ':wrench: INFRA Throughput',\n      value: `${metrics.throughput.INFRA.total} (${metrics.throughput.INFRA.weeklyAvg.toFixed(1)}/wk)`,\n      inline: true\n    },\n    {\n      name: ':books: LEARN Throughput',\n      value: `${metrics.throughput.LEARN.total} (${metrics.throughput.LEARN.weeklyAvg.toFixed(1)}/wk)`,\n      inline: true\n    }\n  ],\n  footer: {\n    text: 'SwjshAK Monthly Velocity Report | WF-MGMT-02'\n  },\n  timestamp: new Date().toISOString()\n};\n\nreturn {\n  json: {\n    embed,\n    monthName,\n    data,\n    channelId: process.env.DISCORD_CEO_CHANNEL_ID || 'ceo-briefing'\n  }\n};"
+      },
+      "notes": "Formats comprehensive monthly trend report"
+    },
+    {
+      "id": "mgmt02-post-monthly",
+      "name": "Discord: Post Monthly Report",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [3550, 400],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.channelId }}"
+        },
+        "content": ":mega: **Monthly Velocity Report Available**\n\nComprehensive 12-week trend analysis for {{ $json.monthName }}.",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts monthly report to Discord"
+    },
+    {
+      "id": "mgmt02-skip-monthly",
+      "name": "NoOp: Not Monthly",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [3300, 700],
+      "parameters": {},
+      "notes": "Not last Sunday of month - skip monthly report"
+    },
+    {
+      "id": "mgmt02-merge-monthly-paths",
+      "name": "Merge: Monthly Paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [3800, 550],
+      "parameters": {
+        "mode": "chooseBranch",
+        "output": "input1"
+      },
+      "notes": "Merges monthly and weekly paths"
+    },
+    {
+      "id": "mgmt02-update-master-tracker",
+      "name": "HTTP: Update Master Tracker",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [4050, 550],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/brain/update-tracker",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"section\": \"velocity\",\n  \"data\": {\n    \"currentVelocity\": {{ $('Code: Calculate Trends & Statistics').first().json.velocity.current }},\n    \"averageVelocity\": \"{{ $('Code: Calculate Trends & Statistics').first().json.velocity.average }}\",\n    \"velocityTrend\": \"{{ $('Code: Calculate Trends & Statistics').first().json.velocity.trend }}\",\n    \"pnl12Week\": \"{{ $('Code: Calculate Trends & Statistics').first().json.trading.totalPnL }}\",\n    \"avgWinRate\": \"{{ $('Code: Calculate Trends & Statistics').first().json.trading.avgWinRate }}\",\n    \"avgUptime\": \"{{ $('Code: Calculate Trends & Statistics').first().json.system.avgUptime }}\",\n    \"updatedAt\": \"{{ $now.toISO() }}\"\n  }\n}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Updates Master Tracker with current velocity metrics"
+    },
+    {
+      "id": "mgmt02-log-completion",
+      "name": "HTTP: Log Completion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [4300, 550],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/audit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event\": \"velocity_tracker_completed\",\n  \"timestamp\": \"{{ $now.toISO() }}\",\n  \"workflow\": \"WF-MGMT-02\",\n  \"data\": {\n    \"velocity\": {{ $('Code: Calculate Trends & Statistics').first().json.velocity.current }},\n    \"velocityTrend\": \"{{ $('Code: Calculate Trends & Statistics').first().json.velocity.trend }}\",\n    \"hasAlerts\": {{ $('Code: Calculate Trends & Statistics').first().json.hasAlerts }},\n    \"isMonthlyReport\": {{ $('Code: Parse Analysis Response').first().json.isMonthlyReport }},\n    \"masterTrackerUpdated\": true\n  }\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Logs velocity tracker completion to audit trail"
+    },
+    {
+      "id": "mgmt02-workflow-complete",
+      "name": "Workflow Complete",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [4550, 550],
+      "parameters": {},
+      "notes": "End node - velocity tracker completed"
+    },
+    {
+      "id": "mgmt02-error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 1200],
+      "parameters": {},
+      "notes": "Catches any errors in this workflow"
+    },
+    {
+      "id": "mgmt02-format-error",
+      "name": "Code: Format Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [280, 1200],
+      "parameters": {
+        "jsCode": "const error = $json;\n\nreturn {\n  json: {\n    embed: {\n      title: ':warning: Velocity Tracker Error',\n      description: 'The velocity tracker workflow encountered an error.',\n      color: 15158332,\n      fields: [\n        {\n          name: 'Error',\n          value: error.execution?.error?.message?.substring(0, 500) || 'Unknown',\n          inline: false\n        },\n        {\n          name: 'Node',\n          value: error.execution?.error?.node?.name || 'Unknown',\n          inline: true\n        },\n        {\n          name: 'Time',\n          value: new Date().toISOString(),\n          inline: true\n        }\n      ],\n      footer: { text: 'WF-MGMT-02 Error Handler' }\n    }\n  }\n};"
+      },
+      "notes": "Formats error for Discord notification"
+    },
+    {
+      "id": "mgmt02-post-error",
+      "name": "Discord: Post Error",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [560, 1200],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_ERRORS_CHANNEL_ID || 'n8n-errors' }}"
+        },
+        "content": "",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts error to #n8n-errors channel"
+    },
+    {
+      "id": "mgmt02-sticky-overview",
+      "name": "Note: Workflow Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-250, 200],
+      "parameters": {
+        "content": "## WF-MGMT-02: Velocity Tracker\n\n**Trigger:** Sunday 8 PM ET\n**Purpose:** Track long-term trends and forecast\n\n### Data Sources:\n- 12 weeks sprint velocity\n- 12 weeks trading performance\n- 12 weeks system health\n- Ticket throughput by project\n- Bug resolution times\n\n### Outputs:\n1. Trend analysis with forecasts\n2. MGMT alert ticket (if declining)\n3. Monthly report (last Sunday)\n4. Master Tracker update\n5. Audit log entry\n\n### Trend Detection:\n- Linear regression on time series\n- R-squared for confidence\n- Automatic alert thresholds"
+      }
+    },
+    {
+      "id": "mgmt02-sticky-trends",
+      "name": "Note: Trend Calculation",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1050, 800],
+      "parameters": {
+        "content": "## Trend Detection Method\n\n**Linear Regression:**\n- Calculates slope over 12 weeks\n- R-squared for statistical significance\n- Slope % relative to mean\n\n**Alert Thresholds:**\n- Velocity: >5% decline + R2>0.5\n- P&L: Any decline + R2>0.4\n- Uptime: Declining + avg<99%\n- Bugs: Increasing >0.5/week\n\n**Trend Labels:**\n- improving: slope >+5%\n- declining: slope <-5%\n- stable: otherwise"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule: Sunday 8 PM ET": {
+      "main": [
+        [
+          { "node": "HTTP: Fetch 12 Weeks Velocity", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch 12 Weeks Trading", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch 12 Weeks System Health", "type": "main", "index": 0 },
+          { "node": "Jira: Fetch TRADE Throughput", "type": "main", "index": 0 },
+          { "node": "Jira: Fetch INFRA Throughput", "type": "main", "index": 0 },
+          { "node": "Jira: Fetch LEARN Throughput", "type": "main", "index": 0 },
+          { "node": "Jira: Fetch Bug Resolution Times", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Fetch 12 Weeks Velocity": {
+      "main": [
+        [
+          { "node": "Merge: API Data", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Fetch 12 Weeks Trading": {
+      "main": [
+        [
+          { "node": "Merge: API Data", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "HTTP: Fetch 12 Weeks System Health": {
+      "main": [
+        [
+          { "node": "Merge: API Data", "type": "main", "index": 2 }
+        ]
+      ]
+    },
+    "Jira: Fetch TRADE Throughput": {
+      "main": [
+        [
+          { "node": "Merge: Jira Throughput", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Jira: Fetch INFRA Throughput": {
+      "main": [
+        [
+          { "node": "Merge: Jira Throughput", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Jira: Fetch LEARN Throughput": {
+      "main": [
+        [
+          { "node": "Merge: Jira Throughput", "type": "main", "index": 2 }
+        ]
+      ]
+    },
+    "Jira: Fetch Bug Resolution Times": {
+      "main": [
+        [
+          { "node": "Merge: Jira Throughput", "type": "main", "index": 3 }
+        ]
+      ]
+    },
+    "Merge: API Data": {
+      "main": [
+        [
+          { "node": "Merge: All Historical Data", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Merge: Jira Throughput": {
+      "main": [
+        [
+          { "node": "Merge: All Historical Data", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Merge: All Historical Data": {
+      "main": [
+        [
+          { "node": "Code: Calculate Trends & Statistics", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Calculate Trends & Statistics": {
+      "main": [
+        [
+          { "node": "Code: Build Trend Analysis Prompt", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Build Trend Analysis Prompt": {
+      "main": [
+        [
+          { "node": "HTTP: Call Claude for Analysis", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Call Claude for Analysis": {
+      "main": [
+        [
+          { "node": "Code: Parse Analysis Response", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Parse Analysis Response": {
+      "main": [
+        [
+          { "node": "If: Has Declining Trends", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "If: Has Declining Trends": {
+      "main": [
+        [
+          { "node": "Jira: Create MGMT Alert Ticket", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "NoOp: No Alerts", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Jira: Create MGMT Alert Ticket": {
+      "main": [
+        [
+          { "node": "Discord: Post Trend Alert", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Discord: Post Trend Alert": {
+      "main": [
+        [
+          { "node": "Merge: Alert Paths", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "NoOp: No Alerts": {
+      "main": [
+        [
+          { "node": "Merge: Alert Paths", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Merge: Alert Paths": {
+      "main": [
+        [
+          { "node": "If: Is Monthly Report", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "If: Is Monthly Report": {
+      "main": [
+        [
+          { "node": "Code: Format Monthly Report", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "NoOp: Not Monthly", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Format Monthly Report": {
+      "main": [
+        [
+          { "node": "Discord: Post Monthly Report", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Discord: Post Monthly Report": {
+      "main": [
+        [
+          { "node": "Merge: Monthly Paths", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "NoOp: Not Monthly": {
+      "main": [
+        [
+          { "node": "Merge: Monthly Paths", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Merge: Monthly Paths": {
+      "main": [
+        [
+          { "node": "HTTP: Update Master Tracker", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Update Master Tracker": {
+      "main": [
+        [
+          { "node": "HTTP: Log Completion", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Log Completion": {
+      "main": [
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          { "node": "Code: Format Error", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Format Error": {
+      "main": [
+        [
+          { "node": "Discord: Post Error", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "self-improvement" },
+    { "name": "weekly" },
+    { "name": "velocity" },
+    { "name": "trends" },
+    { "name": "management" }
+  ],
+  "triggerCount": 1,
+  "versionId": "1.0.0",
+  "meta": {
+    "instanceId": "swjshak-n8n",
+    "templateCredsSetupCompleted": false
+  }
+}

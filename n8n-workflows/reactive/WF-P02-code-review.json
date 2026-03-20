@@ -1,0 +1,747 @@
+{
+  "name": "WF-P02: Code Review Pipeline",
+  "nodes": [
+    {
+      "id": "webhook-pr-opened",
+      "name": "Webhook: PR Opened",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 300],
+      "webhookId": "code-review-webhook",
+      "parameters": {
+        "path": "webhook/code-review",
+        "httpMethod": "POST",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "webhook-auth-cred",
+          "name": "Webhook Header Auth"
+        }
+      }
+    },
+    {
+      "id": "schedule-daily-scan",
+      "name": "Schedule: Daily PR Scan",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 500],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fetch-open-prs",
+      "name": "HTTP: Fetch Open PRs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 500],
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.github.com/repos/{{ $env.GITHUB_OWNER }}/{{ $env.GITHUB_REPO }}/pulls?state=open",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "githubApi": {
+          "id": "github-cred",
+          "name": "GitHub API"
+        }
+      }
+    },
+    {
+      "id": "filter-unreviewed",
+      "name": "Code: Filter Unreviewed PRs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 500],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const prs = $input.first().json;\nconst unreviewedPRs = [];\n\nfor (const pr of (Array.isArray(prs) ? prs : [])) {\n  // Check if PR has our review label\n  const hasReviewLabel = pr.labels?.some(l => l.name === 'ai-reviewed');\n  \n  if (!hasReviewLabel && !pr.draft) {\n    unreviewedPRs.push({\n      prNumber: pr.number,\n      title: pr.title,\n      author: pr.user?.login,\n      branch: pr.head?.ref,\n      baseBranch: pr.base?.ref,\n      url: pr.html_url,\n      createdAt: pr.created_at,\n      changedFiles: pr.changed_files,\n      additions: pr.additions,\n      deletions: pr.deletions,\n      source: 'scheduled_scan'\n    });\n  }\n}\n\nreturn unreviewedPRs.length > 0 \n  ? unreviewedPRs.map(pr => ({ json: pr }))\n  : [{ json: { noPRs: true } }];"
+      }
+    },
+    {
+      "id": "normalize-webhook-pr",
+      "name": "Code: Normalize Webhook PR",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const payload = $json;\n\n// Handle GitHub webhook payload\nconst pr = payload.pull_request || payload;\n\nreturn {\n  json: {\n    prNumber: pr.number,\n    title: pr.title,\n    author: pr.user?.login || payload.sender?.login,\n    branch: pr.head?.ref,\n    baseBranch: pr.base?.ref,\n    url: pr.html_url,\n    createdAt: pr.created_at,\n    changedFiles: pr.changed_files || 0,\n    additions: pr.additions || 0,\n    deletions: pr.deletions || 0,\n    source: 'webhook'\n  }\n};"
+      }
+    },
+    {
+      "id": "merge-pr-sources",
+      "name": "Merge: Combine PR Sources",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [660, 400],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "filter-no-prs",
+      "name": "If: Has PRs to Review",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [880, 400],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.noPRs }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fetch-pr-files",
+      "name": "HTTP: Fetch PR Changed Files",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 400],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.github.com/repos/{{ $env.GITHUB_OWNER }}/{{ $env.GITHUB_REPO }}/pulls/{{ $json.prNumber }}/files",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "githubApi": {
+          "id": "github-cred",
+          "name": "GitHub API"
+        }
+      }
+    },
+    {
+      "id": "process-files",
+      "name": "Code: Process Changed Files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 400],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const pr = $('If: Has PRs to Review').first().json;\nconst files = $json;\n\n// Categorize files\nconst filesByType = {\n  typescript: [],\n  python: [],\n  config: [],\n  tests: [],\n  other: []\n};\n\nconst filesSummary = [];\n\nfor (const file of (Array.isArray(files) ? files : [])) {\n  const ext = file.filename.split('.').pop()?.toLowerCase();\n  const isTest = file.filename.includes('test') || file.filename.includes('spec');\n  \n  const fileInfo = {\n    filename: file.filename,\n    status: file.status,\n    additions: file.additions,\n    deletions: file.deletions,\n    patch: file.patch?.substring(0, 3000) || '', // Limit patch size\n    changes: file.changes\n  };\n  \n  if (isTest) {\n    filesByType.tests.push(fileInfo);\n  } else if (['ts', 'tsx', 'js', 'jsx'].includes(ext)) {\n    filesByType.typescript.push(fileInfo);\n  } else if (['py'].includes(ext)) {\n    filesByType.python.push(fileInfo);\n  } else if (['json', 'yaml', 'yml', 'toml', 'env'].includes(ext)) {\n    filesByType.config.push(fileInfo);\n  } else {\n    filesByType.other.push(fileInfo);\n  }\n  \n  filesSummary.push({\n    name: file.filename,\n    type: ext,\n    lines: `+${file.additions}/-${file.deletions}`\n  });\n}\n\nreturn {\n  json: {\n    ...pr,\n    files: filesByType,\n    filesSummary: filesSummary,\n    totalFiles: filesSummary.length,\n    hasTests: filesByType.tests.length > 0,\n    hasConfig: filesByType.config.length > 0\n  }\n};"
+      }
+    },
+    {
+      "id": "build-review-prompt",
+      "name": "Code: Build Review Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1540, 400],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const pr = $json;\n\n// Build comprehensive review prompt\nconst prompt = `You are TheProfessor, a senior code reviewer for the SwjshAK algorithmic trading platform.\n\nReview this Pull Request:\n\nPR #${pr.prNumber}: ${pr.title}\nAuthor: ${pr.author}\nBranch: ${pr.branch} -> ${pr.baseBranch}\nFiles Changed: ${pr.totalFiles}\nAdditions: +${pr.additions} / Deletions: -${pr.deletions}\n\n## Files Summary:\n${pr.filesSummary.map(f => `- ${f.name} (${f.type}) ${f.lines}`).join('\\n')}\n\n## TypeScript/JavaScript Changes:\n${pr.files.typescript.map(f => `### ${f.filename}\\n\\`\\`\\`diff\\n${f.patch}\\n\\`\\`\\``).join('\\n\\n') || 'None'}\n\n## Python Changes:\n${pr.files.python.map(f => `### ${f.filename}\\n\\`\\`\\`diff\\n${f.patch}\\n\\`\\`\\``).join('\\n\\n') || 'None'}\n\n## Config Changes:\n${pr.files.config.map(f => `### ${f.filename}\\n\\`\\`\\`diff\\n${f.patch}\\n\\`\\`\\``).join('\\n\\n') || 'None'}\n\n## Test Changes:\n${pr.files.tests.map(f => `### ${f.filename}\\n\\`\\`\\`diff\\n${f.patch}\\n\\`\\`\\``).join('\\n\\n') || 'None'}\n\n---\n\nReview Criteria:\n1. **Code Quality**: Is the code clean, readable, and follows project patterns?\n2. **Security**: Any security concerns (hardcoded secrets, SQL injection, etc.)?\n3. **Trading Logic**: If trading-related, is the logic correct and safe?\n4. **Error Handling**: Are errors handled appropriately?\n5. **Performance**: Any performance concerns?\n6. **Tests**: Are there adequate tests? Should more be added?\n\nProvide your review as JSON:\n{\n  \"overallVerdict\": \"APPROVE|REQUEST_CHANGES|COMMENT\",\n  \"severity\": \"none|low|medium|high|critical\",\n  \"summary\": \"2-3 sentence summary\",\n  \"qualityScore\": 0-100,\n  \"issues\": [\n    {\n      \"file\": \"filename\",\n      \"line\": \"line number or range\",\n      \"severity\": \"info|warning|error|critical\",\n      \"category\": \"security|performance|logic|style|testing\",\n      \"message\": \"description\",\n      \"suggestion\": \"how to fix\"\n    }\n  ],\n  \"positives\": [\"good things about this PR\"],\n  \"testCoverage\": {\n    \"adequate\": true/false,\n    \"suggestions\": [\"what tests to add if any\"]\n  },\n  \"blocksMerge\": true/false,\n  \"recommendation\": \"final recommendation\"\n}\n\nBe thorough but fair. Focus on issues that matter.`;\n\nreturn {\n  json: {\n    prompt: prompt,\n    pr: pr\n  }\n};"
+      }
+    },
+    {
+      "id": "call-professor-review",
+      "name": "HTTP: Call OpenClaw Professor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1760, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3300/webhook/professor-review",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $json.prompt, prNumber: $json.pr.prNumber }) }}",
+        "options": {
+          "timeout": 120000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "parse-review-response",
+      "name": "Code: Parse Review Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1980, 400],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = $json;\nconst pr = $('Code: Build Review Prompt').first().json.pr;\n\nlet review;\n\ntry {\n  if (typeof response.content === 'string') {\n    const jsonMatch = response.content.match(/\\{[\\s\\S]*\\}/);\n    review = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(response.content);\n  } else if (response.review) {\n    review = typeof response.review === 'string' ? JSON.parse(response.review) : response.review;\n  } else if (response.overallVerdict) {\n    review = response;\n  } else {\n    throw new Error('Could not parse review response');\n  }\n} catch (e) {\n  // Default review if parsing fails\n  review = {\n    overallVerdict: 'COMMENT',\n    severity: 'low',\n    summary: 'Automated review could not be completed. Manual review recommended.',\n    qualityScore: 70,\n    issues: [],\n    positives: [],\n    testCoverage: { adequate: true, suggestions: [] },\n    blocksMerge: false,\n    recommendation: 'Please review manually',\n    _parseError: e.message\n  };\n}\n\n// Add PR context\nreview.prNumber = pr.prNumber;\nreview.prTitle = pr.title;\nreview.prUrl = pr.url;\nreview.author = pr.author;\nreview.reviewedAt = new Date().toISOString();\n\nreturn { json: review };"
+      }
+    },
+    {
+      "id": "check-critical-issues",
+      "name": "If: Has Critical Issues",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2200, 400],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "or",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.blocksMerge }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            },
+            {
+              "leftValue": "={{ $json.severity }}",
+              "rightValue": "critical",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "post-github-review-critical",
+      "name": "HTTP: Post GitHub Review (Request Changes)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2420, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.github.com/repos/{{ $env.GITHUB_OWNER }}/{{ $env.GITHUB_REPO }}/pulls/{{ $json.prNumber }}/reviews",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ event: 'REQUEST_CHANGES', body: `## AI Code Review\\n\\n**Verdict: REQUEST_CHANGES**\\n**Quality Score: ${$json.qualityScore}/100**\\n\\n### Summary\\n${$json.summary}\\n\\n### Critical Issues\\n${$json.issues.filter(i => i.severity === 'critical' || i.severity === 'error').map(i => `- **${i.file}** (${i.category}): ${i.message}\\n  > ${i.suggestion}`).join('\\n')}\\n\\n### All Issues\\n${$json.issues.map(i => `- [${i.severity.toUpperCase()}] ${i.file}: ${i.message}`).join('\\n')}\\n\\n### Recommendation\\n${$json.recommendation}\\n\\n---\\n*Reviewed by TheProfessor AI*` }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "githubApi": {
+          "id": "github-cred",
+          "name": "GitHub API"
+        }
+      }
+    },
+    {
+      "id": "discord-alert-critical",
+      "name": "Discord: Alert Critical PR Issues",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2640, 300],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_CHIEF_CHANNEL }}",
+        "content": "@here Critical issues found in PR - merge blocked",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "={{ `PR #${$json.prNumber}: ${$json.prTitle}` }}",
+              "description": "={{ $json.summary }}",
+              "url": "={{ $json.prUrl }}",
+              "color": "15158332",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Verdict",
+                    "value": "={{ $json.overallVerdict }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Quality",
+                    "value": "={{ `${$json.qualityScore}/100` }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Author",
+                    "value": "={{ $json.author }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Critical Issues",
+                    "value": "={{ $json.issues.filter(i => i.severity === 'critical').map(i => `- ${i.message}`).join('\\n') || 'None' }}",
+                    "inline": false
+                  }
+                ]
+              },
+              "footer": "TheProfessor AI Code Review",
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "post-github-review-normal",
+      "name": "HTTP: Post GitHub Review (Normal)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2420, 500],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.github.com/repos/{{ $env.GITHUB_OWNER }}/{{ $env.GITHUB_REPO }}/pulls/{{ $json.prNumber }}/reviews",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ event: $json.overallVerdict === 'APPROVE' ? 'APPROVE' : 'COMMENT', body: `## AI Code Review\\n\\n**Verdict: ${$json.overallVerdict}**\\n**Quality Score: ${$json.qualityScore}/100**\\n\\n### Summary\\n${$json.summary}\\n\\n### Issues Found\\n${$json.issues.length > 0 ? $json.issues.map(i => `- [${i.severity.toUpperCase()}] **${i.file}**: ${i.message}`).join('\\n') : 'No significant issues found.'}\\n\\n### Positives\\n${$json.positives.map(p => `- ${p}`).join('\\n')}\\n\\n### Test Coverage\\n${$json.testCoverage.adequate ? 'Test coverage appears adequate.' : 'Consider adding tests: ' + $json.testCoverage.suggestions.join(', ')}\\n\\n### Recommendation\\n${$json.recommendation}\\n\\n---\\n*Reviewed by TheProfessor AI*` }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "githubApi": {
+          "id": "github-cred",
+          "name": "GitHub API"
+        }
+      }
+    },
+    {
+      "id": "add-reviewed-label",
+      "name": "HTTP: Add ai-reviewed Label",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2860, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.github.com/repos/{{ $env.GITHUB_OWNER }}/{{ $env.GITHUB_REPO }}/issues/{{ $json.prNumber }}/labels",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ labels: ['ai-reviewed'] }) }}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "githubApi": {
+          "id": "github-cred",
+          "name": "GitHub API"
+        }
+      }
+    },
+    {
+      "id": "merge-review-paths",
+      "name": "Merge: Review Paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [3080, 400],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "jira-grade-ticket",
+      "name": "Jira: Create GRADE Ticket",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [3300, 400],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "GRADE",
+        "issueType": "Task",
+        "additionalFields": {
+          "summary": "={{ `Code Review: PR #${$json.prNumber} - ${$json.overallVerdict}` }}",
+          "description": "={{ `Code Review Record\\n\\nPR: #${$json.prNumber} - ${$json.prTitle}\\nAuthor: ${$json.author}\\nURL: ${$json.prUrl}\\n\\nVerdict: ${$json.overallVerdict}\\nQuality Score: ${$json.qualityScore}/100\\nSeverity: ${$json.severity}\\n\\nSummary:\\n${$json.summary}\\n\\nIssues (${$json.issues.length}):\\n${$json.issues.map(i => `- [${i.severity}] ${i.file}: ${i.message}`).join('\\n') || 'None'}\\n\\nPositives:\\n${$json.positives.map(p => `- ${p}`).join('\\n')}\\n\\nRecommendation: ${$json.recommendation}` }}",
+          "labels": [
+            "code-review",
+            "={{ `verdict-${$json.overallVerdict.toLowerCase().replace('_', '-')}` }}",
+            "={{ $json.blocksMerge ? 'blocked' : 'ok' }}"
+          ]
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      }
+    },
+    {
+      "id": "discord-summary",
+      "name": "Discord: Post Review Summary",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [3520, 400],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_SYSTEM_CHANNEL }}",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "={{ `Code Review: PR #${$json.prNumber}` }}",
+              "description": "={{ $json.summary }}",
+              "url": "={{ $json.prUrl }}",
+              "color": "={{ $json.overallVerdict === 'APPROVE' ? 3066993 : ($json.blocksMerge ? 15158332 : 16776960) }}",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Verdict",
+                    "value": "={{ $json.overallVerdict }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Quality",
+                    "value": "={{ `${$json.qualityScore}/100` }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Issues",
+                    "value": "={{ $json.issues.length }}",
+                    "inline": true
+                  }
+                ]
+              },
+              "footer": "TheProfessor AI",
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "respond-webhook",
+      "name": "Respond: Webhook Complete",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [3740, 400],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, prNumber: $json.prNumber, verdict: $json.overallVerdict, qualityScore: $json.qualityScore } }}"
+      }
+    },
+    {
+      "id": "sticky-overview",
+      "name": "Note: Workflow Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-200, 100],
+      "parameters": {
+        "content": "## WF-P02: Code Review Pipeline\n\n**Triggers:**\n- Webhook: PR opened event from GitHub\n- Schedule: Daily scan for unreviewed PRs (9 AM)\n\n**Purpose:** Automated AI code review using TheProfessor\n\n### Flow:\n1. Receive PR notification\n2. Fetch changed files from GitHub\n3. Categorize files (TS, Python, config, tests)\n4. Build comprehensive review prompt\n5. Call OpenClaw Professor for review\n6. Post review to GitHub PR\n7. If critical: Alert Chief, block merge\n8. Create GRADE ticket\n9. Post summary to Discord\n\n### GitHub Webhook Setup:\nURL: `/webhook/code-review`\nEvents: Pull Request opened/reopened"
+      }
+    },
+    {
+      "id": "sticky-labels",
+      "name": "Note: Labels",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [2640, 540],
+      "parameters": {
+        "content": "## Labels Used\n\n- `ai-reviewed`: Added after review to prevent re-review\n- `critical-issues`: Added when merge is blocked\n\nMake sure these labels exist in GitHub repo."
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: PR Opened": {
+      "main": [
+        [
+          {
+            "node": "Code: Normalize Webhook PR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule: Daily PR Scan": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Fetch Open PRs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch Open PRs": {
+      "main": [
+        [
+          {
+            "node": "Code: Filter Unreviewed PRs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Filter Unreviewed PRs": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine PR Sources",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code: Normalize Webhook PR": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine PR Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge: Combine PR Sources": {
+      "main": [
+        [
+          {
+            "node": "If: Has PRs to Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Has PRs to Review": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Fetch PR Changed Files",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "HTTP: Fetch PR Changed Files": {
+      "main": [
+        [
+          {
+            "node": "Code: Process Changed Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Process Changed Files": {
+      "main": [
+        [
+          {
+            "node": "Code: Build Review Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Build Review Prompt": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Call OpenClaw Professor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Call OpenClaw Professor": {
+      "main": [
+        [
+          {
+            "node": "Code: Parse Review Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Parse Review Response": {
+      "main": [
+        [
+          {
+            "node": "If: Has Critical Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Has Critical Issues": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Post GitHub Review (Request Changes)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Post GitHub Review (Normal)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Post GitHub Review (Request Changes)": {
+      "main": [
+        [
+          {
+            "node": "Discord: Alert Critical PR Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord: Alert Critical PR Issues": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Add ai-reviewed Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Post GitHub Review (Normal)": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Add ai-reviewed Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Add ai-reviewed Label": {
+      "main": [
+        [
+          {
+            "node": "Merge: Review Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge: Review Paths": {
+      "main": [
+        [
+          {
+            "node": "Jira: Create GRADE Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jira: Create GRADE Ticket": {
+      "main": [
+        [
+          {
+            "node": "Discord: Post Review Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord: Post Review Summary": {
+      "main": [
+        [
+          {
+            "node": "Respond: Webhook Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "development"
+    },
+    {
+      "name": "code-review"
+    },
+    {
+      "name": "professor"
+    }
+  ],
+  "triggerCount": 2,
+  "updatedAt": "2026-03-20T00:00:00.000Z",
+  "versionId": "1"
+}

@@ -1,0 +1,804 @@
+{
+  "name": "WF-A06 Weekly Sprint Planning",
+  "nodes": [
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000001",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 400],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1"
+            }
+          ]
+        }
+      },
+      "notes": "Triggers at 8:00 AM ET on Mondays for weekly sprint planning"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000002",
+      "name": "Fetch TRADE Backlog",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 100],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "TRADE",
+        "options": {
+          "jql": "project = TRADE AND sprint is EMPTY AND status != Done ORDER BY priority DESC, created ASC",
+          "maxResults": 10
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches top 10 backlog items from TRADE project"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000003",
+      "name": "Fetch INFRA Backlog",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 250],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "INFRA",
+        "options": {
+          "jql": "project = INFRA AND sprint is EMPTY AND status != Done ORDER BY priority DESC, created ASC",
+          "maxResults": 10
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches top 10 backlog items from INFRA project"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000004",
+      "name": "Fetch LEARN Backlog",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "LEARN",
+        "options": {
+          "jql": "project = LEARN AND sprint is EMPTY AND status != Done ORDER BY priority DESC, created ASC",
+          "maxResults": 10
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches top 10 backlog items from LEARN project"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000005",
+      "name": "Fetch MGMT Backlog",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 550],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "MGMT",
+        "options": {
+          "jql": "project = MGMT AND sprint is EMPTY AND status != Done ORDER BY priority DESC, created ASC",
+          "maxResults": 10
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches top 10 backlog items from MGMT project"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000006",
+      "name": "Fetch Last Week Completed",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 700],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "options": {
+          "jql": "status changed to Done AFTER -7d ORDER BY resolved DESC",
+          "maxResults": 50
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches issues completed in the last 7 days to calculate velocity"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000007",
+      "name": "Fetch Trading Performance",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [250, 850],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'http://localhost:3000/api/trades?startDate=' + $now.minus({days: 7}).toFormat('yyyy-MM-dd') + '&endDate=' + $now.minus({days: 1}).toFormat('yyyy-MM-dd') }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches last week's trading data for context"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000008",
+      "name": "Merge All Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [550, 400],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "notes": "Combines all parallel backlog and velocity data"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000009",
+      "name": "Calculate Velocity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 400],
+      "parameters": {
+        "jsCode": "// Get all fetched data\nconst tradeBacklog = $('Fetch TRADE Backlog').all().map(i => i.json);\nconst infraBacklog = $('Fetch INFRA Backlog').all().map(i => i.json);\nconst learnBacklog = $('Fetch LEARN Backlog').all().map(i => i.json);\nconst mgmtBacklog = $('Fetch MGMT Backlog').all().map(i => i.json);\nconst completed = $('Fetch Last Week Completed').all().map(i => i.json);\nconst tradingData = $('Fetch Trading Performance').first()?.json?.trades || [];\n\n// Calculate velocity (story points completed last week)\nconst calculatePoints = (issues) => {\n  return issues.reduce((sum, issue) => {\n    const points = issue.fields?.customfield_storypoints || \n                   issue.fields?.customfield_10016 || \n                   1; // Default to 1 if no story points\n    return sum + (typeof points === 'number' ? points : 1);\n  }, 0);\n};\n\nconst lastWeekVelocity = calculatePoints(completed);\nconst completedByProject = {\n  TRADE: completed.filter(i => i.fields?.project?.key === 'TRADE'),\n  INFRA: completed.filter(i => i.fields?.project?.key === 'INFRA'),\n  LEARN: completed.filter(i => i.fields?.project?.key === 'LEARN'),\n  MGMT: completed.filter(i => i.fields?.project?.key === 'MGMT')\n};\n\n// Format backlog items for proposal\nconst formatBacklogItem = (issue) => ({\n  key: issue.key,\n  summary: issue.fields?.summary?.substring(0, 80),\n  priority: issue.fields?.priority?.name || 'Medium',\n  type: issue.fields?.issuetype?.name || 'Task',\n  storyPoints: issue.fields?.customfield_storypoints || issue.fields?.customfield_10016 || 1,\n  created: issue.fields?.created,\n  labels: issue.fields?.labels || []\n});\n\n// Prepare backlogs (top 5 per project)\nconst backlogs = {\n  TRADE: tradeBacklog.slice(0, 5).map(formatBacklogItem),\n  INFRA: infraBacklog.slice(0, 5).map(formatBacklogItem),\n  LEARN: learnBacklog.slice(0, 5).map(formatBacklogItem),\n  MGMT: mgmtBacklog.slice(0, 5).map(formatBacklogItem)\n};\n\n// Calculate backlog points\nconst backlogPoints = {\n  TRADE: backlogs.TRADE.reduce((s, i) => s + i.storyPoints, 0),\n  INFRA: backlogs.INFRA.reduce((s, i) => s + i.storyPoints, 0),\n  LEARN: backlogs.LEARN.reduce((s, i) => s + i.storyPoints, 0),\n  MGMT: backlogs.MGMT.reduce((s, i) => s + i.storyPoints, 0)\n};\n\n// Calculate trading performance summary\nconst weekPnL = tradingData.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);\nconst winningTrades = tradingData.filter(t => parseFloat(t.pnl) > 0).length;\nconst winRate = tradingData.length > 0 ? (winningTrades / tradingData.length * 100) : 0;\n\n// Suggest sprint capacity (80% of last week's velocity, minimum 5)\nconst suggestedCapacity = Math.max(Math.round(lastWeekVelocity * 0.8), 5);\n\n// Generate sprint dates\nconst sprintStart = new Date();\nconst sprintEnd = new Date();\nsprintEnd.setDate(sprintEnd.getDate() + 7);\n\nreturn {\n  json: {\n    weekNumber: Math.ceil((new Date() - new Date(new Date().getFullYear(), 0, 1)) / (7 * 24 * 60 * 60 * 1000)),\n    sprintStart: sprintStart.toISOString().split('T')[0],\n    sprintEnd: sprintEnd.toISOString().split('T')[0],\n    \n    velocity: {\n      lastWeek: lastWeekVelocity,\n      completedCount: completed.length,\n      byProject: {\n        TRADE: calculatePoints(completedByProject.TRADE),\n        INFRA: calculatePoints(completedByProject.INFRA),\n        LEARN: calculatePoints(completedByProject.LEARN),\n        MGMT: calculatePoints(completedByProject.MGMT)\n      }\n    },\n    \n    suggestedCapacity,\n    \n    backlogs,\n    backlogPoints,\n    totalBacklogPoints: Object.values(backlogPoints).reduce((s, v) => s + v, 0),\n    \n    trading: {\n      weekPnL: weekPnL.toFixed(2),\n      tradeCount: tradingData.length,\n      winRate: winRate.toFixed(1)\n    },\n    \n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "notes": "Calculates velocity from last week and prepares sprint proposal data"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000010",
+      "name": "Generate Sprint Proposal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1050, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 1500,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are the sprint planning assistant for SwjshAK trading system.\\n\\nGenerate a sprint proposal based on this data:\\n\\n## LAST WEEK VELOCITY\\n- Story Points Completed: {{ $json.velocity.lastWeek }}\\n- Issues Completed: {{ $json.velocity.completedCount }}\\n- By Project: TRADE={{ $json.velocity.byProject.TRADE }}, INFRA={{ $json.velocity.byProject.INFRA }}, LEARN={{ $json.velocity.byProject.LEARN }}, MGMT={{ $json.velocity.byProject.MGMT }}\\n\\n## TRADING PERFORMANCE CONTEXT\\n- Week P&L: ${{ $json.trading.weekPnL }}\\n- Win Rate: {{ $json.trading.winRate }}%\\n- Trade Count: {{ $json.trading.tradeCount }}\\n\\n## SUGGESTED CAPACITY: {{ $json.suggestedCapacity }} points\\n\\n## BACKLOG ITEMS BY PROJECT\\n\\n### TRADE ({{ $json.backlogPoints.TRADE }} points)\\n{{ $json.backlogs.TRADE.map(i => '- [' + i.key + '] ' + i.summary + ' (' + i.storyPoints + ' pts, ' + i.priority + ')').join('\\\\n') }}\\n\\n### INFRA ({{ $json.backlogPoints.INFRA }} points)\\n{{ $json.backlogs.INFRA.map(i => '- [' + i.key + '] ' + i.summary + ' (' + i.storyPoints + ' pts, ' + i.priority + ')').join('\\\\n') }}\\n\\n### LEARN ({{ $json.backlogPoints.LEARN }} points)\\n{{ $json.backlogs.LEARN.map(i => '- [' + i.key + '] ' + i.summary + ' (' + i.storyPoints + ' pts, ' + i.priority + ')').join('\\\\n') }}\\n\\n### MGMT ({{ $json.backlogPoints.MGMT }} points)\\n{{ $json.backlogs.MGMT.map(i => '- [' + i.key + '] ' + i.summary + ' (' + i.storyPoints + ' pts, ' + i.priority + ')').join('\\\\n') }}\\n\\n---\\n\\nCreate a sprint proposal with:\\n1. **Sprint Goal** - One sentence theme\\n2. **Recommended Items** - Select items totaling ~{{ $json.suggestedCapacity }} points, balanced across projects\\n3. **Rationale** - Why these items (consider trading performance, technical debt, learning needs)\\n4. **Risks** - Any concerns\\n5. **Success Metrics** - How we'll know the sprint succeeded\\n\\nBe concise. Format with markdown.\"\n    }\n  ]\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "anthropic-api-key",
+          "name": "Anthropic API Key"
+        }
+      },
+      "notes": "Uses Claude to generate intelligent sprint proposal based on velocity and backlogs"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000011",
+      "name": "Format Proposal Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 400],
+      "parameters": {
+        "jsCode": "const aiResponse = $json;\nconst velocityData = $('Calculate Velocity').first().json;\n\n// Extract proposal text\nconst proposalText = aiResponse.content?.[0]?.text || 'Failed to generate proposal';\n\n// Build Discord embed\nconst embed = {\n  title: `:calendar: Sprint Planning - Week ${velocityData.weekNumber}`,\n  description: proposalText.substring(0, 4000),\n  color: 3447003, // Blue\n  fields: [\n    {\n      name: ':chart_with_upwards_trend: Last Week Velocity',\n      value: `${velocityData.velocity.lastWeek} points (${velocityData.velocity.completedCount} issues)`,\n      inline: true\n    },\n    {\n      name: ':dart: Suggested Capacity',\n      value: `${velocityData.suggestedCapacity} points`,\n      inline: true\n    },\n    {\n      name: ':inbox_tray: Backlog Available',\n      value: `${velocityData.totalBacklogPoints} points`,\n      inline: true\n    },\n    {\n      name: ':calendar: Sprint Dates',\n      value: `${velocityData.sprintStart} to ${velocityData.sprintEnd}`,\n      inline: false\n    }\n  ],\n  footer: {\n    text: 'React with :white_check_mark: to approve or :x: to reject'\n  },\n  timestamp: new Date().toISOString()\n};\n\nreturn {\n  json: {\n    embed,\n    proposalText,\n    velocityData,\n    channelId: process.env.DISCORD_CEO_CHANNEL_ID || 'ceo-briefing',\n    waitTimeMinutes: 60 // Wait 1 hour for approval\n  }\n};"
+      },
+      "notes": "Formats the AI-generated proposal into a Discord embed with reaction prompt"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000012",
+      "name": "Post Proposal to Discord",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [1550, 400],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.channelId }}"
+        },
+        "content": ":mega: **Sprint Planning Proposal**\n\nPlease review the sprint proposal below and react:\n- :white_check_mark: to **APPROVE** and create sprints\n- :x: to **REJECT** and notify for manual planning",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts the sprint proposal to #ceo-briefing for approval"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000013",
+      "name": "Add Reactions",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [1800, 300],
+      "parameters": {
+        "resource": "message",
+        "operation": "react",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Format Proposal Message').first().json.channelId }}"
+        },
+        "messageId": "={{ $json.id }}",
+        "emoji": ":white_check_mark:"
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Adds approval reaction to message"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000014",
+      "name": "Add Reject Reaction",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [1800, 500],
+      "parameters": {
+        "resource": "message",
+        "operation": "react",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Format Proposal Message').first().json.channelId }}"
+        },
+        "messageId": "={{ $('Post Proposal to Discord').first().json.id }}",
+        "emoji": ":x:"
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Adds reject reaction to message"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000015",
+      "name": "Wait for Response",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [2050, 400],
+      "parameters": {
+        "resume": "webhook",
+        "options": {
+          "webhookSuffix": "={{ 'sprint-approval-' + $execution.id }}",
+          "responseMode": "onReceived"
+        },
+        "limitWaitTime": true,
+        "limitType": "afterTimeInterval",
+        "limitAmount": 60,
+        "limitUnit": "minutes"
+      },
+      "notes": "Waits up to 60 minutes for approval reaction or webhook callback"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000016",
+      "name": "Check Approval Status",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [2300, 400],
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "outputKey": "approved",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "condition-approved",
+                    "leftValue": "={{ $json.body?.status || $json.status }}",
+                    "rightValue": "approved",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "rejected",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "condition-rejected",
+                    "leftValue": "={{ $json.body?.status || $json.status }}",
+                    "rightValue": "rejected",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ],
+          "fallbackOutput": "timeout"
+        },
+        "options": {}
+      },
+      "notes": "Routes based on approval status - approved, rejected, or timeout"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000017",
+      "name": "Create TRADE Sprint",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2550, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://' + $credentials.jiraSoftwareCloudApi.domain + '.atlassian.net/rest/agile/1.0/sprint' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"TRADE Sprint Week {{ $('Calculate Velocity').first().json.weekNumber }}\",\n  \"startDate\": \"{{ $('Calculate Velocity').first().json.sprintStart }}T09:00:00.000Z\",\n  \"endDate\": \"{{ $('Calculate Velocity').first().json.sprintEnd }}T17:00:00.000Z\",\n  \"originBoardId\": {{ process.env.JIRA_TRADE_BOARD_ID || 1 }},\n  \"goal\": \"Sprint created by n8n automation - Week {{ $('Calculate Velocity').first().json.weekNumber }}\"\n}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "jira-basic-auth",
+          "name": "Jira Basic Auth"
+        }
+      },
+      "notes": "Creates a new sprint in TRADE project"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000018",
+      "name": "Create INFRA Sprint",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2550, 350],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://' + $credentials.jiraSoftwareCloudApi.domain + '.atlassian.net/rest/agile/1.0/sprint' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"INFRA Sprint Week {{ $('Calculate Velocity').first().json.weekNumber }}\",\n  \"startDate\": \"{{ $('Calculate Velocity').first().json.sprintStart }}T09:00:00.000Z\",\n  \"endDate\": \"{{ $('Calculate Velocity').first().json.sprintEnd }}T17:00:00.000Z\",\n  \"originBoardId\": {{ process.env.JIRA_INFRA_BOARD_ID || 2 }},\n  \"goal\": \"Sprint created by n8n automation - Week {{ $('Calculate Velocity').first().json.weekNumber }}\"\n}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "jira-basic-auth",
+          "name": "Jira Basic Auth"
+        }
+      },
+      "notes": "Creates a new sprint in INFRA project"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000019",
+      "name": "Notify Sprint Created",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2800, 275],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_CEO_CHANNEL_ID || 'ceo-briefing' }}"
+        },
+        "content": ":white_check_mark: **Sprint Planning Approved**\n\nCreated sprints for Week {{ $('Calculate Velocity').first().json.weekNumber }}:\n- TRADE Sprint: Ready\n- INFRA Sprint: Ready\n\nBacklog items can now be moved into the new sprints.\n\n*Automated by WF-A06*",
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Notifies that sprints were created successfully"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000020",
+      "name": "Notify Rejection",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2550, 500],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_CHIEF_CHANNEL_ID || 'chief' }}"
+        },
+        "content": ":x: **Sprint Planning Rejected**\n\nThe sprint proposal for Week {{ $('Calculate Velocity').first().json.weekNumber }} was rejected.\n\nManual sprint planning is required.\n\n*Automated by WF-A06*",
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Notifies Chief that sprint was rejected"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000021",
+      "name": "Notify Timeout",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2550, 650],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_CHIEF_CHANNEL_ID || 'chief' }}"
+        },
+        "content": ":hourglass: **Sprint Planning Timed Out**\n\nNo response received within 60 minutes for Week {{ $('Calculate Velocity').first().json.weekNumber }} sprint proposal.\n\nSprints were NOT created. Manual intervention required.\n\n*Automated by WF-A06*",
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Notifies Chief that approval timed out"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000022",
+      "name": "Log Planning Result",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3050, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/audit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event\": \"sprint_planning_completed\",\n  \"timestamp\": \"{{ $now.toISO() }}\",\n  \"workflow\": \"WF-A06\",\n  \"data\": {\n    \"weekNumber\": {{ $('Calculate Velocity').first().json.weekNumber }},\n    \"velocity\": {{ $('Calculate Velocity').first().json.velocity.lastWeek }},\n    \"suggestedCapacity\": {{ $('Calculate Velocity').first().json.suggestedCapacity }},\n    \"result\": \"{{ $json.result || 'unknown' }}\"\n  }\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Logs the sprint planning result to audit trail"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000023",
+      "name": "Workflow Complete",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [3300, 400],
+      "parameters": {},
+      "notes": "End node - sprint planning completed"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000024",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 700],
+      "parameters": {},
+      "notes": "Catches any errors in this workflow"
+    },
+    {
+      "id": "c1d2e3f4-0006-4000-8000-000000000025",
+      "name": "Post Error",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [300, 700],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_ERRORS_CHANNEL_ID || 'n8n-errors' }}"
+        },
+        "content": ":warning: **Sprint Planning Error**\n\nWorkflow WF-A06 encountered an error:\n\n```\n{{ $json.execution?.error?.message || 'Unknown error' }}\n```\n\nNode: {{ $json.execution?.error?.node?.name || 'Unknown' }}",
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts error to #n8n-errors channel"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          { "node": "Fetch TRADE Backlog", "type": "main", "index": 0 },
+          { "node": "Fetch INFRA Backlog", "type": "main", "index": 0 },
+          { "node": "Fetch LEARN Backlog", "type": "main", "index": 0 },
+          { "node": "Fetch MGMT Backlog", "type": "main", "index": 0 },
+          { "node": "Fetch Last Week Completed", "type": "main", "index": 0 },
+          { "node": "Fetch Trading Performance", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch TRADE Backlog": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch INFRA Backlog": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Fetch LEARN Backlog": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 2 }
+        ]
+      ]
+    },
+    "Fetch MGMT Backlog": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 3 }
+        ]
+      ]
+    },
+    "Fetch Last Week Completed": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 4 }
+        ]
+      ]
+    },
+    "Fetch Trading Performance": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 5 }
+        ]
+      ]
+    },
+    "Merge All Data": {
+      "main": [
+        [
+          { "node": "Calculate Velocity", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Calculate Velocity": {
+      "main": [
+        [
+          { "node": "Generate Sprint Proposal", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Generate Sprint Proposal": {
+      "main": [
+        [
+          { "node": "Format Proposal Message", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Format Proposal Message": {
+      "main": [
+        [
+          { "node": "Post Proposal to Discord", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Post Proposal to Discord": {
+      "main": [
+        [
+          { "node": "Add Reactions", "type": "main", "index": 0 },
+          { "node": "Add Reject Reaction", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Add Reactions": {
+      "main": [
+        [
+          { "node": "Wait for Response", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Add Reject Reaction": {
+      "main": [
+        [
+          { "node": "Wait for Response", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Wait for Response": {
+      "main": [
+        [
+          { "node": "Check Approval Status", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Check Approval Status": {
+      "main": [
+        [
+          { "node": "Create TRADE Sprint", "type": "main", "index": 0 },
+          { "node": "Create INFRA Sprint", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Notify Rejection", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Notify Timeout", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Create TRADE Sprint": {
+      "main": [
+        [
+          { "node": "Notify Sprint Created", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Create INFRA Sprint": {
+      "main": [
+        [
+          { "node": "Notify Sprint Created", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Notify Sprint Created": {
+      "main": [
+        [
+          { "node": "Log Planning Result", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Notify Rejection": {
+      "main": [
+        [
+          { "node": "Log Planning Result", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Notify Timeout": {
+      "main": [
+        [
+          { "node": "Log Planning Result", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Log Planning Result": {
+      "main": [
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          { "node": "Post Error", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "operational" },
+    { "name": "weekly" },
+    { "name": "sprint-planning" }
+  ],
+  "triggerCount": 1,
+  "versionId": "1.0.0",
+  "meta": {
+    "instanceId": "swjshak-n8n",
+    "templateCredsSetupCompleted": false
+  }
+}

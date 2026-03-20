@@ -1,0 +1,1044 @@
+{
+  "name": "WF-OPS-02: Anomaly Detector",
+  "nodes": [
+    {
+      "id": "schedule-15min",
+      "name": "Schedule: Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 400],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "notes": "Runs every 15 minutes to detect anomalies in system behavior"
+    },
+    {
+      "id": "fetch-trade-metrics",
+      "name": "HTTP: Fetch Trade Metrics (24h)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [250, 100],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://localhost:3000/api/trades?from={{ DateTime.now().minus({ hours: 24 }).toISO() }}&limit=200",
+        "options": {
+          "timeout": 20000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Fetches last 24 hours of trades for frequency/PnL analysis"
+    },
+    {
+      "id": "fetch-pnl-history",
+      "name": "HTTP: Fetch P&L Rolling Average",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [250, 220],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/metrics/pnl?period=7d",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Fetches 7-day P&L history for deviation calculation"
+    },
+    {
+      "id": "fetch-agent-response-times",
+      "name": "HTTP: Fetch Agent Response Times",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [250, 340],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/metrics/agents/latency?period=1h",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Fetches agent response time metrics for last hour"
+    },
+    {
+      "id": "fetch-error-rates",
+      "name": "HTTP: Fetch Error Rate Trends",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [250, 460],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/metrics/errors?period=6h",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Fetches error rate data for last 6 hours"
+    },
+    {
+      "id": "fetch-api-latency",
+      "name": "HTTP: Fetch API Latency Stats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [250, 580],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/metrics/latency?period=1h",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Fetches API endpoint latency metrics"
+    },
+    {
+      "id": "fetch-historical-baselines",
+      "name": "HTTP: Fetch Historical Baselines",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [250, 700],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/metrics/baselines",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Fetches stored baseline metrics for comparison"
+    },
+    {
+      "id": "merge-metrics",
+      "name": "Merge: Combine All Metrics",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [520, 400],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "notes": "Combines all parallel metric fetches"
+    },
+    {
+      "id": "calculate-zscore-anomalies",
+      "name": "Code: Calculate Z-Score Anomalies",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [780, 400],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Collect all metric sources\nconst tradeData = $('HTTP: Fetch Trade Metrics (24h)').first()?.json || {};\nconst pnlHistory = $('HTTP: Fetch P&L Rolling Average').first()?.json || {};\nconst agentLatency = $('HTTP: Fetch Agent Response Times').first()?.json || {};\nconst errorRates = $('HTTP: Fetch Error Rate Trends').first()?.json || {};\nconst apiLatency = $('HTTP: Fetch API Latency Stats').first()?.json || {};\nconst baselines = $('HTTP: Fetch Historical Baselines').first()?.json || {};\n\nconst now = new Date();\nconst anomalies = [];\n\n// Helper: Calculate Z-score\nfunction zScore(value, mean, stdDev) {\n  if (stdDev === 0 || isNaN(stdDev)) return 0;\n  return (value - mean) / stdDev;\n}\n\n// Helper: Calculate mean and std dev from array\nfunction calcStats(arr) {\n  if (!arr || arr.length === 0) return { mean: 0, stdDev: 0 };\n  const mean = arr.reduce((a, b) => a + b, 0) / arr.length;\n  const variance = arr.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / arr.length;\n  return { mean, stdDev: Math.sqrt(variance) };\n}\n\n// Helper: Classify severity based on z-score\nfunction classifySeverity(z) {\n  const absZ = Math.abs(z);\n  if (absZ >= 3) return 'critical';\n  if (absZ >= 2.5) return 'high';\n  if (absZ >= 2) return 'medium';\n  return 'low';\n}\n\n// 1. Analyze Trade Frequency\nconst trades = tradeData.trades || [];\nconst recentHourTrades = trades.filter(t => {\n  const tradeTime = new Date(t.entry_time || t.timestamp);\n  return (now - tradeTime) < 60 * 60 * 1000; // Last hour\n}).length;\n\nconst tradeFreqBaseline = baselines.tradeFrequency || { mean: 5, stdDev: 2 };\nconst tradeFreqZ = zScore(recentHourTrades, tradeFreqBaseline.mean, tradeFreqBaseline.stdDev);\n\nif (Math.abs(tradeFreqZ) >= 2) {\n  anomalies.push({\n    type: 'trade_frequency',\n    metric: 'trades_per_hour',\n    currentValue: recentHourTrades,\n    baseline: tradeFreqBaseline.mean,\n    zScore: tradeFreqZ,\n    severity: classifySeverity(tradeFreqZ),\n    direction: tradeFreqZ > 0 ? 'high' : 'low',\n    description: tradeFreqZ > 0 \n      ? `Abnormally HIGH trade frequency: ${recentHourTrades} trades/hour (baseline: ${tradeFreqBaseline.mean.toFixed(1)})`\n      : `Abnormally LOW trade frequency: ${recentHourTrades} trades/hour (baseline: ${tradeFreqBaseline.mean.toFixed(1)})`\n  });\n}\n\n// 2. Analyze P&L Deviation\nconst todayPnL = trades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);\nconst pnlBaseline = baselines.dailyPnl || pnlHistory.baseline || { mean: 50, stdDev: 150 };\nconst pnlZ = zScore(todayPnL, pnlBaseline.mean, pnlBaseline.stdDev);\n\nif (Math.abs(pnlZ) >= 2) {\n  anomalies.push({\n    type: 'pnl_deviation',\n    metric: 'daily_pnl',\n    currentValue: todayPnL,\n    baseline: pnlBaseline.mean,\n    zScore: pnlZ,\n    severity: classifySeverity(pnlZ),\n    direction: pnlZ > 0 ? 'high' : 'low',\n    description: pnlZ > 0\n      ? `Exceptional P&L: $${todayPnL.toFixed(2)} (${Math.abs(pnlZ).toFixed(1)} std devs above mean)`\n      : `Significant loss: $${todayPnL.toFixed(2)} (${Math.abs(pnlZ).toFixed(1)} std devs below mean)`\n  });\n}\n\n// 3. Analyze Agent Response Times\nconst agentLatencies = agentLatency.latencies || agentLatency.data || [];\nif (agentLatencies.length > 0) {\n  const currentAvgLatency = agentLatencies.reduce((s, l) => s + (l.avgMs || l.latency || 0), 0) / agentLatencies.length;\n  const latencyBaseline = baselines.agentLatency || { mean: 100, stdDev: 30 };\n  const latencyZ = zScore(currentAvgLatency, latencyBaseline.mean, latencyBaseline.stdDev);\n  \n  if (latencyZ >= 2) { // Only care about high latency\n    anomalies.push({\n      type: 'agent_latency',\n      metric: 'avg_response_ms',\n      currentValue: currentAvgLatency,\n      baseline: latencyBaseline.mean,\n      zScore: latencyZ,\n      severity: classifySeverity(latencyZ),\n      direction: 'high',\n      description: `Agent response time elevated: ${currentAvgLatency.toFixed(0)}ms (baseline: ${latencyBaseline.mean.toFixed(0)}ms)`,\n      affectedAgents: agentLatencies.filter(l => (l.avgMs || l.latency || 0) > latencyBaseline.mean + 2 * latencyBaseline.stdDev).map(l => l.name || l.agentId)\n    });\n  }\n}\n\n// 4. Analyze Error Rates\nconst errorData = errorRates.errors || errorRates.data || [];\nconst recentErrors = errorData.filter(e => {\n  const errorTime = new Date(e.timestamp || e.time);\n  return (now - errorTime) < 60 * 60 * 1000; // Last hour\n}).length;\n\nconst errorBaseline = baselines.errorRate || { mean: 2, stdDev: 1.5 };\nconst errorZ = zScore(recentErrors, errorBaseline.mean, errorBaseline.stdDev);\n\nif (errorZ >= 2) {\n  anomalies.push({\n    type: 'error_rate',\n    metric: 'errors_per_hour',\n    currentValue: recentErrors,\n    baseline: errorBaseline.mean,\n    zScore: errorZ,\n    severity: classifySeverity(errorZ),\n    direction: 'high',\n    description: `Elevated error rate: ${recentErrors} errors/hour (baseline: ${errorBaseline.mean.toFixed(1)})`,\n    recentErrors: errorData.slice(0, 5).map(e => ({ message: e.message, node: e.node || e.source }))\n  });\n}\n\n// 5. Analyze API Latency Spikes\nconst apiLatencies = apiLatency.endpoints || apiLatency.data || [];\nconst spikingEndpoints = [];\napiLatencies.forEach(endpoint => {\n  const latencyVal = endpoint.p95 || endpoint.avgMs || endpoint.latency || 0;\n  const endpointBaseline = baselines.apiLatency?.[endpoint.path] || { mean: 200, stdDev: 50 };\n  const endpointZ = zScore(latencyVal, endpointBaseline.mean, endpointBaseline.stdDev);\n  \n  if (endpointZ >= 2.5) {\n    spikingEndpoints.push({\n      path: endpoint.path || endpoint.name,\n      latency: latencyVal,\n      zScore: endpointZ,\n      baseline: endpointBaseline.mean\n    });\n  }\n});\n\nif (spikingEndpoints.length > 0) {\n  anomalies.push({\n    type: 'api_latency_spike',\n    metric: 'endpoint_p95_ms',\n    currentValue: Math.max(...spikingEndpoints.map(e => e.latency)),\n    baseline: 200,\n    zScore: Math.max(...spikingEndpoints.map(e => e.zScore)),\n    severity: classifySeverity(Math.max(...spikingEndpoints.map(e => e.zScore))),\n    direction: 'high',\n    description: `API latency spikes detected on ${spikingEndpoints.length} endpoint(s)`,\n    affectedEndpoints: spikingEndpoints\n  });\n}\n\n// 6. Detect consecutive losses (behavioral anomaly)\nconst recentTrades = trades.slice(0, 10); // Last 10 trades\nlet consecutiveLosses = 0;\nfor (const trade of recentTrades) {\n  if ((parseFloat(trade.pnl) || 0) < 0) consecutiveLosses++;\n  else break;\n}\n\nif (consecutiveLosses >= 4) {\n  anomalies.push({\n    type: 'consecutive_losses',\n    metric: 'loss_streak',\n    currentValue: consecutiveLosses,\n    baseline: 2,\n    zScore: consecutiveLosses / 2, // Rough z-score approximation\n    severity: consecutiveLosses >= 6 ? 'critical' : 'high',\n    direction: 'high',\n    description: `LOSS STREAK: ${consecutiveLosses} consecutive losing trades detected`\n  });\n}\n\n// Sort anomalies by severity\nconst severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };\nanomalies.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);\n\nreturn {\n  json: {\n    timestamp: now.toISOString(),\n    anomalyCount: anomalies.length,\n    hasCritical: anomalies.some(a => a.severity === 'critical'),\n    hasHigh: anomalies.some(a => a.severity === 'high'),\n    anomalies,\n    metricsSnapshot: {\n      recentHourTrades,\n      todayPnL,\n      recentErrors,\n      consecutiveLosses\n    }\n  }\n};"
+      },
+      "notes": "Calculates Z-scores for all metrics to detect statistical anomalies"
+    },
+    {
+      "id": "filter-has-anomalies",
+      "name": "If: Has Anomalies",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1040, 400],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.anomalyCount }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "build-claude-prompt",
+      "name": "Code: Build Claude Analysis Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1280, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $input.first().json;\nconst anomalies = data.anomalies || [];\n\nconst prompt = `You are an anomaly analyst for the SwjshAK autonomous trading system.\n\nAnalyze these detected anomalies and provide actionable insights:\n\nTIMESTAMP: ${data.timestamp}\nTOTAL ANOMALIES: ${data.anomalyCount}\nCRITICAL: ${anomalies.filter(a => a.severity === 'critical').length}\nHIGH: ${anomalies.filter(a => a.severity === 'high').length}\n\nDETECTED ANOMALIES:\n${anomalies.map((a, i) => `\n${i + 1}. [${a.severity.toUpperCase()}] ${a.type}\n   ${a.description}\n   Current: ${typeof a.currentValue === 'number' ? a.currentValue.toFixed(2) : a.currentValue}\n   Baseline: ${typeof a.baseline === 'number' ? a.baseline.toFixed(2) : a.baseline}\n   Z-Score: ${a.zScore.toFixed(2)}\n   ${a.affectedAgents ? 'Affected Agents: ' + a.affectedAgents.join(', ') : ''}\n   ${a.affectedEndpoints ? 'Affected Endpoints: ' + a.affectedEndpoints.map(e => e.path).join(', ') : ''}\n`).join('')}\n\nMETRICS SNAPSHOT:\n- Trades in last hour: ${data.metricsSnapshot.recentHourTrades}\n- Today's P&L: $${data.metricsSnapshot.todayPnL.toFixed(2)}\n- Errors in last hour: ${data.metricsSnapshot.recentErrors}\n- Current loss streak: ${data.metricsSnapshot.consecutiveLosses}\n\nYour analysis should:\n1. Identify the most likely ROOT CAUSE for each anomaly (or group related anomalies)\n2. Determine if anomalies are CORRELATED (e.g., high latency causing errors)\n3. Assess URGENCY (immediate action vs monitoring)\n4. Suggest SPECIFIC remediation steps\n\nRespond as JSON:\n{\n  \"rootCauses\": [\n    {\n      \"cause\": \"brief description\",\n      \"affectedAnomalies\": [\"type1\", \"type2\"],\n      \"confidence\": \"high|medium|low\",\n      \"evidence\": \"why you believe this\"\n    }\n  ],\n  \"correlations\": [\n    {\n      \"anomalies\": [\"type1\", \"type2\"],\n      \"relationship\": \"description of how they're related\"\n    }\n  ],\n  \"urgency\": \"immediate|soon|monitor\",\n  \"urgencyReason\": \"why this urgency level\",\n  \"remediations\": [\n    {\n      \"action\": \"specific action\",\n      \"target\": \"what to fix\",\n      \"priority\": 1,\n      \"automated\": true|false\n    }\n  ],\n  \"summary\": \"2-3 sentence executive summary\"\n}`;\n\nreturn { json: { prompt, anomalyData: data } };"
+      },
+      "notes": "Builds structured prompt for Claude to analyze anomaly patterns"
+    },
+    {
+      "id": "call-claude-analysis",
+      "name": "HTTP: Call Claude for Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1520, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2024-06-01"
+            },
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.ANTHROPIC_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-3-5-sonnet-20241022', max_tokens: 1500, messages: [{ role: 'user', content: $json.prompt }] }) }}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "notes": "Calls Claude to interpret anomalies and suggest causes"
+    },
+    {
+      "id": "parse-claude-response",
+      "name": "Code: Parse Claude Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1760, 300],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = $json;\nconst inputData = $('Code: Build Claude Analysis Prompt').first().json;\nconst anomalyData = inputData.anomalyData;\n\nlet analysis;\n\ntry {\n  const content = response.content?.[0]?.text || '';\n  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n  analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : null;\n} catch (e) {\n  analysis = null;\n}\n\n// Fallback if parsing fails\nif (!analysis) {\n  analysis = {\n    rootCauses: [{ cause: 'Analysis parsing failed', affectedAnomalies: anomalyData.anomalies.map(a => a.type), confidence: 'low' }],\n    correlations: [],\n    urgency: anomalyData.hasCritical ? 'immediate' : 'soon',\n    urgencyReason: 'Defaulting based on anomaly severity',\n    remediations: [{ action: 'Review anomalies manually', target: 'system', priority: 1, automated: false }],\n    summary: `${anomalyData.anomalyCount} anomalies detected. Manual review recommended.`,\n    _parsingFailed: true\n  };\n}\n\nreturn {\n  json: {\n    ...analysis,\n    originalAnomalies: anomalyData.anomalies,\n    anomalyCount: anomalyData.anomalyCount,\n    hasCritical: anomalyData.hasCritical,\n    hasHigh: anomalyData.hasHigh,\n    timestamp: anomalyData.timestamp,\n    metricsSnapshot: anomalyData.metricsSnapshot\n  }\n};"
+      },
+      "notes": "Parses Claude's JSON response with fallback handling"
+    },
+    {
+      "id": "switch-urgency",
+      "name": "Switch: Urgency Level",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [2000, 300],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "outputKey": "immediate",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "or",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.urgency }}",
+                    "rightValue": "immediate",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json.hasCritical }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "soon",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "or",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.urgency }}",
+                    "rightValue": "soon",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json.hasHigh }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "monitor",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.urgency }}",
+                    "rightValue": "monitor",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      }
+    },
+    {
+      "id": "discord-critical-anomaly",
+      "name": "Discord: Critical Anomaly Alert",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2260, 100],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_CHIEF_CHANNEL }}",
+        "content": "@here CRITICAL ANOMALY DETECTED",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "CRITICAL: System Anomaly Detected",
+              "description": "={{ $json.summary }}",
+              "color": "15158332",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Anomalies",
+                    "value": "={{ $json.anomalyCount }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Urgency",
+                    "value": "={{ $json.urgency.toUpperCase() }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Root Causes",
+                    "value": "={{ $json.rootCauses.map(r => '- ' + r.cause + ' (' + r.confidence + ')').join('\\n').substring(0, 900) || 'Unknown' }}",
+                    "inline": false
+                  },
+                  {
+                    "name": "Recommended Actions",
+                    "value": "={{ $json.remediations.slice(0, 3).map(r => r.priority + '. ' + r.action).join('\\n').substring(0, 900) || 'Review manually' }}",
+                    "inline": false
+                  }
+                ]
+              },
+              "footer": "WF-OPS-02 Anomaly Detector",
+              "timestamp": "={{ $json.timestamp }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "trigger-ops-agent",
+      "name": "HTTP: Trigger Ops Agent via OpenClaw",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2520, 100],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3001/webhook/ops-agent",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ type: 'anomaly_critical', source: 'WF-OPS-02', timestamp: $json.timestamp, summary: $json.summary, anomalies: $json.originalAnomalies, rootCauses: $json.rootCauses, remediations: $json.remediations.filter(r => r.automated) }) }}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Triggers Ops agent via OpenClaw webhook for automated response"
+    },
+    {
+      "id": "jira-pulse-critical",
+      "name": "Jira: Create PULSE Ticket (Critical)",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2780, 100],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "PULSE",
+        "issueType": "Bug",
+        "additionalFields": {
+          "summary": "={{ `[P1] Critical Anomaly: ${$json.rootCauses[0]?.cause || 'Multiple anomalies detected'}` }}",
+          "description": "={{ `Anomaly Detection Alert\\n\\nTimestamp: ${$json.timestamp}\\nUrgency: ${$json.urgency}\\n\\nSummary:\\n${$json.summary}\\n\\nDetected Anomalies:\\n${$json.originalAnomalies.map(a => '- [' + a.severity.toUpperCase() + '] ' + a.type + ': ' + a.description).join('\\n')}\\n\\nRoot Cause Analysis:\\n${$json.rootCauses.map(r => '- ' + r.cause + ' (Confidence: ' + r.confidence + ')\\n  Evidence: ' + (r.evidence || 'N/A')).join('\\n')}\\n\\nCorrelations:\\n${$json.correlations.map(c => '- ' + c.anomalies.join(' <-> ') + ': ' + c.relationship).join('\\n') || 'None identified'}\\n\\nRecommended Actions:\\n${$json.remediations.map((r, i) => (i + 1) + '. ' + r.action + ' (Target: ' + r.target + ', Automated: ' + r.automated + ')').join('\\n')}` }}",
+          "labels": [
+            "anomaly",
+            "critical",
+            "auto-generated"
+          ],
+          "priority": "Highest"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      }
+    },
+    {
+      "id": "jira-pulse-high",
+      "name": "Jira: Create PULSE Ticket (High)",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2260, 280],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "PULSE",
+        "issueType": "Bug",
+        "additionalFields": {
+          "summary": "={{ `[P2] Anomaly: ${$json.rootCauses[0]?.cause || $json.originalAnomalies[0]?.type || 'Anomalies detected'}` }}",
+          "description": "={{ `Anomaly Detection Alert\\n\\nTimestamp: ${$json.timestamp}\\nUrgency: ${$json.urgency}\\nReason: ${$json.urgencyReason}\\n\\nSummary:\\n${$json.summary}\\n\\nAnomalies:\\n${$json.originalAnomalies.map(a => '- [' + a.severity.toUpperCase() + '] ' + a.description).join('\\n')}\\n\\nRoot Causes:\\n${$json.rootCauses.map(r => '- ' + r.cause).join('\\n')}\\n\\nRecommended Actions:\\n${$json.remediations.map((r, i) => (i + 1) + '. ' + r.action).join('\\n')}` }}",
+          "labels": [
+            "anomaly",
+            "high",
+            "auto-generated"
+          ],
+          "priority": "High"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      }
+    },
+    {
+      "id": "discord-high-anomaly",
+      "name": "Discord: High Severity Anomaly",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2520, 280],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_SYSTEM_CHANNEL }}",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "High Severity Anomaly Detected",
+              "description": "={{ $json.summary }}",
+              "color": "16744192",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Anomalies",
+                    "value": "={{ $json.anomalyCount }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Urgency",
+                    "value": "={{ $json.urgency }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Top Action",
+                    "value": "={{ $json.remediations[0]?.action || 'Monitor closely' }}",
+                    "inline": false
+                  }
+                ]
+              },
+              "footer": "WF-OPS-02 Anomaly Detector",
+              "timestamp": "={{ $json.timestamp }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "discord-monitor-anomaly",
+      "name": "Discord: Monitor-Level Anomaly",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2260, 460],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_LOGS_CHANNEL }}",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "Anomaly Detected (Monitor)",
+              "description": "={{ $json.summary }}",
+              "color": "16776960",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Anomalies",
+                    "value": "={{ $json.originalAnomalies.map(a => '- ' + a.type + ': ' + a.description).join('\\n').substring(0, 900) }}",
+                    "inline": false
+                  },
+                  {
+                    "name": "Recommendation",
+                    "value": "={{ $json.remediations[0]?.action || 'Continue monitoring' }}",
+                    "inline": false
+                  }
+                ]
+              },
+              "footer": "WF-OPS-02 Monitor Alert",
+              "timestamp": "={{ $json.timestamp }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "log-no-anomalies",
+      "name": "HTTP: Log No Anomalies",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1280, 500],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/metrics/anomaly-checks",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ timestamp: $json.timestamp, anomalyCount: 0, status: 'clean', metricsSnapshot: $json.metricsSnapshot }) }}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Logs clean check when no anomalies detected"
+    },
+    {
+      "id": "merge-outcomes",
+      "name": "Merge: All Outcomes",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [3040, 400],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "store-anomaly-record",
+      "name": "HTTP: Store Anomaly Record",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3280, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/anomalies",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ timestamp: new Date().toISOString(), workflow: 'WF-OPS-02', anomalyCount: $('Code: Parse Claude Response').first()?.json?.anomalyCount || 0, anomalies: $('Code: Parse Claude Response').first()?.json?.originalAnomalies || [], analysis: { rootCauses: $('Code: Parse Claude Response').first()?.json?.rootCauses || [], urgency: $('Code: Parse Claude Response').first()?.json?.urgency || 'unknown' } }) }}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Stores anomaly detection record for historical analysis"
+    },
+    {
+      "id": "update-baselines",
+      "name": "Code: Calculate Updated Baselines",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3520, 400],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Update rolling baselines with current metrics\n// This is a simplified version - production would use more sophisticated EWMA\nconst anomalyData = $('Code: Calculate Z-Score Anomalies').first()?.json || {};\nconst metrics = anomalyData.metricsSnapshot || {};\n\n// Only update baselines when no critical anomalies (to avoid poisoning baselines)\nif (!anomalyData.hasCritical) {\n  return {\n    json: {\n      shouldUpdate: true,\n      newMetrics: {\n        tradeFrequency: metrics.recentHourTrades,\n        errorRate: metrics.recentErrors,\n        timestamp: anomalyData.timestamp\n      }\n    }\n  };\n}\n\nreturn {\n  json: {\n    shouldUpdate: false,\n    reason: 'Critical anomaly detected - skipping baseline update'\n  }\n};"
+      },
+      "notes": "Calculates updated baselines (only when no critical anomalies)"
+    },
+    {
+      "id": "if-update-baselines",
+      "name": "If: Should Update Baselines",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [3760, 400],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.shouldUpdate }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "update-baselines-db",
+      "name": "HTTP: Update Baselines in DB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [4000, 300],
+      "parameters": {
+        "method": "PATCH",
+        "url": "http://localhost:3000/api/metrics/baselines",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ metrics: $json.newMetrics, timestamp: new Date().toISOString() }) }}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Updates rolling baselines with new metric values"
+    },
+    {
+      "id": "end-workflow",
+      "name": "NoOp: Workflow Complete",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [4240, 400],
+      "parameters": {}
+    },
+    {
+      "id": "error-handler",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 700],
+      "parameters": {}
+    },
+    {
+      "id": "format-error",
+      "name": "Code: Format Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 700],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const error = $json;\n\nreturn {\n  json: {\n    title: 'WF-OPS-02 Anomaly Detector Error',\n    description: 'The anomaly detector workflow encountered an error.',\n    color: 15158332,\n    errorMessage: error.execution?.error?.message?.substring(0, 500) || 'Unknown error',\n    failedNode: error.execution?.error?.node?.name || 'Unknown',\n    executionId: error.execution?.id || 'Unknown',\n    timestamp: new Date().toISOString()\n  }\n};"
+      }
+    },
+    {
+      "id": "discord-error",
+      "name": "Discord: Post Error",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [440, 700],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_ERRORS_CHANNEL || 'n8n-errors' }}",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "={{ $json.title }}",
+              "description": "={{ $json.description }}",
+              "color": "={{ $json.color }}",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Error",
+                    "value": "={{ $json.errorMessage }}",
+                    "inline": false
+                  },
+                  {
+                    "name": "Failed Node",
+                    "value": "={{ $json.failedNode }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Execution ID",
+                    "value": "={{ $json.executionId }}",
+                    "inline": true
+                  }
+                ]
+              },
+              "timestamp": "={{ $json.timestamp }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "sticky-overview",
+      "name": "Note: Workflow Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-200, 100],
+      "parameters": {
+        "content": "## WF-OPS-02: Anomaly Detector\n\n**Schedule:** Every 15 minutes\n\n**Purpose:** Statistical anomaly detection across multiple metrics\n\n### Metrics Analyzed:\n1. Trade frequency (trades/hour)\n2. P&L deviation from 7-day rolling average\n3. Agent response times\n4. Error rate trends\n5. API latency spikes\n6. Consecutive loss streaks\n\n### Z-Score Thresholds:\n- |z| >= 3.0: Critical\n- |z| >= 2.5: High\n- |z| >= 2.0: Medium\n- |z| < 2.0: Low (not reported)\n\n### Alert Routing:\n- Critical: Discord #chief + OpenClaw Ops agent + PULSE P1\n- High/Soon: PULSE P2 + Discord #system\n- Monitor: Discord #logs only"
+      }
+    },
+    {
+      "id": "sticky-zscore",
+      "name": "Note: Z-Score Explanation",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [780, 600],
+      "parameters": {
+        "content": "## Z-Score Statistical Analysis\n\n**Formula:** z = (x - mean) / stdDev\n\n**Interpretation:**\n- z > 2: Value is 2+ standard deviations above mean (unusual)\n- z < -2: Value is 2+ standard deviations below mean\n- |z| >= 3: Extremely rare (0.3% probability if normal distribution)\n\n**Baselines:**\n- Stored historical mean & stdDev per metric\n- Updated with rolling EWMA when no critical anomalies\n- Prevents anomalies from poisoning baseline\n\n**Severity Mapping:**\n- critical: |z| >= 3.0\n- high: |z| >= 2.5\n- medium: |z| >= 2.0"
+      }
+    },
+    {
+      "id": "sticky-claude",
+      "name": "Note: Claude Analysis",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1520, 500],
+      "parameters": {
+        "content": "## Claude Anomaly Analysis\n\n**Claude performs:**\n1. Root cause identification\n2. Anomaly correlation detection\n3. Urgency assessment\n4. Remediation suggestions\n\n**Output Structure:**\n- rootCauses: What's causing the anomaly\n- correlations: How anomalies relate\n- urgency: immediate/soon/monitor\n- remediations: Specific fix actions\n- summary: Executive overview\n\n**Automated Actions:**\nRemediation items with `automated: true` are forwarded to Ops agent for execution."
+      }
+    }
+  ],
+  "connections": {
+    "Schedule: Every 15 Minutes": {
+      "main": [
+        [
+          { "node": "HTTP: Fetch Trade Metrics (24h)", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch P&L Rolling Average", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch Agent Response Times", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch Error Rate Trends", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch API Latency Stats", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch Historical Baselines", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Fetch Trade Metrics (24h)": {
+      "main": [
+        [
+          { "node": "Merge: Combine All Metrics", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Fetch P&L Rolling Average": {
+      "main": [
+        [
+          { "node": "Merge: Combine All Metrics", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "HTTP: Fetch Agent Response Times": {
+      "main": [
+        [
+          { "node": "Merge: Combine All Metrics", "type": "main", "index": 2 }
+        ]
+      ]
+    },
+    "HTTP: Fetch Error Rate Trends": {
+      "main": [
+        [
+          { "node": "Merge: Combine All Metrics", "type": "main", "index": 3 }
+        ]
+      ]
+    },
+    "HTTP: Fetch API Latency Stats": {
+      "main": [
+        [
+          { "node": "Merge: Combine All Metrics", "type": "main", "index": 4 }
+        ]
+      ]
+    },
+    "HTTP: Fetch Historical Baselines": {
+      "main": [
+        [
+          { "node": "Merge: Combine All Metrics", "type": "main", "index": 5 }
+        ]
+      ]
+    },
+    "Merge: Combine All Metrics": {
+      "main": [
+        [
+          { "node": "Code: Calculate Z-Score Anomalies", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Calculate Z-Score Anomalies": {
+      "main": [
+        [
+          { "node": "If: Has Anomalies", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "If: Has Anomalies": {
+      "main": [
+        [
+          { "node": "Code: Build Claude Analysis Prompt", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "HTTP: Log No Anomalies", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Build Claude Analysis Prompt": {
+      "main": [
+        [
+          { "node": "HTTP: Call Claude for Analysis", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Call Claude for Analysis": {
+      "main": [
+        [
+          { "node": "Code: Parse Claude Response", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Parse Claude Response": {
+      "main": [
+        [
+          { "node": "Switch: Urgency Level", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Switch: Urgency Level": {
+      "main": [
+        [
+          { "node": "Discord: Critical Anomaly Alert", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Jira: Create PULSE Ticket (High)", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Discord: Monitor-Level Anomaly", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Discord: Monitor-Level Anomaly", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Discord: Critical Anomaly Alert": {
+      "main": [
+        [
+          { "node": "HTTP: Trigger Ops Agent via OpenClaw", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Trigger Ops Agent via OpenClaw": {
+      "main": [
+        [
+          { "node": "Jira: Create PULSE Ticket (Critical)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Jira: Create PULSE Ticket (Critical)": {
+      "main": [
+        [
+          { "node": "Merge: All Outcomes", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Jira: Create PULSE Ticket (High)": {
+      "main": [
+        [
+          { "node": "Discord: High Severity Anomaly", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Discord: High Severity Anomaly": {
+      "main": [
+        [
+          { "node": "Merge: All Outcomes", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Discord: Monitor-Level Anomaly": {
+      "main": [
+        [
+          { "node": "Merge: All Outcomes", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Log No Anomalies": {
+      "main": [
+        [
+          { "node": "Merge: All Outcomes", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Merge: All Outcomes": {
+      "main": [
+        [
+          { "node": "HTTP: Store Anomaly Record", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Store Anomaly Record": {
+      "main": [
+        [
+          { "node": "Code: Calculate Updated Baselines", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Calculate Updated Baselines": {
+      "main": [
+        [
+          { "node": "If: Should Update Baselines", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "If: Should Update Baselines": {
+      "main": [
+        [
+          { "node": "HTTP: Update Baselines in DB", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "NoOp: Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Update Baselines in DB": {
+      "main": [
+        [
+          { "node": "NoOp: Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          { "node": "Code: Format Error", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Format Error": {
+      "main": [
+        [
+          { "node": "Discord: Post Error", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveExecutionProgress": true,
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "operations" },
+    { "name": "anomaly-detection" },
+    { "name": "self-improvement" }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-20T00:00:00.000Z",
+  "versionId": "1.0.0",
+  "meta": {
+    "instanceId": "swjshak-n8n",
+    "templateCredsSetupCompleted": false
+  }
+}

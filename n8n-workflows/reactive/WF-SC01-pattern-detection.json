@@ -1,0 +1,710 @@
+{
+  "name": "WF-SC01: Pattern Detection Processor",
+  "nodes": [
+    {
+      "id": "schedule-daily",
+      "name": "Schedule: Daily 5 PM ET",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 17 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fetch-trades-30d",
+      "name": "HTTP: Fetch Last 30 Days Trades",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://localhost:3000/api/trades?from={{ DateTime.now().minus({ days: 30 }).toISO() }}&limit=500",
+        "options": {
+          "timeout": 30000
+        }
+      }
+    },
+    {
+      "id": "validate-trades",
+      "name": "If: Has Trades",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.trades?.length || 0 }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "group-by-dimensions",
+      "name": "Code: Group by Analysis Dimensions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $input.first().json;\nconst trades = data.trades || [];\n\nif (trades.length < 10) {\n  return { json: { error: 'Insufficient trades for analysis', count: trades.length } };\n}\n\n// Group by multiple dimensions\nconst analysis = {\n  byHour: {},\n  byDayOfWeek: {},\n  byStrategy: {},\n  bySymbol: {},\n  byDuration: {\n    scalp: [], // < 5 min\n    short: [], // 5-30 min\n    medium: [], // 30-120 min\n    long: [] // > 120 min\n  },\n  byMarketSession: {\n    premarket: [],\n    open: [],\n    midday: [],\n    close: [],\n    afterhours: []\n  },\n  byPnlRange: {\n    bigWin: [], // > 2%\n    smallWin: [], // 0-2%\n    smallLoss: [], // -2-0%\n    bigLoss: [] // < -2%\n  },\n  sequential: {\n    winStreaks: [],\n    lossStreaks: [],\n    currentStreak: { type: null, count: 0 }\n  }\n};\n\n// Track streaks\nlet currentStreak = { type: null, count: 0 };\n\ntrades.forEach((trade, idx) => {\n  const entryTime = new Date(trade.entry_time);\n  const exitTime = new Date(trade.exit_time);\n  const hour = entryTime.getHours();\n  const day = entryTime.getDay(); // 0=Sun, 1=Mon, ...\n  const durationMin = (exitTime - entryTime) / 60000;\n  const pnlPercent = trade.pnl_percent || (trade.pnl / (trade.entry_price * (trade.quantity || 1)) * 100);\n  \n  // By hour\n  if (!analysis.byHour[hour]) analysis.byHour[hour] = [];\n  analysis.byHour[hour].push(trade);\n  \n  // By day of week\n  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];\n  const dayName = dayNames[day];\n  if (!analysis.byDayOfWeek[dayName]) analysis.byDayOfWeek[dayName] = [];\n  analysis.byDayOfWeek[dayName].push(trade);\n  \n  // By strategy\n  const strat = trade.strategy || 'unknown';\n  if (!analysis.byStrategy[strat]) analysis.byStrategy[strat] = [];\n  analysis.byStrategy[strat].push(trade);\n  \n  // By symbol\n  const sym = trade.symbol || 'unknown';\n  if (!analysis.bySymbol[sym]) analysis.bySymbol[sym] = [];\n  analysis.bySymbol[sym].push(trade);\n  \n  // By duration\n  if (durationMin < 5) analysis.byDuration.scalp.push(trade);\n  else if (durationMin < 30) analysis.byDuration.short.push(trade);\n  else if (durationMin < 120) analysis.byDuration.medium.push(trade);\n  else analysis.byDuration.long.push(trade);\n  \n  // By market session (EST)\n  if (hour < 9 || (hour === 9 && entryTime.getMinutes() < 30)) {\n    analysis.byMarketSession.premarket.push(trade);\n  } else if (hour < 10) {\n    analysis.byMarketSession.open.push(trade);\n  } else if (hour < 14) {\n    analysis.byMarketSession.midday.push(trade);\n  } else if (hour < 16) {\n    analysis.byMarketSession.close.push(trade);\n  } else {\n    analysis.byMarketSession.afterhours.push(trade);\n  }\n  \n  // By P&L range\n  if (pnlPercent > 2) analysis.byPnlRange.bigWin.push(trade);\n  else if (pnlPercent >= 0) analysis.byPnlRange.smallWin.push(trade);\n  else if (pnlPercent >= -2) analysis.byPnlRange.smallLoss.push(trade);\n  else analysis.byPnlRange.bigLoss.push(trade);\n  \n  // Track streaks\n  const isWin = trade.pnl > 0;\n  if (currentStreak.type === null) {\n    currentStreak = { type: isWin ? 'win' : 'loss', count: 1 };\n  } else if ((isWin && currentStreak.type === 'win') || (!isWin && currentStreak.type === 'loss')) {\n    currentStreak.count++;\n  } else {\n    // Streak broken, record it\n    if (currentStreak.type === 'win' && currentStreak.count >= 3) {\n      analysis.sequential.winStreaks.push(currentStreak.count);\n    } else if (currentStreak.type === 'loss' && currentStreak.count >= 2) {\n      analysis.sequential.lossStreaks.push(currentStreak.count);\n    }\n    currentStreak = { type: isWin ? 'win' : 'loss', count: 1 };\n  }\n});\n\nanalysis.sequential.currentStreak = currentStreak;\n\nreturn { json: { analysis, totalTrades: trades.length } };"
+      }
+    },
+    {
+      "id": "calculate-stats",
+      "name": "Code: Calculate Statistical Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $input.first().json;\nconst analysis = data.analysis;\nconst totalTrades = data.totalTrades;\n\n// Helper: Calculate stats for a group\nfunction calcStats(trades) {\n  if (!trades || trades.length === 0) return null;\n  \n  const pnls = trades.map(t => t.pnl);\n  const mean = pnls.reduce((a, b) => a + b, 0) / pnls.length;\n  const wins = trades.filter(t => t.pnl > 0).length;\n  const winRate = wins / trades.length;\n  \n  // Standard deviation\n  const squaredDiffs = pnls.map(p => Math.pow(p - mean, 2));\n  const variance = squaredDiffs.reduce((a, b) => a + b, 0) / pnls.length;\n  const stdDev = Math.sqrt(variance);\n  \n  // Sharpe-like ratio (simplified)\n  const sharpeRatio = stdDev > 0 ? mean / stdDev : 0;\n  \n  return {\n    count: trades.length,\n    totalPnL: pnls.reduce((a, b) => a + b, 0),\n    avgPnL: mean,\n    winRate: winRate,\n    stdDev: stdDev,\n    sharpeRatio: sharpeRatio,\n    maxWin: Math.max(...pnls),\n    maxLoss: Math.min(...pnls)\n  };\n}\n\n// Helper: Z-score for proportion test\nfunction proportionZScore(observed, expected, n) {\n  if (n < 5) return 0;\n  const se = Math.sqrt((expected * (1 - expected)) / n);\n  return se > 0 ? (observed - expected) / se : 0;\n}\n\n// Calculate stats for each dimension\nconst patterns = [];\nconst baseWinRate = calcStats(Object.values(analysis.byStrategy).flat())?.winRate || 0.5;\n\n// Analyze by hour\nObject.entries(analysis.byHour).forEach(([hour, trades]) => {\n  const stats = calcStats(trades);\n  if (stats && stats.count >= 5) {\n    const zScore = proportionZScore(stats.winRate, baseWinRate, stats.count);\n    const pValue = 2 * (1 - Math.min(0.9999, Math.abs(zScore) < 3.5 ? \n      0.5 + 0.5 * Math.sign(zScore) * Math.sqrt(1 - Math.exp(-2 * zScore * zScore / Math.PI)) : 0.9999));\n    \n    if (Math.abs(zScore) > 1.96) { // 95% confidence\n      patterns.push({\n        dimension: 'time_of_day',\n        key: `hour_${hour}`,\n        description: `Trades at ${hour}:00 have ${stats.winRate > baseWinRate ? 'higher' : 'lower'} win rate`,\n        stats: stats,\n        significance: {\n          zScore: zScore,\n          pValue: pValue,\n          isSignificant: pValue < 0.05\n        },\n        recommendation: stats.winRate > baseWinRate \n          ? `Consider focusing more trades around ${hour}:00` \n          : `Review trading during ${hour}:00 hour - underperforming`\n      });\n    }\n  }\n});\n\n// Analyze by day of week\nObject.entries(analysis.byDayOfWeek).forEach(([day, trades]) => {\n  const stats = calcStats(trades);\n  if (stats && stats.count >= 5) {\n    const zScore = proportionZScore(stats.winRate, baseWinRate, stats.count);\n    const pValue = 2 * (1 - Math.min(0.9999, Math.abs(zScore) < 3.5 ? \n      0.5 + 0.5 * Math.sign(zScore) * Math.sqrt(1 - Math.exp(-2 * zScore * zScore / Math.PI)) : 0.9999));\n    \n    if (Math.abs(zScore) > 1.96) {\n      patterns.push({\n        dimension: 'day_of_week',\n        key: day,\n        description: `${day} trades have ${stats.winRate > baseWinRate ? 'higher' : 'lower'} win rate`,\n        stats: stats,\n        significance: {\n          zScore: zScore,\n          pValue: pValue,\n          isSignificant: pValue < 0.05\n        },\n        recommendation: stats.winRate > baseWinRate \n          ? `${day} is a strong day - maintain current approach` \n          : `${day} underperforming - consider reduced position sizing`\n      });\n    }\n  }\n});\n\n// Analyze by strategy\nObject.entries(analysis.byStrategy).forEach(([strategy, trades]) => {\n  const stats = calcStats(trades);\n  if (stats && stats.count >= 5) {\n    patterns.push({\n      dimension: 'strategy',\n      key: strategy,\n      description: `Strategy ${strategy}: ${stats.count} trades, ${(stats.winRate * 100).toFixed(1)}% win rate`,\n      stats: stats,\n      significance: {\n        zScore: 0, // Strategy comparison is different\n        pValue: 0,\n        isSignificant: stats.count >= 10\n      },\n      recommendation: stats.winRate > 0.55 \n        ? `${strategy} performing well - consider increasing allocation` \n        : stats.winRate < 0.45 \n          ? `${strategy} needs review - consider pausing or refining`\n          : `${strategy} near breakeven - monitor closely`\n    });\n  }\n});\n\n// Analyze by duration\nObject.entries(analysis.byDuration).forEach(([durationType, trades]) => {\n  const stats = calcStats(trades);\n  if (stats && stats.count >= 5) {\n    const zScore = proportionZScore(stats.winRate, baseWinRate, stats.count);\n    const pValue = 2 * (1 - Math.min(0.9999, Math.abs(zScore) < 3.5 ? \n      0.5 + 0.5 * Math.sign(zScore) * Math.sqrt(1 - Math.exp(-2 * zScore * zScore / Math.PI)) : 0.9999));\n    \n    if (Math.abs(zScore) > 1.65) { // 90% confidence for duration\n      patterns.push({\n        dimension: 'trade_duration',\n        key: durationType,\n        description: `${durationType} trades (${stats.count}) have ${(stats.winRate * 100).toFixed(1)}% win rate`,\n        stats: stats,\n        significance: {\n          zScore: zScore,\n          pValue: pValue,\n          isSignificant: pValue < 0.1\n        },\n        recommendation: stats.winRate > baseWinRate \n          ? `${durationType} duration working well` \n          : `Consider adjusting holding time - ${durationType} trades underperforming`\n      });\n    }\n  }\n});\n\n// Analyze by market session\nObject.entries(analysis.byMarketSession).forEach(([session, trades]) => {\n  const stats = calcStats(trades);\n  if (stats && stats.count >= 5) {\n    const zScore = proportionZScore(stats.winRate, baseWinRate, stats.count);\n    const pValue = 2 * (1 - Math.min(0.9999, Math.abs(zScore) < 3.5 ? \n      0.5 + 0.5 * Math.sign(zScore) * Math.sqrt(1 - Math.exp(-2 * zScore * zScore / Math.PI)) : 0.9999));\n    \n    if (Math.abs(zScore) > 1.96) {\n      patterns.push({\n        dimension: 'market_session',\n        key: session,\n        description: `${session} session: ${(stats.winRate * 100).toFixed(1)}% win rate`,\n        stats: stats,\n        significance: {\n          zScore: zScore,\n          pValue: pValue,\n          isSignificant: pValue < 0.05\n        },\n        recommendation: stats.winRate > baseWinRate \n          ? `${session} is your best session - prioritize it` \n          : `${session} session needs work - consider avoiding or smaller size`\n      });\n    }\n  }\n});\n\n// Analyze streaks\nconst winStreaks = analysis.sequential.winStreaks;\nconst lossStreaks = analysis.sequential.lossStreaks;\n\nif (lossStreaks.length > 0 && lossStreaks.some(s => s >= 3)) {\n  patterns.push({\n    dimension: 'sequential_behavior',\n    key: 'loss_streaks',\n    description: `Detected ${lossStreaks.filter(s => s >= 3).length} loss streaks of 3+ trades`,\n    stats: {\n      avgStreakLength: lossStreaks.reduce((a, b) => a + b, 0) / lossStreaks.length,\n      maxStreak: Math.max(...lossStreaks),\n      streakCount: lossStreaks.length\n    },\n    significance: {\n      zScore: 0,\n      pValue: 0,\n      isSignificant: true\n    },\n    recommendation: 'Consider implementing a \"cooling off\" period after 2 consecutive losses'\n  });\n}\n\nreturn {\n  json: {\n    patterns: patterns,\n    significantPatterns: patterns.filter(p => p.significance.isSignificant),\n    totalTrades: totalTrades,\n    baseWinRate: baseWinRate,\n    analysisDate: new Date().toISOString()\n  }\n};"
+      }
+    },
+    {
+      "id": "filter-significant",
+      "name": "If: Has Significant Patterns",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1100, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.significantPatterns?.length || 0 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "build-ai-prompt",
+      "name": "Code: Build AI Analysis Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 200],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $input.first().json;\nconst patterns = data.significantPatterns;\n\nconst prompt = `You are Scout, a pattern detection specialist for the SwjshAK trading system.\n\nAnalyze these statistically significant trading patterns from the last 30 days:\n\nTOTAL TRADES ANALYZED: ${data.totalTrades}\nBASE WIN RATE: ${(data.baseWinRate * 100).toFixed(1)}%\n\nSIGNIFICANT PATTERNS DETECTED:\n${patterns.map((p, i) => `\n${i + 1}. ${p.dimension.toUpperCase()}: ${p.key}\n   Description: ${p.description}\n   Stats: ${p.stats.count} trades, ${(p.stats.winRate * 100).toFixed(1)}% win rate, $${p.stats.totalPnL.toFixed(2)} total P&L\n   Significance: z=${p.significance.zScore.toFixed(2)}, p=${p.significance.pValue.toFixed(4)}\n   Initial Recommendation: ${p.recommendation}\n`).join('')}\n\nYour task:\n1. Validate if these patterns are likely real or spurious (small sample, data snooping risk)\n2. For each valid pattern, provide a HYPOTHESIS that can be tested\n3. Suggest concrete actions for each confirmed pattern\n4. Identify any patterns that need more data before acting\n\nProvide your analysis as JSON:\n{\n  \"summary\": \"2-3 sentence overview\",\n  \"validatedPatterns\": [\n    {\n      \"patternKey\": \"dimension:key\",\n      \"confidence\": \"high|medium|low\",\n      \"hypothesis\": \"testable hypothesis statement\",\n      \"suggestedAction\": \"specific action to take\",\n      \"monitoringPeriod\": \"2 weeks|1 month|etc\",\n      \"successCriteria\": \"how to measure if action worked\"\n    }\n  ],\n  \"needsMoreData\": [\"patterns to monitor but not act on yet\"],\n  \"warnings\": [\"any concerns about the analysis\"],\n  \"topPriority\": \"single most important finding\"\n}\n\nBe skeptical but actionable. Avoid confirmation bias.`;\n\nreturn {\n  json: {\n    prompt: prompt,\n    rawPatterns: patterns,\n    totalTrades: data.totalTrades,\n    baseWinRate: data.baseWinRate\n  }\n};"
+      }
+    },
+    {
+      "id": "call-claude-analysis",
+      "name": "HTTP: Call Claude for Pattern Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1540, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2024-06-01"
+            },
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.ANTHROPIC_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-3-5-sonnet-20241022', max_tokens: 2000, messages: [{ role: 'user', content: $json.prompt }] }) }}",
+        "options": {
+          "timeout": 90000
+        }
+      }
+    },
+    {
+      "id": "parse-ai-response",
+      "name": "Code: Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1760, 200],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = $json;\nconst inputData = $('Code: Build AI Analysis Prompt').first().json;\n\nlet analysis;\n\ntry {\n  const content = response.content?.[0]?.text || response.content || '';\n  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n  analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : { error: 'Could not parse response' };\n} catch (e) {\n  analysis = {\n    summary: 'AI analysis parsing failed',\n    validatedPatterns: [],\n    needsMoreData: [],\n    warnings: ['Response parsing error: ' + e.message],\n    topPriority: 'Review raw patterns manually',\n    _rawResponse: response.content?.[0]?.text?.substring(0, 500)\n  };\n}\n\nreturn {\n  json: {\n    ...analysis,\n    rawPatterns: inputData.rawPatterns,\n    totalTrades: inputData.totalTrades,\n    baseWinRate: inputData.baseWinRate,\n    analyzedAt: new Date().toISOString()\n  }\n};"
+      }
+    },
+    {
+      "id": "fetch-existing-hypotheses",
+      "name": "HTTP: Fetch Existing Hypotheses",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1980, 200],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/hypotheses?status=active",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "process-hypotheses",
+      "name": "Code: Process New vs Existing Hypotheses",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2200, 200],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const analysis = $('Code: Parse AI Response').first().json;\nconst existingResponse = $input.first().json;\nconst existing = existingResponse.hypotheses || [];\n\nconst newPatterns = analysis.validatedPatterns || [];\nconst toCreate = [];\nconst toUpdate = [];\nconst confirmedFor3Weeks = [];\n\nnewPatterns.forEach(pattern => {\n  const existingMatch = existing.find(h => \n    h.patternKey === pattern.patternKey || \n    h.hypothesis?.toLowerCase().includes(pattern.patternKey?.toLowerCase()?.split(':')[1] || '')\n  );\n  \n  if (existingMatch) {\n    // Check if confirmed for 3+ weeks\n    const createdAt = new Date(existingMatch.createdAt);\n    const weeksOld = (Date.now() - createdAt) / (7 * 24 * 60 * 60 * 1000);\n    \n    if (weeksOld >= 3 && existingMatch.confirmationCount >= 2) {\n      confirmedFor3Weeks.push({\n        ...pattern,\n        hypothesis_id: existingMatch.id,\n        weeksTracked: weeksOld,\n        confirmationCount: existingMatch.confirmationCount + 1\n      });\n    } else {\n      toUpdate.push({\n        ...pattern,\n        hypothesis_id: existingMatch.id,\n        newConfirmationCount: (existingMatch.confirmationCount || 0) + 1\n      });\n    }\n  } else {\n    toCreate.push(pattern);\n  }\n});\n\nreturn {\n  json: {\n    toCreate: toCreate,\n    toUpdate: toUpdate,\n    confirmedFor3Weeks: confirmedFor3Weeks,\n    summary: analysis.summary,\n    topPriority: analysis.topPriority,\n    warnings: analysis.warnings,\n    totalTrades: analysis.totalTrades,\n    baseWinRate: analysis.baseWinRate\n  }\n};"
+      }
+    },
+    {
+      "id": "split-batch-actions",
+      "name": "Code: Split into Actions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2420, 200],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $input.first().json;\nconst items = [];\n\n// Create items for new LEARN tickets\ndata.toCreate.forEach(p => {\n  items.push({\n    json: {\n      action: 'create_learn',\n      ...p,\n      summary: data.summary,\n      baseWinRate: data.baseWinRate\n    }\n  });\n});\n\n// Create items for hypothesis updates\ndata.toUpdate.forEach(p => {\n  items.push({\n    json: {\n      action: 'update_hypothesis',\n      ...p\n    }\n  });\n});\n\n// Create items for confirmed patterns -> INFRA\ndata.confirmedFor3Weeks.forEach(p => {\n  items.push({\n    json: {\n      action: 'create_infra',\n      ...p\n    }\n  });\n});\n\n// Add summary item\nitems.push({\n  json: {\n    action: 'summary',\n    newPatterns: data.toCreate.length,\n    updatedPatterns: data.toUpdate.length,\n    confirmedPatterns: data.confirmedFor3Weeks.length,\n    summary: data.summary,\n    topPriority: data.topPriority,\n    warnings: data.warnings || []\n  }\n});\n\nreturn items;"
+      }
+    },
+    {
+      "id": "switch-action-type",
+      "name": "Switch: Action Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [2640, 200],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "outputKey": "create_learn",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "create_learn",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "update_hypothesis",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "update_hypothesis",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "create_infra",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "create_infra",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "summary",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "summary",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "jira-learn-hypothesis",
+      "name": "Jira: Create LEARN Ticket [HYPOTHESIS]",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2860, 60],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "LEARN",
+        "issueType": "Task",
+        "additionalFields": {
+          "summary": "={{ `[HYPOTHESIS] ${$json.patternKey}: ${$json.hypothesis?.substring(0, 80) || 'Pattern detected'}` }}",
+          "description": "={{ `Pattern Detection Hypothesis\\n\\nPattern: ${$json.patternKey}\\nConfidence: ${$json.confidence}\\n\\nHypothesis:\\n${$json.hypothesis}\\n\\nSuggested Action:\\n${$json.suggestedAction}\\n\\nMonitoring Period: ${$json.monitoringPeriod}\\nSuccess Criteria: ${$json.successCriteria}\\n\\nBase Win Rate: ${($json.baseWinRate * 100).toFixed(1)}%\\n\\nThis pattern will be tracked and if confirmed for 3+ weeks, will be escalated to INFRA for permanent implementation.` }}",
+          "labels": [
+            "hypothesis",
+            "pattern-detection",
+            "={{ $json.patternKey?.split(':')[0] || 'unknown' }}"
+          ],
+          "priority": "={{ $json.confidence === 'high' ? 'High' : 'Medium' }}"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      }
+    },
+    {
+      "id": "store-hypothesis-db",
+      "name": "HTTP: Store Hypothesis in DB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3080, 60],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/hypotheses",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ patternKey: $json.patternKey, hypothesis: $json.hypothesis, confidence: $json.confidence, suggestedAction: $json.suggestedAction, monitoringPeriod: $json.monitoringPeriod, successCriteria: $json.successCriteria, status: 'active', confirmationCount: 1, createdAt: new Date().toISOString() }) }}",
+        "options": {
+          "timeout": 15000
+        }
+      }
+    },
+    {
+      "id": "update-hypothesis-count",
+      "name": "HTTP: Update Hypothesis Count",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2860, 180],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=http://localhost:3000/api/hypotheses/{{ $json.hypothesis_id }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ confirmationCount: $json.newConfirmationCount, lastConfirmedAt: new Date().toISOString() }) }}",
+        "options": {
+          "timeout": 15000
+        }
+      }
+    },
+    {
+      "id": "jira-infra-confirmed",
+      "name": "Jira: Create INFRA Ticket (Confirmed Pattern)",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2860, 300],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "INFRA",
+        "issueType": "Task",
+        "additionalFields": {
+          "summary": "={{ `[CONFIRMED PATTERN] Implement ${$json.patternKey}` }}",
+          "description": "={{ `Confirmed Trading Pattern - Ready for Implementation\\n\\nPattern: ${$json.patternKey}\\nTracked for: ${$json.weeksTracked.toFixed(1)} weeks\\nConfirmation Count: ${$json.confirmationCount}\\n\\nOriginal Hypothesis:\\n${$json.hypothesis}\\n\\nSuggested Implementation:\\n${$json.suggestedAction}\\n\\nSuccess Criteria:\\n${$json.successCriteria}\\n\\nThis pattern has been statistically validated over multiple weeks. Implement the suggested changes to capitalize on this edge.` }}",
+          "labels": [
+            "confirmed-pattern",
+            "trading-edge",
+            "={{ $json.patternKey?.split(':')[0] || 'unknown' }}"
+          ],
+          "priority": "High"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      }
+    },
+    {
+      "id": "discord-discoveries",
+      "name": "Discord: Post Pattern Discoveries",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2860, 440],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_STANDUP_CHANNEL }}",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "Pattern Detection Report",
+              "description": "={{ $json.summary }}",
+              "color": "3447003",
+              "fields": {
+                "values": [
+                  {
+                    "name": "New Patterns",
+                    "value": "={{ $json.newPatterns || 0 }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Updated",
+                    "value": "={{ $json.updatedPatterns || 0 }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Confirmed",
+                    "value": "={{ $json.confirmedPatterns || 0 }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Top Priority",
+                    "value": "={{ $json.topPriority || 'None' }}",
+                    "inline": false
+                  },
+                  {
+                    "name": "Warnings",
+                    "value": "={{ ($json.warnings || []).join('\\n') || 'None' }}",
+                    "inline": false
+                  }
+                ]
+              },
+              "footer": "Scout Pattern Detection",
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "no-patterns-log",
+      "name": "HTTP: Log No Patterns Found",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1320, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/logs/pattern-detection",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ status: 'no_significant_patterns', totalTrades: $json.totalTrades, baseWinRate: $json.baseWinRate, patternsFound: $json.patterns?.length || 0, timestamp: new Date().toISOString() }) }}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "sticky-overview",
+      "name": "Note: Workflow Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-200, 100],
+      "parameters": {
+        "content": "## WF-SC01: Pattern Detection Processor\n\n**Trigger:** Daily at 5 PM ET (after market close)\n\n**Purpose:** Discover statistically significant trading patterns\n\n### Analysis Dimensions:\n- Time of day (hourly)\n- Day of week\n- Strategy performance\n- Trade duration\n- Market session\n- Win/loss streaks\n\n### Statistical Tests:\n- Z-score for proportion test\n- p < 0.05 = significant\n- Minimum 5 trades per group\n\n### Hypothesis Tracking:\n1. New pattern -> LEARN ticket [HYPOTHESIS]\n2. Pattern confirmed week 2+ -> Update count\n3. Pattern confirmed 3+ weeks -> INFRA ticket\n\n### Output:\n- LEARN tickets for new hypotheses\n- INFRA tickets for confirmed patterns\n- Daily summary to #daily-standup"
+      }
+    },
+    {
+      "id": "sticky-stats",
+      "name": "Note: Statistics",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [880, 500],
+      "parameters": {
+        "content": "## Statistical Methods\n\n**Z-Score Calculation:**\nCompares group win rate to base win rate\n\n**Significance Levels:**\n- |z| > 1.96: 95% confidence (p < 0.05)\n- |z| > 1.65: 90% confidence (p < 0.10)\n\n**Minimum Sample:**\n5 trades per group\n\n**Avoid False Positives:**\n- AI validates patterns\n- 3-week confirmation period\n- Multiple confirmation required"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule: Daily 5 PM ET": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Fetch Last 30 Days Trades",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch Last 30 Days Trades": {
+      "main": [
+        [
+          {
+            "node": "If: Has Trades",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Has Trades": {
+      "main": [
+        [
+          {
+            "node": "Code: Group by Analysis Dimensions",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Code: Group by Analysis Dimensions": {
+      "main": [
+        [
+          {
+            "node": "Code: Calculate Statistical Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Calculate Statistical Metrics": {
+      "main": [
+        [
+          {
+            "node": "If: Has Significant Patterns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Has Significant Patterns": {
+      "main": [
+        [
+          {
+            "node": "Code: Build AI Analysis Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Log No Patterns Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Build AI Analysis Prompt": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Call Claude for Pattern Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Call Claude for Pattern Analysis": {
+      "main": [
+        [
+          {
+            "node": "Code: Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Fetch Existing Hypotheses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch Existing Hypotheses": {
+      "main": [
+        [
+          {
+            "node": "Code: Process New vs Existing Hypotheses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Process New vs Existing Hypotheses": {
+      "main": [
+        [
+          {
+            "node": "Code: Split into Actions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Split into Actions": {
+      "main": [
+        [
+          {
+            "node": "Switch: Action Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Action Type": {
+      "main": [
+        [
+          {
+            "node": "Jira: Create LEARN Ticket [HYPOTHESIS]",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Update Hypothesis Count",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Jira: Create INFRA Ticket (Confirmed Pattern)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Discord: Post Pattern Discoveries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jira: Create LEARN Ticket [HYPOTHESIS]": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Store Hypothesis in DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "trading"
+    },
+    {
+      "name": "analytics"
+    },
+    {
+      "name": "pattern-detection"
+    },
+    {
+      "name": "scout"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-20T00:00:00.000Z",
+  "versionId": "1"
+}

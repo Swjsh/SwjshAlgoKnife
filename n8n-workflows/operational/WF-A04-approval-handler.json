@@ -1,0 +1,761 @@
+{
+  "name": "WF-A04 Approval Request Handler",
+  "nodes": [
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000001",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 300],
+      "parameters": {
+        "path": "approval-request",
+        "httpMethod": "POST",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "webhook-auth",
+          "name": "Webhook Auth"
+        }
+      },
+      "webhookId": "approval-request-webhook",
+      "notes": "Receives approval requests from agents via POST /webhook/approval-request"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000002",
+      "name": "Validate Request",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-type",
+              "leftValue": "={{ $json.body.type }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "condition-description",
+              "leftValue": "={{ $json.body.description }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "condition-requestor",
+              "leftValue": "={{ $json.body.requestor }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "notes": "Validates that required fields (type, description, requestor) are present"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000003",
+      "name": "Invalid Request Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [500, 500],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Invalid request. Required fields: type, description, requestor\",\n  \"received\": {{ JSON.stringify($json.body) }}\n}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "notes": "Returns 400 error for invalid requests"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000004",
+      "name": "Normalize Request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [500, 200],
+      "parameters": {
+        "mode": "manual",
+        "fields": {
+          "values": [
+            {
+              "name": "requestId",
+              "stringValue": "={{ 'APR-' + $now.toFormat('yyyyMMddHHmmss') + '-' + Math.random().toString(36).substring(7) }}"
+            },
+            {
+              "name": "type",
+              "stringValue": "={{ $json.body.type }}"
+            },
+            {
+              "name": "description",
+              "stringValue": "={{ $json.body.description }}"
+            },
+            {
+              "name": "requestor",
+              "stringValue": "={{ $json.body.requestor }}"
+            },
+            {
+              "name": "amount",
+              "type": "numberValue",
+              "numberValue": "={{ $json.body.amount || 0 }}"
+            },
+            {
+              "name": "priority",
+              "stringValue": "={{ $json.body.priority || 'medium' }}"
+            },
+            {
+              "name": "context",
+              "stringValue": "={{ JSON.stringify($json.body.context || {}) }}"
+            },
+            {
+              "name": "timestamp",
+              "stringValue": "={{ $now.toISO() }}"
+            },
+            {
+              "name": "callbackUrl",
+              "stringValue": "={{ $json.body.callbackUrl || '' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "notes": "Normalizes and enriches the request with ID and timestamp"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000005",
+      "name": "Determine Approval Level",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [750, 200],
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "outputKey": "auto_approve",
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "id": "cond-auto-type",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "low_risk_trade",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "id": "cond-auto-amount",
+                    "leftValue": "={{ $json.amount }}",
+                    "rightValue": 100,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lte"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "auto_approve",
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "id": "cond-auto-info",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "informational",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "chief_approval",
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "id": "cond-chief-amount",
+                    "leftValue": "={{ $json.amount }}",
+                    "rightValue": 100,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    }
+                  },
+                  {
+                    "id": "cond-chief-amount-max",
+                    "leftValue": "={{ $json.amount }}",
+                    "rightValue": 1000,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lte"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "chief_approval",
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "id": "cond-chief-type",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "strategy_change",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "ceo_approval",
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "id": "cond-ceo-amount",
+                    "leftValue": "={{ $json.amount }}",
+                    "rightValue": 1000,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "ceo_approval",
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "id": "cond-ceo-type",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "killswitch",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "ceo_approval",
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "id": "cond-ceo-priority",
+                    "leftValue": "={{ $json.priority }}",
+                    "rightValue": "critical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ],
+          "fallbackOutput": "chief_approval"
+        },
+        "options": {}
+      },
+      "notes": "Routes based on approval level: auto-approve for low risk, Chief for medium, CEO for high risk"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000006",
+      "name": "Process Auto-Approve",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 50],
+      "parameters": {
+        "jsCode": "const request = $json;\n\nreturn {\n  json: {\n    ...request,\n    status: 'approved',\n    approvalLevel: 'auto',\n    approvedBy: 'system',\n    approvedAt: new Date().toISOString(),\n    reason: 'Auto-approved: Low risk request within threshold'\n  }\n};"
+      },
+      "notes": "Processes auto-approved requests"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000007",
+      "name": "Post Chief Approval Request",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [1000, 200],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_APPROVALS_CHANNEL_ID || 'approvals' }}"
+        },
+        "content": ":bell: **Approval Request (Chief Level)**\n\n**Request ID:** {{ $json.requestId }}\n**Type:** {{ $json.type }}\n**From:** {{ $json.requestor }}\n**Amount:** ${{ $json.amount }}\n**Priority:** {{ $json.priority }}\n\n**Description:**\n{{ $json.description }}\n\n---\nReact with :white_check_mark: to **APPROVE** or :x: to **REJECT**\n*Timeout: 30 minutes*",
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts Chief-level approval request to #approvals channel"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000008",
+      "name": "Post CEO Approval Request",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [1000, 400],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_CEO_CHANNEL_ID || 'ceo-briefing' }}"
+        },
+        "content": ":rotating_light: **HIGH PRIORITY Approval Request (CEO Level)**\n\n**Request ID:** {{ $json.requestId }}\n**Type:** {{ $json.type }}\n**From:** {{ $json.requestor }}\n**Amount:** ${{ $json.amount }}\n**Priority:** {{ $json.priority }}\n\n**Description:**\n{{ $json.description }}\n\n**Context:**\n```json\n{{ $json.context }}\n```\n\n---\nReact with :white_check_mark: to **APPROVE** or :x: to **REJECT**\n*Timeout: 60 minutes*",
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts CEO-level approval request to #ceo-briefing channel"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000009",
+      "name": "Store Request Pending",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1250, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/approvals",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"requestId\": \"{{ $('Normalize Request').first().json.requestId }}\",\n  \"type\": \"{{ $('Normalize Request').first().json.type }}\",\n  \"description\": \"{{ $('Normalize Request').first().json.description }}\",\n  \"requestor\": \"{{ $('Normalize Request').first().json.requestor }}\",\n  \"amount\": {{ $('Normalize Request').first().json.amount }},\n  \"priority\": \"{{ $('Normalize Request').first().json.priority }}\",\n  \"status\": \"pending\",\n  \"approvalLevel\": \"{{ $json.content ? 'ceo' : 'chief' }}\",\n  \"discordMessageId\": \"{{ $json.id }}\",\n  \"timestamp\": \"{{ $('Normalize Request').first().json.timestamp }}\",\n  \"callbackUrl\": \"{{ $('Normalize Request').first().json.callbackUrl }}\"\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Stores the pending approval request in the database"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000010",
+      "name": "Send Auto-Approve Notification",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [1250, 50],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_SYSTEM_CHANNEL_ID || 'system' }}"
+        },
+        "content": ":robot: **Auto-Approved Request**\n\n**ID:** {{ $json.requestId }}\n**Type:** {{ $json.type }}\n**From:** {{ $json.requestor }}\n**Amount:** ${{ $json.amount }}\n\n*Reason: {{ $json.reason }}*",
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Notifies about auto-approved requests"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000011",
+      "name": "Callback Auto-Approve",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1500, 50],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-callback",
+              "leftValue": "={{ $('Normalize Request').first().json.callbackUrl }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "notes": "Checks if a callback URL was provided"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000012",
+      "name": "Send Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1750, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Normalize Request').first().json.callbackUrl }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"requestId\": \"{{ $json.requestId }}\",\n  \"status\": \"{{ $json.status }}\",\n  \"approvedBy\": \"{{ $json.approvedBy }}\",\n  \"approvedAt\": \"{{ $json.approvedAt }}\",\n  \"reason\": \"{{ $json.reason }}\"\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Sends callback to the requestor's callback URL"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000013",
+      "name": "Log to Audit",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2000, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/audit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event\": \"approval_request_processed\",\n  \"timestamp\": \"{{ $now.toISO() }}\",\n  \"workflow\": \"WF-A04\",\n  \"data\": {\n    \"requestId\": \"{{ $('Normalize Request').first().json.requestId }}\",\n    \"type\": \"{{ $('Normalize Request').first().json.type }}\",\n    \"requestor\": \"{{ $('Normalize Request').first().json.requestor }}\",\n    \"amount\": {{ $('Normalize Request').first().json.amount }},\n    \"status\": \"{{ $json.status || 'pending' }}\",\n    \"approvalLevel\": \"{{ $json.approvalLevel || 'manual' }}\"\n  }\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Logs the approval request processing to audit trail"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000014",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [2250, 200],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"requestId\": \"{{ $('Normalize Request').first().json.requestId }}\",\n  \"status\": \"{{ $json.status || 'pending' }}\",\n  \"approvalLevel\": \"{{ $json.approvalLevel || 'manual' }}\",\n  \"message\": \"{{ $json.status === 'approved' ? 'Request auto-approved' : 'Request submitted for approval' }}\"\n}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "notes": "Returns success response to the webhook caller"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000015",
+      "name": "Skip Callback",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1750, 100],
+      "parameters": {},
+      "notes": "No callback URL provided, skip callback"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000016",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 550],
+      "parameters": {},
+      "notes": "Catches any errors in this workflow"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000017",
+      "name": "Format Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [250, 550],
+      "parameters": {
+        "jsCode": "const error = $json;\n\nreturn {\n  json: {\n    error: true,\n    message: error.execution?.error?.message || 'Unknown error',\n    node: error.execution?.error?.node?.name || 'Unknown',\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "notes": "Formats error for logging"
+    },
+    {
+      "id": "d1e2f3g4-0004-4000-8000-000000000018",
+      "name": "Post Error",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [500, 550],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_ERRORS_CHANNEL_ID || 'n8n-errors' }}"
+        },
+        "content": ":warning: **Approval Handler Error**\n\nWorkflow WF-A04 encountered an error:\n\n```\n{{ $json.message }}\n```\n\nNode: {{ $json.node }}",
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts error to #n8n-errors channel"
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          { "node": "Validate Request", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Validate Request": {
+      "main": [
+        [
+          { "node": "Normalize Request", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Invalid Request Response", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Normalize Request": {
+      "main": [
+        [
+          { "node": "Determine Approval Level", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Determine Approval Level": {
+      "main": [
+        [
+          { "node": "Process Auto-Approve", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Post Chief Approval Request", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Post CEO Approval Request", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Post Chief Approval Request", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Process Auto-Approve": {
+      "main": [
+        [
+          { "node": "Send Auto-Approve Notification", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Send Auto-Approve Notification": {
+      "main": [
+        [
+          { "node": "Callback Auto-Approve", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Callback Auto-Approve": {
+      "main": [
+        [
+          { "node": "Send Callback", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Skip Callback", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Send Callback": {
+      "main": [
+        [
+          { "node": "Log to Audit", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Skip Callback": {
+      "main": [
+        [
+          { "node": "Log to Audit", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Post Chief Approval Request": {
+      "main": [
+        [
+          { "node": "Store Request Pending", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Post CEO Approval Request": {
+      "main": [
+        [
+          { "node": "Store Request Pending", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Store Request Pending": {
+      "main": [
+        [
+          { "node": "Log to Audit", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Log to Audit": {
+      "main": [
+        [
+          { "node": "Success Response", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          { "node": "Format Error", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Format Error": {
+      "main": [
+        [
+          { "node": "Post Error", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "operational" },
+    { "name": "webhook" },
+    { "name": "approvals" }
+  ],
+  "triggerCount": 1,
+  "versionId": "1.0.0",
+  "meta": {
+    "instanceId": "swjshak-n8n",
+    "templateCredsSetupCompleted": false
+  }
+}

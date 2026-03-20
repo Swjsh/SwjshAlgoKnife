@@ -1,0 +1,570 @@
+{
+  "name": "WF-A02 Daily Standup Compiler",
+  "nodes": [
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000001",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1-5"
+            }
+          ]
+        }
+      },
+      "notes": "Triggers at 9:00 AM ET on weekdays (Mon-Fri) for daily standup"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000002",
+      "name": "Fetch TRADE Project",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 100],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "TRADE",
+        "options": {
+          "jql": "project = TRADE AND sprint in openSprints() AND status != Done ORDER BY priority DESC, updated DESC",
+          "maxResults": 20
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches open sprint issues from TRADE project"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000003",
+      "name": "Fetch INFRA Project",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 250],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "INFRA",
+        "options": {
+          "jql": "project = INFRA AND sprint in openSprints() AND status != Done ORDER BY priority DESC, updated DESC",
+          "maxResults": 20
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches open sprint issues from INFRA project"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000004",
+      "name": "Fetch LEARN Project",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "LEARN",
+        "options": {
+          "jql": "project = LEARN AND sprint in openSprints() AND status != Done ORDER BY priority DESC, updated DESC",
+          "maxResults": 20
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches open sprint issues from LEARN project"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000005",
+      "name": "Fetch MGMT Project",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 550],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "MGMT",
+        "options": {
+          "jql": "project = MGMT AND sprint in openSprints() AND status != Done ORDER BY priority DESC, updated DESC",
+          "maxResults": 20
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches open sprint issues from MGMT project"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000006",
+      "name": "Fetch Agent Heartbeats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [250, 700],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/agents",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches current agent heartbeat status"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000007",
+      "name": "Fetch Yesterday Completed",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 850],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "options": {
+          "jql": "status changed to Done AFTER -1d ORDER BY resolved DESC",
+          "maxResults": 30
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches issues completed in the last 24 hours across all projects"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000008",
+      "name": "Merge All Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [550, 400],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "notes": "Combines all parallel data fetches into single item"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000009",
+      "name": "Aggregate Sprint Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 400],
+      "parameters": {
+        "jsCode": "// Get data from all parallel fetches\nconst tradeIssues = $('Fetch TRADE Project').all().map(i => i.json);\nconst infraIssues = $('Fetch INFRA Project').all().map(i => i.json);\nconst learnIssues = $('Fetch LEARN Project').all().map(i => i.json);\nconst mgmtIssues = $('Fetch MGMT Project').all().map(i => i.json);\nconst agents = $('Fetch Agent Heartbeats').first()?.json?.agents || [];\nconst yesterdayCompleted = $('Fetch Yesterday Completed').all().map(i => i.json);\n\n// Helper to categorize issues\nconst categorizeIssues = (issues, projectKey) => {\n  const inProgress = issues.filter(i => i.fields?.status?.name === 'In Progress');\n  const todo = issues.filter(i => i.fields?.status?.name === 'To Do' || i.fields?.status?.name === 'Open');\n  const blocked = issues.filter(i => i.fields?.labels?.includes('blocked') || i.fields?.status?.name === 'Blocked');\n  const highPriority = issues.filter(i => ['Highest', 'High'].includes(i.fields?.priority?.name));\n  \n  return {\n    projectKey,\n    total: issues.length,\n    inProgress: inProgress.length,\n    todo: todo.length,\n    blocked: blocked.map(i => ({\n      key: i.key,\n      summary: i.fields?.summary?.substring(0, 80),\n      reason: i.fields?.customfield_blockedReason || 'Unknown'\n    })),\n    highPriorityItems: highPriority.slice(0, 3).map(i => ({\n      key: i.key,\n      summary: i.fields?.summary?.substring(0, 60),\n      status: i.fields?.status?.name,\n      assignee: i.fields?.assignee?.displayName || 'Unassigned'\n    }))\n  };\n};\n\n// Process each project\nconst projects = {\n  TRADE: categorizeIssues(tradeIssues, 'TRADE'),\n  INFRA: categorizeIssues(infraIssues, 'INFRA'),\n  LEARN: categorizeIssues(learnIssues, 'LEARN'),\n  MGMT: categorizeIssues(mgmtIssues, 'MGMT')\n};\n\n// Aggregate blockers across all projects\nconst allBlockers = [\n  ...projects.TRADE.blocked,\n  ...projects.INFRA.blocked,\n  ...projects.LEARN.blocked,\n  ...projects.MGMT.blocked\n];\n\n// Process agent status\nconst agentStatus = {\n  total: agents.length,\n  running: agents.filter(a => a.status === 'running' || a.status === 'active').length,\n  stopped: agents.filter(a => a.status === 'stopped' || a.status === 'paused').length,\n  error: agents.filter(a => a.status === 'error').length,\n  agentList: agents.map(a => ({\n    name: a.name,\n    status: a.status,\n    lastHeartbeat: a.lastHeartbeat,\n    minutesSinceHeartbeat: a.lastHeartbeat ? \n      Math.round((Date.now() - new Date(a.lastHeartbeat).getTime()) / 60000) : 999\n  }))\n};\n\n// Stale agents (no heartbeat in 10+ minutes)\nconst staleAgents = agentStatus.agentList.filter(a => a.minutesSinceHeartbeat > 10);\n\n// Format yesterday's completions\nconst completedYesterday = yesterdayCompleted.map(i => ({\n  key: i.key,\n  summary: i.fields?.summary?.substring(0, 60),\n  project: i.fields?.project?.key\n}));\n\n// Calculate totals\nconst totalInProgress = Object.values(projects).reduce((s, p) => s + p.inProgress, 0);\nconst totalTodo = Object.values(projects).reduce((s, p) => s + p.todo, 0);\nconst totalBlocked = allBlockers.length;\n\nreturn {\n  json: {\n    date: new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),\n    timestamp: new Date().toISOString(),\n    \n    summary: {\n      totalInProgress,\n      totalTodo,\n      totalBlocked,\n      completedYesterdayCount: completedYesterday.length\n    },\n    \n    projects,\n    blockers: allBlockers,\n    completedYesterday: completedYesterday.slice(0, 10),\n    \n    agents: agentStatus,\n    staleAgents,\n    \n    hasBlockers: allBlockers.length > 0,\n    hasStaleAgents: staleAgents.length > 0,\n    needsAttention: allBlockers.length > 0 || staleAgents.length > 0 || agentStatus.error > 0\n  }\n};"
+      },
+      "notes": "Aggregates and categorizes all sprint data into structured standup format"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000010",
+      "name": "Format Standup Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 400],
+      "parameters": {
+        "jsCode": "const data = $json;\n\n// Build standup sections\nlet standupText = '';\n\n// Header\nstandupText += `## Daily Standup - ${data.date}\\n\\n`;\n\n// Yesterday's Accomplishments\nstandupText += `### :white_check_mark: Completed Yesterday (${data.completedYesterday.length})\\n`;\nif (data.completedYesterday.length > 0) {\n  data.completedYesterday.forEach(item => {\n    standupText += `- **[${item.key}]** ${item.summary}\\n`;\n  });\n} else {\n  standupText += `- No issues completed yesterday\\n`;\n}\nstandupText += '\\n';\n\n// Today's Focus (high priority in progress)\nstandupText += `### :dart: Today's Focus\\n`;\nObject.values(data.projects).forEach(proj => {\n  if (proj.highPriorityItems.length > 0) {\n    standupText += `**${proj.projectKey}:**\\n`;\n    proj.highPriorityItems.forEach(item => {\n      const statusEmoji = item.status === 'In Progress' ? ':construction:' : ':hourglass:';\n      standupText += `- ${statusEmoji} **[${item.key}]** ${item.summary}\\n`;\n    });\n  }\n});\nstandupText += '\\n';\n\n// Blockers\nstandupText += `### :no_entry: Blockers (${data.blockers.length})\\n`;\nif (data.blockers.length > 0) {\n  data.blockers.forEach(blocker => {\n    standupText += `- :rotating_light: **[${blocker.key}]** ${blocker.summary}\\n`;\n  });\n} else {\n  standupText += `- No blockers! :tada:\\n`;\n}\nstandupText += '\\n';\n\n// Agent Status\nstandupText += `### :robot: Agent Health\\n`;\nstandupText += `- Running: ${data.agents.running}/${data.agents.total}\\n`;\nif (data.agents.error > 0) {\n  standupText += `- :warning: Agents in Error: ${data.agents.error}\\n`;\n}\nif (data.staleAgents.length > 0) {\n  standupText += `- :hourglass: Stale heartbeats: ${data.staleAgents.map(a => a.name).join(', ')}\\n`;\n}\nstandupText += '\\n';\n\n// Sprint Progress Summary\nstandupText += `### :bar_chart: Sprint Progress\\n`;\nstandupText += `| Project | In Progress | To Do | Blocked |\\n`;\nstandupText += `|---------|-------------|-------|---------|\\n`;\nObject.values(data.projects).forEach(proj => {\n  standupText += `| ${proj.projectKey} | ${proj.inProgress} | ${proj.todo} | ${proj.blocked.length} |\\n`;\n});\n\n// Determine embed color\nlet embedColor = 3066993; // Green\nif (data.blockers.length > 2 || data.agents.error > 0) {\n  embedColor = 15158332; // Red\n} else if (data.blockers.length > 0 || data.staleAgents.length > 0) {\n  embedColor = 16776960; // Yellow\n}\n\nreturn {\n  json: {\n    standupText,\n    embed: {\n      title: `:clipboard: Daily Standup - ${data.date}`,\n      description: standupText.substring(0, 4000),\n      color: embedColor,\n      fields: [\n        {\n          name: ':bar_chart: In Progress',\n          value: String(data.summary.totalInProgress),\n          inline: true\n        },\n        {\n          name: ':inbox_tray: To Do',\n          value: String(data.summary.totalTodo),\n          inline: true\n        },\n        {\n          name: ':no_entry: Blocked',\n          value: String(data.summary.totalBlocked),\n          inline: true\n        }\n      ],\n      footer: {\n        text: 'SwjshAK Daily Standup | WF-A02'\n      },\n      timestamp: new Date().toISOString()\n    },\n    data,\n    needsMGMTTicket: data.blockers.length > 0\n  }\n};"
+      },
+      "notes": "Formats the aggregated data into a Discord-formatted standup message"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000011",
+      "name": "Post to Daily Standup",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [1300, 300],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_STANDUP_CHANNEL_ID || 'daily-standup' }}"
+        },
+        "content": "",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts the formatted standup to #daily-standup channel"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000012",
+      "name": "Check Blockers Exist",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1300, 500],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-blockers",
+              "leftValue": "={{ $json.needsMGMTTicket }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "notes": "Checks if there are blockers that need a MGMT ticket"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000013",
+      "name": "Create MGMT Ticket",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [1550, 400],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "MGMT",
+        "issueType": "Task",
+        "additionalFields": {
+          "summary": "={{ 'Standup Blockers - ' + $now.toFormat('yyyy-MM-dd') }}",
+          "description": "={{ 'The following blockers were identified in today\\'s standup:\\n\\n' + $json.data.blockers.map(b => '- [' + b.key + '] ' + b.summary).join('\\n') + '\\n\\nPlease review and help resolve these blockers.' }}",
+          "priority": {
+            "name": "High"
+          },
+          "labels": [
+            "standup-blockers",
+            "auto-generated"
+          ]
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Creates a MGMT ticket to track standup blockers"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000014",
+      "name": "Notify Chief About Blockers",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [1800, 400],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_CHIEF_CHANNEL_ID || 'chief' }}"
+        },
+        "content": ":warning: **Blockers Detected in Standup**\n\nCreated MGMT ticket **{{ $json.key }}** to track {{ $('Format Standup Message').first().json.data.blockers.length }} blockers.\n\nPlease review and prioritize resolution.",
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Notifies #chief channel about blockers and the MGMT ticket"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000015",
+      "name": "No Blockers Path",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1550, 600],
+      "parameters": {},
+      "notes": "No blockers - continue to completion"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000016",
+      "name": "Log Standup Completion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2050, 450],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/audit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event\": \"daily_standup_completed\",\n  \"timestamp\": \"{{ $now.toISO() }}\",\n  \"workflow\": \"WF-A02\",\n  \"data\": {\n    \"blockerCount\": {{ $('Format Standup Message').first().json.data.blockers.length }},\n    \"completedYesterdayCount\": {{ $('Format Standup Message').first().json.data.completedYesterday.length }},\n    \"agentsRunning\": {{ $('Format Standup Message').first().json.data.agents.running }},\n    \"mgmtTicketCreated\": {{ $('Format Standup Message').first().json.needsMGMTTicket }}\n  }\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Logs standup completion to audit trail"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000017",
+      "name": "Workflow Complete",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [2300, 450],
+      "parameters": {},
+      "notes": "End node - standup workflow completed"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000018",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 600],
+      "parameters": {},
+      "notes": "Catches any errors in this workflow"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000019",
+      "name": "Format Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [250, 600],
+      "parameters": {
+        "jsCode": "const error = $json;\n\nreturn {\n  json: {\n    embed: {\n      title: ':warning: Daily Standup Workflow Error',\n      description: 'The standup compiler encountered an error.',\n      color: 15158332,\n      fields: [\n        {\n          name: 'Error',\n          value: error.execution?.error?.message?.substring(0, 500) || 'Unknown',\n          inline: false\n        },\n        {\n          name: 'Node',\n          value: error.execution?.error?.node?.name || 'Unknown',\n          inline: true\n        },\n        {\n          name: 'Time',\n          value: new Date().toISOString(),\n          inline: true\n        }\n      ],\n      footer: { text: 'WF-A02 Error Handler' }\n    }\n  }\n};"
+      },
+      "notes": "Formats error for Discord notification"
+    },
+    {
+      "id": "b1c2d3e4-0002-4000-8000-000000000020",
+      "name": "Post Error",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [500, 600],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_ERRORS_CHANNEL_ID || 'n8n-errors' }}"
+        },
+        "content": "",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts error to #n8n-errors channel"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          { "node": "Fetch TRADE Project", "type": "main", "index": 0 },
+          { "node": "Fetch INFRA Project", "type": "main", "index": 0 },
+          { "node": "Fetch LEARN Project", "type": "main", "index": 0 },
+          { "node": "Fetch MGMT Project", "type": "main", "index": 0 },
+          { "node": "Fetch Agent Heartbeats", "type": "main", "index": 0 },
+          { "node": "Fetch Yesterday Completed", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch TRADE Project": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch INFRA Project": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Fetch LEARN Project": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 2 }
+        ]
+      ]
+    },
+    "Fetch MGMT Project": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 3 }
+        ]
+      ]
+    },
+    "Fetch Agent Heartbeats": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 4 }
+        ]
+      ]
+    },
+    "Fetch Yesterday Completed": {
+      "main": [
+        [
+          { "node": "Merge All Data", "type": "main", "index": 5 }
+        ]
+      ]
+    },
+    "Merge All Data": {
+      "main": [
+        [
+          { "node": "Aggregate Sprint Data", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Aggregate Sprint Data": {
+      "main": [
+        [
+          { "node": "Format Standup Message", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Format Standup Message": {
+      "main": [
+        [
+          { "node": "Post to Daily Standup", "type": "main", "index": 0 },
+          { "node": "Check Blockers Exist", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Post to Daily Standup": {
+      "main": [
+        [
+          { "node": "Log Standup Completion", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Check Blockers Exist": {
+      "main": [
+        [
+          { "node": "Create MGMT Ticket", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "No Blockers Path", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Create MGMT Ticket": {
+      "main": [
+        [
+          { "node": "Notify Chief About Blockers", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Notify Chief About Blockers": {
+      "main": [
+        [
+          { "node": "Log Standup Completion", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "No Blockers Path": {
+      "main": [
+        [
+          { "node": "Log Standup Completion", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Log Standup Completion": {
+      "main": [
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          { "node": "Format Error", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Format Error": {
+      "main": [
+        [
+          { "node": "Post Error", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "operational" },
+    { "name": "daily" },
+    { "name": "standup" }
+  ],
+  "triggerCount": 1,
+  "versionId": "1.0.0",
+  "meta": {
+    "instanceId": "swjshak-n8n",
+    "templateCredsSetupCompleted": false
+  }
+}

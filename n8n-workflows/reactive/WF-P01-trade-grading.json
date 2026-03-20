@@ -1,0 +1,1244 @@
+{
+  "name": "WF-P01: Trade Grading Pipeline",
+  "nodes": [
+    {
+      "id": "webhook-trade-closed",
+      "name": "Webhook: Trade Closed",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 300],
+      "webhookId": "trade-grading-webhook",
+      "parameters": {
+        "path": "webhook/trade-closed",
+        "httpMethod": "POST",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "webhook-auth-cred",
+          "name": "Webhook Header Auth"
+        }
+      }
+    },
+    {
+      "id": "validate-trade-data",
+      "name": "If: Valid Trade Data",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "leftValue": "={{ $json.symbol }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "leftValue": "={{ $json.entry_price }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists"
+              }
+            },
+            {
+              "leftValue": "={{ $json.exit_price }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "log-invalid-request",
+      "name": "HTTP: Log Invalid Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 500],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/logs/invalid-webhook",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "type",
+              "value": "invalid_trade_data"
+            },
+            {
+              "name": "payload",
+              "value": "={{ JSON.stringify($json) }}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 10000
+        }
+      }
+    },
+    {
+      "id": "respond-invalid",
+      "name": "Respond: Invalid Data",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [660, 500],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": false, \"error\": \"Invalid trade data - missing required fields\" } }}",
+        "options": {
+          "responseCode": 400
+        }
+      }
+    },
+    {
+      "id": "extract-trade-fields",
+      "name": "Set: Extract Trade Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [440, 300],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "name": "tradeId",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "name": "symbol",
+              "value": "={{ $json.symbol }}",
+              "type": "string"
+            },
+            {
+              "name": "direction",
+              "value": "={{ $json.side === 'buy' ? 'LONG' : 'SHORT' }}",
+              "type": "string"
+            },
+            {
+              "name": "entryPrice",
+              "value": "={{ $json.entry_price }}",
+              "type": "number"
+            },
+            {
+              "name": "exitPrice",
+              "value": "={{ $json.exit_price }}",
+              "type": "number"
+            },
+            {
+              "name": "entryTime",
+              "value": "={{ $json.entry_time }}",
+              "type": "string"
+            },
+            {
+              "name": "exitTime",
+              "value": "={{ $json.exit_time }}",
+              "type": "string"
+            },
+            {
+              "name": "pnl",
+              "value": "={{ $json.realized_pnl }}",
+              "type": "number"
+            },
+            {
+              "name": "strategy",
+              "value": "={{ $json.strategy }}",
+              "type": "string"
+            },
+            {
+              "name": "agentId",
+              "value": "={{ $json.agent_id || 'manual' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "fetch-strategy-rules",
+      "name": "HTTP: Fetch Strategy Rules",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 140],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://localhost:3000/api/strategies/{{ $json.strategy }}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "fetch-market-data",
+      "name": "HTTP: Fetch Market Data at Entry",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 260],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.polygon.io/v2/aggs/ticker/{{ $json.symbol }}/range/1/minute/{{ DateTime.fromISO($json.entryTime).minus({ minutes: 15 }).toMillis() }}/{{ DateTime.fromISO($json.entryTime).plus({ minutes: 15 }).toMillis() }}?apiKey={{ $env.POLYGON_API_KEY }}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "fetch-vix",
+      "name": "HTTP: Fetch VIX at Entry",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 380],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.polygon.io/v2/aggs/ticker/VIX/range/1/minute/{{ DateTime.fromISO($json.entryTime).toMillis() }}/{{ DateTime.fromISO($json.entryTime).plus({ minutes: 5 }).toMillis() }}?apiKey={{ $env.POLYGON_API_KEY }}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "fetch-similar-trades",
+      "name": "HTTP: Fetch Similar Past Trades",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 500],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://localhost:3000/api/trades?symbol={{ $json.symbol }}&strategy={{ $json.strategy }}&limit=10",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "merge-context",
+      "name": "Merge: Combine All Context",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [900, 300],
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": []
+        },
+        "combinationMode": "multiplex",
+        "options": {}
+      }
+    },
+    {
+      "id": "build-analysis-prompt",
+      "name": "Code: Build Analysis Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const trade = $('Set: Extract Trade Fields').first().json;\nconst strategyData = $('HTTP: Fetch Strategy Rules').first().json;\nconst marketData = $('HTTP: Fetch Market Data at Entry').first().json;\nconst vixData = $('HTTP: Fetch VIX at Entry').first().json;\nconst similarTrades = $('HTTP: Fetch Similar Past Trades').first().json;\n\n// Calculate trade metrics\nconst pnlPercent = ((trade.exitPrice - trade.entryPrice) / trade.entryPrice * 100);\nconst durationMs = new Date(trade.exitTime) - new Date(trade.entryTime);\nconst durationMinutes = durationMs / 60000;\n\n// Parse similar trades safely\nconst similar = Array.isArray(similarTrades?.trades) ? similarTrades.trades : [];\nconst avgPnL = similar.length > 0 \n  ? similar.reduce((s, t) => s + (t.pnl || 0), 0) / similar.length \n  : 0;\nconst winRate = similar.length > 0 \n  ? (similar.filter(t => (t.pnl || 0) > 0).length / similar.length * 100).toFixed(0)\n  : 'N/A';\n\n// Get VIX value\nconst vixValue = vixData?.results?.[0]?.c || 'N/A';\n\n// Get market range\nconst marketResults = marketData?.results || [];\nconst marketLow = marketResults.length > 0 ? Math.min(...marketResults.map(r => r.l)) : 'N/A';\nconst marketHigh = marketResults.length > 0 ? Math.max(...marketResults.map(r => r.h)) : 'N/A';\n\n// Strategy rules\nconst strategyRules = strategyData?.rules || strategyData || 'No strategy rules found';\n\nconst prompt = `You are TheProfessor, a rigorous trading analyst. Grade this trade objectively.\n\nTRADE DETAILS:\n- Trade ID: ${trade.tradeId}\n- Symbol: ${trade.symbol}\n- Direction: ${trade.direction}\n- Entry: $${trade.entryPrice} at ${trade.entryTime}\n- Exit: $${trade.exitPrice} at ${trade.exitTime}\n- Duration: ${durationMinutes.toFixed(0)} minutes\n- P&L: $${trade.pnl} (${pnlPercent >= 0 ? '+' : ''}${pnlPercent.toFixed(2)}%)\n- Strategy: ${trade.strategy}\n- Agent: ${trade.agentId}\n\nSTRATEGY RULES:\n${typeof strategyRules === 'string' ? strategyRules : JSON.stringify(strategyRules, null, 2)}\n\nMARKET CONTEXT AT ENTRY:\n- VIX: ${vixValue}\n- Price range (30m window): $${marketLow} - $${marketHigh}\n\nSIMILAR PAST TRADES (same symbol/strategy, last 10):\n- Sample size: ${similar.length}\n- Average P&L: $${avgPnL.toFixed(2)}\n- Historical win rate: ${winRate}%\n\nGRADING CRITERIA:\n1. Entry Quality (25%): Was the entry at an optimal level per strategy rules?\n2. Exit Quality (25%): Did we exit at the right time? Premature or late?\n3. Risk Management (25%): Was position sizing appropriate? Stop-loss honored?\n4. Strategy Adherence (25%): Did the trade follow the strategy's rules?\n\nProvide your analysis as JSON:\n{\n  \"grade\": \"A|A-|B+|B|B-|C+|C|C-|D|F\",\n  \"score\": 0-100,\n  \"entry_quality\": { \"score\": 0-100, \"notes\": \"brief explanation\" },\n  \"exit_quality\": { \"score\": 0-100, \"notes\": \"brief explanation\" },\n  \"risk_management\": { \"score\": 0-100, \"notes\": \"brief explanation\" },\n  \"strategy_adherence\": { \"score\": 0-100, \"notes\": \"brief explanation\" },\n  \"strengths\": [\"max 3 items\"],\n  \"weaknesses\": [\"max 3 items\"],\n  \"lessons\": [\"max 2 actionable lessons\"],\n  \"pattern_detected\": \"premature_exit|perfect_execution|overtrading|revenge_trade|fomo_entry|none\",\n  \"recommendation\": \"one sentence actionable recommendation\"\n}\n\nBe honest but constructive. A profitable trade is not automatically an A.`;\n\nreturn {\n  json: {\n    prompt: prompt,\n    trade: trade,\n    context: {\n      vix: vixValue,\n      marketRange: { low: marketLow, high: marketHigh },\n      similarTradesCount: similar.length,\n      historicalAvgPnL: avgPnL,\n      historicalWinRate: winRate\n    }\n  }\n};"
+      }
+    },
+    {
+      "id": "openclaw-professor",
+      "name": "HTTP: Call OpenClaw Professor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3300/webhook/professor-grade",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ \"message\": $json.prompt, \"tradeId\": $json.trade.tradeId }) }}",
+        "options": {
+          "timeout": 60000,
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "parse-grade-response",
+      "name": "Code: Parse and Validate Grade",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 300],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = $json;\nconst trade = $('Code: Build Analysis Prompt').first().json.trade;\n\nlet grading;\n\ntry {\n  // Try to parse the response - it might be nested in various ways\n  if (typeof response.content === 'string') {\n    // Extract JSON from response if wrapped in markdown\n    const jsonMatch = response.content.match(/\\{[\\s\\S]*\\}/);\n    grading = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(response.content);\n  } else if (response.analysis) {\n    grading = typeof response.analysis === 'string' ? JSON.parse(response.analysis) : response.analysis;\n  } else if (response.grade) {\n    grading = response;\n  } else {\n    throw new Error('Could not find grade data in response');\n  }\n} catch (e) {\n  // Default grading if parsing fails\n  grading = {\n    grade: 'C',\n    score: 60,\n    entry_quality: { score: 60, notes: 'Unable to fully analyze - using default grade' },\n    exit_quality: { score: 60, notes: 'Unable to fully analyze - using default grade' },\n    risk_management: { score: 60, notes: 'Unable to fully analyze - using default grade' },\n    strategy_adherence: { score: 60, notes: 'Unable to fully analyze - using default grade' },\n    strengths: ['Trade completed'],\n    weaknesses: ['Analysis incomplete due to parsing error'],\n    lessons: ['Ensure trade data is complete for future analysis'],\n    pattern_detected: 'none',\n    recommendation: 'Review this trade manually',\n    _parseError: e.message\n  };\n}\n\n// Validate grade format\nconst validGrades = ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D', 'F'];\nif (!validGrades.includes(grading.grade)) {\n  grading.grade = 'C';\n  grading._gradeNormalized = true;\n}\n\n// Ensure score is in range\ngrading.score = Math.max(0, Math.min(100, grading.score || 60));\n\n// Add trade metadata\ngrading.tradeId = trade.tradeId;\ngrading.symbol = trade.symbol;\ngrading.pnl = trade.pnl;\ngrading.strategy = trade.strategy;\ngrading.direction = trade.direction;\ngrading.timestamp = new Date().toISOString();\n\nreturn { json: grading };"
+      }
+    },
+    {
+      "id": "switch-grade-router",
+      "name": "Switch: Route by Grade",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1780, 300],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "outputKey": "excellent",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "or",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.grade }}",
+                    "rightValue": "A",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json.grade }}",
+                    "rightValue": "A-",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "good",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "or",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.grade }}",
+                    "rightValue": "B+",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json.grade }}",
+                    "rightValue": "B",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json.grade }}",
+                    "rightValue": "B-",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "average",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "or",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.grade }}",
+                    "rightValue": "C+",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json.grade }}",
+                    "rightValue": "C",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json.grade }}",
+                    "rightValue": "C-",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "poor",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "or",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.grade }}",
+                    "rightValue": "D",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json.grade }}",
+                    "rightValue": "F",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      }
+    },
+    {
+      "id": "discord-excellent",
+      "name": "Discord: Post Excellent Trade",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2020, 60],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_WINS_CHANNEL }}",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "={{ `Excellent Trade: ${$json.symbol} ${$json.direction}` }}",
+              "description": "={{ $json.recommendation }}",
+              "color": "3066993",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Grade",
+                    "value": "={{ $json.grade }} ({{ $json.score }}/100)",
+                    "inline": true
+                  },
+                  {
+                    "name": "P&L",
+                    "value": "={{ `$${$json.pnl.toFixed(2)}` }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Strategy",
+                    "value": "={{ $json.strategy }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Strengths",
+                    "value": "={{ $json.strengths.join('\\n- ') }}",
+                    "inline": false
+                  }
+                ]
+              },
+              "footer": "SwjshAK Trade Grading",
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "discord-good",
+      "name": "Discord: Post Good Trade",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2020, 200],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_TRADES_CHANNEL }}",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "={{ `Good Trade: ${$json.symbol} ${$json.direction}` }}",
+              "description": "={{ $json.recommendation }}",
+              "color": "3447003",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Grade",
+                    "value": "={{ $json.grade }} ({{ $json.score }}/100)",
+                    "inline": true
+                  },
+                  {
+                    "name": "P&L",
+                    "value": "={{ `$${$json.pnl.toFixed(2)}` }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Strategy",
+                    "value": "={{ $json.strategy }}",
+                    "inline": true
+                  }
+                ]
+              },
+              "footer": "SwjshAK Trade Grading",
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "discord-average",
+      "name": "Discord: Post Average Trade",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2020, 340],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_TRADES_CHANNEL }}",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "={{ `Average Trade: ${$json.symbol} ${$json.direction}` }}",
+              "description": "={{ $json.recommendation }}",
+              "color": "16776960",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Grade",
+                    "value": "={{ $json.grade }} ({{ $json.score }}/100)",
+                    "inline": true
+                  },
+                  {
+                    "name": "P&L",
+                    "value": "={{ `$${$json.pnl.toFixed(2)}` }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Lessons",
+                    "value": "={{ $json.lessons.join('\\n- ') }}",
+                    "inline": false
+                  }
+                ]
+              },
+              "footer": "SwjshAK Trade Grading",
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "jira-learn-average",
+      "name": "Jira: Create LEARN Ticket (Average)",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2240, 340],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "LEARN",
+        "issueType": "Task",
+        "additionalFields": {
+          "summary": "={{ `Lesson from ${$json.symbol} trade (${$json.grade}): ${$json.lessons[0]}` }}",
+          "description": "={{ `Trade Review\\n\\nTrade ID: ${$json.tradeId}\\nSymbol: ${$json.symbol}\\nStrategy: ${$json.strategy}\\nGrade: ${$json.grade} (${$json.score}/100)\\nP&L: $${$json.pnl}\\n\\nWeaknesses:\\n${$json.weaknesses.map(w => '- ' + w).join('\\n')}\\n\\nLessons:\\n${$json.lessons.map(l => '- ' + l).join('\\n')}\\n\\nRecommendation: ${$json.recommendation}` }}",
+          "labels": [
+            "trade-lesson",
+            "={{ `grade-${$json.grade.charAt(0).toLowerCase()}` }}"
+          ],
+          "priority": "Medium"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      }
+    },
+    {
+      "id": "discord-poor",
+      "name": "Discord: Post Poor Trade Alert",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2020, 500],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_ALERTS_CHANNEL }}",
+        "content": "@here - Poor trade requires review",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "={{ `Poor Trade: ${$json.symbol} ${$json.direction} - REVIEW NEEDED` }}",
+              "description": "={{ $json.recommendation }}",
+              "color": "15158332",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Grade",
+                    "value": "={{ $json.grade }} ({{ $json.score }}/100)",
+                    "inline": true
+                  },
+                  {
+                    "name": "P&L",
+                    "value": "={{ `$${$json.pnl.toFixed(2)}` }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Pattern",
+                    "value": "={{ $json.pattern_detected || 'None detected' }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Weaknesses",
+                    "value": "={{ $json.weaknesses.join('\\n- ') }}",
+                    "inline": false
+                  },
+                  {
+                    "name": "Lessons",
+                    "value": "={{ $json.lessons.join('\\n- ') }}",
+                    "inline": false
+                  }
+                ]
+              },
+              "footer": "SwjshAK Trade Grading - ESCALATION",
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "jira-learn-poor",
+      "name": "Jira: Create LEARN Ticket (High Priority)",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2240, 500],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "LEARN",
+        "issueType": "Task",
+        "additionalFields": {
+          "summary": "={{ `[URGENT] Poor trade ${$json.symbol} (${$json.grade}): ${$json.lessons[0]}` }}",
+          "description": "={{ `URGENT Trade Review\\n\\nTrade ID: ${$json.tradeId}\\nSymbol: ${$json.symbol}\\nStrategy: ${$json.strategy}\\nGrade: ${$json.grade} (${$json.score}/100)\\nP&L: $${$json.pnl}\\nPattern: ${$json.pattern_detected || 'None'}\\n\\nWeaknesses:\\n${$json.weaknesses.map(w => '- ' + w).join('\\n')}\\n\\nLessons:\\n${$json.lessons.map(l => '- ' + l).join('\\n')}\\n\\nRecommendation: ${$json.recommendation}\\n\\nThis trade requires immediate review to prevent recurrence.` }}",
+          "labels": [
+            "trade-lesson",
+            "urgent",
+            "={{ `grade-${$json.grade.toLowerCase()}` }}",
+            "={{ $json.pattern_detected !== 'none' ? $json.pattern_detected : '' }}"
+          ],
+          "priority": "High"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      }
+    },
+    {
+      "id": "check-pattern-recurring",
+      "name": "If: Pattern Recurring",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2460, 500],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.pattern_detected }}",
+              "rightValue": "none",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "leftValue": "={{ $json.pattern_detected }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "jira-infra-pattern",
+      "name": "Jira: Create INFRA Ticket (Pattern)",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2680, 440],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "INFRA",
+        "issueType": "Task",
+        "additionalFields": {
+          "summary": "={{ `[PATTERN] Investigate recurring ${$json.pattern_detected} in ${$json.strategy}` }}",
+          "description": "={{ `A recurring trading pattern has been detected that may indicate a systematic issue.\\n\\nPattern: ${$json.pattern_detected}\\nStrategy: ${$json.strategy}\\nLatest Trade: ${$json.tradeId}\\nGrade: ${$json.grade}\\n\\nThis pattern suggests the strategy or risk management rules may need adjustment.\\n\\nRecommended Actions:\\n1. Review last 20 trades for this pattern\\n2. Check if strategy parameters need tuning\\n3. Consider adding pattern-detection guard rails\\n\\nLinked LEARN ticket created for immediate lesson.` }}",
+          "labels": [
+            "pattern-detection",
+            "={{ $json.pattern_detected }}",
+            "={{ $json.strategy }}"
+          ],
+          "priority": "Medium"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      }
+    },
+    {
+      "id": "merge-all-paths",
+      "name": "Merge: Combine All Paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [2900, 300],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "store-grade-db",
+      "name": "HTTP: Store Grade in Database",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3120, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:3000/api/trades/{{ $json.tradeId }}/grade",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ grade: $json.grade, score: $json.score, analysis: JSON.stringify($json), graded_at: new Date().toISOString() }) }}",
+        "options": {
+          "timeout": 15000
+        }
+      }
+    },
+    {
+      "id": "jira-grade-ticket",
+      "name": "Jira: Create GRADE Ticket",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [3340, 300],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "GRADE",
+        "issueType": "Task",
+        "additionalFields": {
+          "summary": "={{ `Trade Review: ${$json.symbol} ${$json.grade} ($${$json.pnl.toFixed(2)})` }}",
+          "description": "={{ `Trade Grading Record\\n\\nTrade ID: ${$json.tradeId}\\nSymbol: ${$json.symbol}\\nDirection: ${$json.direction}\\nStrategy: ${$json.strategy}\\n\\nGrade: ${$json.grade} (${$json.score}/100)\\nP&L: $${$json.pnl}\\n\\nEntry Quality: ${$json.entry_quality.score}/100\\n- ${$json.entry_quality.notes}\\n\\nExit Quality: ${$json.exit_quality.score}/100\\n- ${$json.exit_quality.notes}\\n\\nRisk Management: ${$json.risk_management.score}/100\\n- ${$json.risk_management.notes}\\n\\nStrategy Adherence: ${$json.strategy_adherence.score}/100\\n- ${$json.strategy_adherence.notes}\\n\\nStrengths: ${$json.strengths.join(', ')}\\n\\nWeaknesses: ${$json.weaknesses.join(', ')}\\n\\nLessons: ${$json.lessons.join('; ')}\\n\\nRecommendation: ${$json.recommendation}` }}",
+          "labels": [
+            "trade-review",
+            "={{ `grade-${$json.grade.charAt(0).toLowerCase()}` }}",
+            "={{ $json.strategy }}"
+          ]
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      }
+    },
+    {
+      "id": "respond-success",
+      "name": "Respond: Grade Summary",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [3560, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, tradeId: $json.tradeId, grade: $json.grade, score: $json.score, recommendation: $json.recommendation } }}"
+      }
+    },
+    {
+      "id": "sticky-overview",
+      "name": "Note: Workflow Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-200, 0],
+      "parameters": {
+        "content": "## WF-P01: Trade Grading Pipeline\n\n**Trigger:** Webhook when trade closes\n**Purpose:** Grade every trade using AI analysis\n\n### Flow:\n1. Validate trade data\n2. Fetch context (strategy rules, market data, VIX, history)\n3. Call OpenClaw Professor for AI grading\n4. Route by grade (A/B/C/D-F)\n5. Create appropriate Jira tickets\n6. Post to Discord\n7. Store grade in database\n\n### Webhook URL:\n`POST /webhook/trade-closed`\n\n### Required Headers:\n`X-Webhook-Secret: <your-secret>`"
+      }
+    },
+    {
+      "id": "sticky-error-handling",
+      "name": "Note: Error Handling",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1120, 500],
+      "parameters": {
+        "content": "## Error Handling\n\n- Invalid webhook data: Returns 400\n- API fetch failures: Continue with partial data (neverError: true)\n- AI parsing failure: Default to grade C\n- All actions logged for debugging\n\nSet this workflow as error handler: Global Error Handler workflow"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: Trade Closed": {
+      "main": [
+        [
+          {
+            "node": "If: Valid Trade Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Valid Trade Data": {
+      "main": [
+        [
+          {
+            "node": "Set: Extract Trade Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Log Invalid Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Log Invalid Request": {
+      "main": [
+        [
+          {
+            "node": "Respond: Invalid Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: Extract Trade Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Fetch Strategy Rules",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP: Fetch Market Data at Entry",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP: Fetch VIX at Entry",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP: Fetch Similar Past Trades",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch Strategy Rules": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine All Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch Market Data at Entry": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine All Context",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch VIX at Entry": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine All Context",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch Similar Past Trades": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine All Context",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Merge: Combine All Context": {
+      "main": [
+        [
+          {
+            "node": "Code: Build Analysis Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Build Analysis Prompt": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Call OpenClaw Professor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Call OpenClaw Professor": {
+      "main": [
+        [
+          {
+            "node": "Code: Parse and Validate Grade",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Parse and Validate Grade": {
+      "main": [
+        [
+          {
+            "node": "Switch: Route by Grade",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Route by Grade": {
+      "main": [
+        [
+          {
+            "node": "Discord: Post Excellent Trade",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Discord: Post Good Trade",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Discord: Post Average Trade",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Discord: Post Poor Trade Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge: Combine All Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord: Post Excellent Trade": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine All Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord: Post Good Trade": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine All Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord: Post Average Trade": {
+      "main": [
+        [
+          {
+            "node": "Jira: Create LEARN Ticket (Average)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jira: Create LEARN Ticket (Average)": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine All Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord: Post Poor Trade Alert": {
+      "main": [
+        [
+          {
+            "node": "Jira: Create LEARN Ticket (High Priority)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jira: Create LEARN Ticket (High Priority)": {
+      "main": [
+        [
+          {
+            "node": "If: Pattern Recurring",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Pattern Recurring": {
+      "main": [
+        [
+          {
+            "node": "Jira: Create INFRA Ticket (Pattern)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge: Combine All Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jira: Create INFRA Ticket (Pattern)": {
+      "main": [
+        [
+          {
+            "node": "Merge: Combine All Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge: Combine All Paths": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Store Grade in Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Store Grade in Database": {
+      "main": [
+        [
+          {
+            "node": "Jira: Create GRADE Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jira: Create GRADE Ticket": {
+      "main": [
+        [
+          {
+            "node": "Respond: Grade Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "trading"
+    },
+    {
+      "name": "grading"
+    },
+    {
+      "name": "reactive"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-20T00:00:00.000Z",
+  "versionId": "1"
+}

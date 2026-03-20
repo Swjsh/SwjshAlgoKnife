@@ -1,0 +1,913 @@
+{
+  "name": "WF-LEARN-02: Strategy Tuner",
+  "nodes": [
+    {
+      "id": "learn02-0001",
+      "name": "Schedule: Sunday 6PM ET",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 400],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 18 * * 0"
+            }
+          ]
+        }
+      },
+      "notes": "Triggers every Sunday at 6 PM ET before the trading week begins"
+    },
+    {
+      "id": "learn02-0002",
+      "name": "HTTP: Fetch Active Strategies",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 400],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/strategies?active=true",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches all active trading strategies"
+    },
+    {
+      "id": "learn02-0003",
+      "name": "Code: Prepare Strategy List",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 400],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const response = $input.first().json;\nconst strategies = response.strategies || response || [];\n\n// Create individual items for each strategy\nconst items = strategies.map(s => ({\n  json: {\n    strategyId: s.id || s.name,\n    strategyName: s.name || s.id,\n    category: s.category || 'unknown',\n    currentParams: s.parameters || s.params || {},\n    baselineMetrics: s.baseline || {\n      targetWinRate: 55,\n      targetSharpe: 1.0,\n      maxDrawdown: 10,\n      minProfitFactor: 1.2\n    },\n    enabled: s.enabled !== false\n  }\n}));\n\n// If no strategies, return placeholder\nif (items.length === 0) {\n  return [{\n    json: {\n      error: 'No active strategies found',\n      strategies: []\n    }\n  }];\n}\n\nreturn items;"
+      },
+      "notes": "Prepares strategy list for parallel processing"
+    },
+    {
+      "id": "learn02-0004",
+      "name": "If: Has Strategies",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [660, 400],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-strategies",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "notes": "Checks if we have strategies to analyze"
+    },
+    {
+      "id": "learn02-0005",
+      "name": "SplitInBatches: Process Each Strategy",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [880, 300],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "notes": "Processes each strategy one at a time"
+    },
+    {
+      "id": "learn02-0006",
+      "name": "HTTP: Fetch Strategy Trades (30 Days)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 200],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'http://localhost:3000/api/trades?strategy=' + $json.strategyName + '&from=' + $now.minus({ days: 30 }).toISO() + '&limit=500' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches last 30 days of trades for this strategy"
+    },
+    {
+      "id": "learn02-0007",
+      "name": "HTTP: Fetch Strategy Rules",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 350],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'http://localhost:3000/api/strategies/' + $json.strategyId + '/rules' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches strategy rules and parameters"
+    },
+    {
+      "id": "learn02-0008",
+      "name": "HTTP: Fetch Previous Proposals",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 500],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'http://localhost:3000/api/strategy-proposals?strategy=' + $json.strategyName + '&limit=10' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches previous tuning proposals for tracking outcomes"
+    },
+    {
+      "id": "learn02-0009",
+      "name": "Merge: Strategy Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1320, 350],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "notes": "Combines trades, rules, and previous proposals"
+    },
+    {
+      "id": "learn02-0010",
+      "name": "Code: Calculate Performance Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1540, 350],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const batchData = $('SplitInBatches: Process Each Strategy').first().json;\nconst tradesData = $('HTTP: Fetch Strategy Trades (30 Days)').first()?.json || {};\nconst rulesData = $('HTTP: Fetch Strategy Rules').first()?.json || {};\nconst proposalsData = $('HTTP: Fetch Previous Proposals').first()?.json || {};\n\nconst trades = tradesData.trades || [];\nconst rules = rulesData.rules || rulesData;\nconst previousProposals = proposalsData.proposals || [];\nconst baseline = batchData.baselineMetrics || {};\n\n// Calculate key metrics\nconst metrics = {\n  tradeCount: trades.length,\n  winningTrades: 0,\n  losingTrades: 0,\n  totalPnL: 0,\n  grossProfit: 0,\n  grossLoss: 0,\n  avgWin: 0,\n  avgLoss: 0,\n  largestWin: 0,\n  largestLoss: 0,\n  winRate: 0,\n  profitFactor: 0,\n  avgHoldTime: 0,\n  returns: [],\n  drawdowns: [],\n  consecutiveLosses: 0,\n  maxConsecutiveLosses: 0,\n  byTimeOfDay: {},\n  byDayOfWeek: {}\n};\n\nif (trades.length === 0) {\n  return {\n    json: {\n      strategy: batchData,\n      metrics: { ...metrics, error: 'No trades in period' },\n      rules: rules,\n      previousProposals: previousProposals,\n      needsAnalysis: false\n    }\n  };\n}\n\n// Process each trade\nlet runningPnL = 0;\nlet peak = 0;\nlet currentLossStreak = 0;\n\ntrades.forEach(trade => {\n  const pnl = parseFloat(trade.pnl) || 0;\n  metrics.totalPnL += pnl;\n  runningPnL += pnl;\n  \n  // Track peak and drawdown\n  if (runningPnL > peak) peak = runningPnL;\n  const drawdown = peak > 0 ? ((peak - runningPnL) / peak) * 100 : 0;\n  metrics.drawdowns.push(drawdown);\n  \n  if (pnl > 0) {\n    metrics.winningTrades++;\n    metrics.grossProfit += pnl;\n    metrics.largestWin = Math.max(metrics.largestWin, pnl);\n    currentLossStreak = 0;\n  } else {\n    metrics.losingTrades++;\n    metrics.grossLoss += Math.abs(pnl);\n    metrics.largestLoss = Math.min(metrics.largestLoss, pnl);\n    currentLossStreak++;\n    metrics.maxConsecutiveLosses = Math.max(metrics.maxConsecutiveLosses, currentLossStreak);\n  }\n  \n  // Calculate return percentage\n  const entryValue = parseFloat(trade.entry_price) * (parseFloat(trade.quantity) || 1);\n  const returnPct = entryValue > 0 ? (pnl / entryValue) * 100 : 0;\n  metrics.returns.push(returnPct);\n  \n  // Hold time\n  if (trade.entry_time && trade.exit_time) {\n    const holdMs = new Date(trade.exit_time) - new Date(trade.entry_time);\n    metrics.avgHoldTime += holdMs / 60000; // minutes\n  }\n  \n  // Time of day analysis\n  if (trade.entry_time) {\n    const hour = new Date(trade.entry_time).getHours();\n    const timeKey = hour < 9 ? 'premarket' : hour < 11 ? 'opening' : hour < 14 ? 'midday' : hour < 16 ? 'closing' : 'afterhours';\n    if (!metrics.byTimeOfDay[timeKey]) metrics.byTimeOfDay[timeKey] = { trades: 0, pnl: 0, wins: 0 };\n    metrics.byTimeOfDay[timeKey].trades++;\n    metrics.byTimeOfDay[timeKey].pnl += pnl;\n    if (pnl > 0) metrics.byTimeOfDay[timeKey].wins++;\n    \n    // Day of week\n    const day = new Date(trade.entry_time).getDay();\n    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];\n    const dayKey = dayNames[day];\n    if (!metrics.byDayOfWeek[dayKey]) metrics.byDayOfWeek[dayKey] = { trades: 0, pnl: 0, wins: 0 };\n    metrics.byDayOfWeek[dayKey].trades++;\n    metrics.byDayOfWeek[dayKey].pnl += pnl;\n    if (pnl > 0) metrics.byDayOfWeek[dayKey].wins++;\n  }\n});\n\n// Calculate derived metrics\nmetrics.winRate = metrics.tradeCount > 0 ? (metrics.winningTrades / metrics.tradeCount) * 100 : 0;\nmetrics.avgWin = metrics.winningTrades > 0 ? metrics.grossProfit / metrics.winningTrades : 0;\nmetrics.avgLoss = metrics.losingTrades > 0 ? metrics.grossLoss / metrics.losingTrades : 0;\nmetrics.profitFactor = metrics.grossLoss > 0 ? metrics.grossProfit / metrics.grossLoss : metrics.grossProfit > 0 ? 999 : 0;\nmetrics.avgHoldTime = metrics.tradeCount > 0 ? metrics.avgHoldTime / metrics.tradeCount : 0;\nmetrics.maxDrawdown = Math.max(...metrics.drawdowns, 0);\n\n// Calculate Sharpe Ratio (simplified)\nconst avgReturn = metrics.returns.length > 0 ? metrics.returns.reduce((a, b) => a + b, 0) / metrics.returns.length : 0;\nconst stdDev = metrics.returns.length > 1 ? Math.sqrt(\n  metrics.returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / (metrics.returns.length - 1)\n) : 1;\nmetrics.sharpeRatio = stdDev > 0 ? (avgReturn * Math.sqrt(252)) / stdDev : 0; // Annualized\n\n// Risk-Reward Ratio\nmetrics.riskRewardRatio = metrics.avgLoss > 0 ? metrics.avgWin / metrics.avgLoss : 0;\n\n// Expectancy\nmetrics.expectancy = (metrics.winRate / 100) * metrics.avgWin - ((100 - metrics.winRate) / 100) * metrics.avgLoss;\n\n// Compare to baseline\nconst comparison = {\n  winRateVsTarget: metrics.winRate - (baseline.targetWinRate || 55),\n  sharpeVsTarget: metrics.sharpeRatio - (baseline.targetSharpe || 1.0),\n  drawdownVsMax: (baseline.maxDrawdown || 10) - metrics.maxDrawdown,\n  profitFactorVsTarget: metrics.profitFactor - (baseline.minProfitFactor || 1.2)\n};\n\n// Identify underperformance\nconst issues = [];\nif (comparison.winRateVsTarget < -5) issues.push({ type: 'win_rate', severity: 'high', value: metrics.winRate, target: baseline.targetWinRate || 55 });\nif (comparison.sharpeVsTarget < -0.3) issues.push({ type: 'sharpe', severity: 'medium', value: metrics.sharpeRatio, target: baseline.targetSharpe || 1.0 });\nif (comparison.drawdownVsMax < -5) issues.push({ type: 'drawdown', severity: 'high', value: metrics.maxDrawdown, target: baseline.maxDrawdown || 10 });\nif (comparison.profitFactorVsTarget < -0.3) issues.push({ type: 'profit_factor', severity: 'medium', value: metrics.profitFactor, target: baseline.minProfitFactor || 1.2 });\nif (metrics.maxConsecutiveLosses >= 5) issues.push({ type: 'loss_streak', severity: 'high', value: metrics.maxConsecutiveLosses, target: 4 });\n\n// Identify worst time periods\nlet worstTime = null;\nObject.entries(metrics.byTimeOfDay).forEach(([time, data]) => {\n  const winRate = data.trades > 0 ? (data.wins / data.trades) * 100 : 0;\n  if (data.trades >= 3 && winRate < 40 && (!worstTime || winRate < worstTime.winRate)) {\n    worstTime = { time, winRate, trades: data.trades, pnl: data.pnl };\n  }\n});\n\nlet worstDay = null;\nObject.entries(metrics.byDayOfWeek).forEach(([day, data]) => {\n  const winRate = data.trades > 0 ? (data.wins / data.trades) * 100 : 0;\n  if (data.trades >= 3 && winRate < 40 && (!worstDay || winRate < worstDay.winRate)) {\n    worstDay = { day, winRate, trades: data.trades, pnl: data.pnl };\n  }\n});\n\nreturn {\n  json: {\n    strategy: batchData,\n    metrics: {\n      ...metrics,\n      returns: undefined, // Don't pass large arrays\n      drawdowns: undefined\n    },\n    comparison: comparison,\n    issues: issues,\n    worstTime: worstTime,\n    worstDay: worstDay,\n    rules: rules,\n    previousProposals: previousProposals,\n    needsAnalysis: issues.length > 0 || metrics.tradeCount >= 10\n  }\n};"
+      },
+      "notes": "Calculates comprehensive performance metrics for the strategy"
+    },
+    {
+      "id": "learn02-0011",
+      "name": "If: Needs Analysis",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1760, 350],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "needs-analysis",
+              "leftValue": "={{ $json.needsAnalysis }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "notes": "Checks if this strategy has issues that need analysis"
+    },
+    {
+      "id": "learn02-0012",
+      "name": "Code: Build Tuning Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1980, 250],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const data = $json;\n\nconst prompt = `You are the Strategy Optimization Specialist for SwjshAK trading system. Analyze this strategy's performance and propose parameter adjustments.\n\n## STRATEGY: ${data.strategy.strategyName}\nCategory: ${data.strategy.category}\nEnabled: ${data.strategy.enabled}\n\n## CURRENT PARAMETERS\n${JSON.stringify(data.strategy.currentParams, null, 2)}\n\n## STRATEGY RULES\n${typeof data.rules === 'string' ? data.rules : JSON.stringify(data.rules, null, 2)}\n\n## LAST 30 DAYS PERFORMANCE\n- Total Trades: ${data.metrics.tradeCount}\n- Win Rate: ${data.metrics.winRate.toFixed(1)}% (target: ${data.strategy.baselineMetrics?.targetWinRate || 55}%)\n- Profit Factor: ${data.metrics.profitFactor.toFixed(2)} (target: ${data.strategy.baselineMetrics?.minProfitFactor || 1.2})\n- Sharpe Ratio: ${data.metrics.sharpeRatio.toFixed(2)} (target: ${data.strategy.baselineMetrics?.targetSharpe || 1.0})\n- Max Drawdown: ${data.metrics.maxDrawdown.toFixed(1)}% (max allowed: ${data.strategy.baselineMetrics?.maxDrawdown || 10}%)\n- Total P&L: $${data.metrics.totalPnL.toFixed(2)}\n- Average Win: $${data.metrics.avgWin.toFixed(2)}\n- Average Loss: $${data.metrics.avgLoss.toFixed(2)}\n- Risk/Reward: ${data.metrics.riskRewardRatio.toFixed(2)}\n- Expectancy: $${data.metrics.expectancy.toFixed(2)}\n- Max Consecutive Losses: ${data.metrics.maxConsecutiveLosses}\n- Average Hold Time: ${data.metrics.avgHoldTime.toFixed(0)} minutes\n\n## IDENTIFIED ISSUES\n${data.issues.map(i => `- [${i.severity.toUpperCase()}] ${i.type}: ${i.value.toFixed(2)} vs target ${i.target}`).join('\\n') || 'No critical issues'}\n\n## PERFORMANCE BY TIME OF DAY\n${Object.entries(data.metrics.byTimeOfDay || {}).map(([t, d]) => `- ${t}: ${d.trades} trades, $${d.pnl.toFixed(2)}, ${((d.wins/d.trades)*100).toFixed(0)}% win rate`).join('\\n') || 'N/A'}\n\n## PERFORMANCE BY DAY OF WEEK\n${Object.entries(data.metrics.byDayOfWeek || {}).map(([d, v]) => `- ${d}: ${v.trades} trades, $${v.pnl.toFixed(2)}, ${((v.wins/v.trades)*100).toFixed(0)}% win rate`).join('\\n') || 'N/A'}\n\n## WORST PERFORMING PERIODS\n${data.worstTime ? `- Time: ${data.worstTime.time} (${data.worstTime.winRate.toFixed(0)}% win rate, ${data.worstTime.trades} trades)` : 'None identified'}\n${data.worstDay ? `- Day: ${data.worstDay.day} (${data.worstDay.winRate.toFixed(0)}% win rate, ${data.worstDay.trades} trades)` : ''}\n\n## PREVIOUS PROPOSALS (for context)\n${data.previousProposals.slice(0, 3).map(p => `- ${p.date}: ${p.proposal} - Status: ${p.status || 'unknown'}`).join('\\n') || 'No previous proposals'}\n\n---\n\n## YOUR TASK\n\nAnalyze the strategy performance and propose specific parameter adjustments. Be conservative - small changes that can be tested.\n\nProvide your analysis as JSON:\n{\n  \"overallAssessment\": \"healthy|needs_tuning|critical|should_disable\",\n  \"confidenceScore\": 0-100,\n  \"primaryIssue\": \"One sentence describing the main problem or 'Strategy performing well'\",\n  \"proposals\": [\n    {\n      \"parameterName\": \"name of parameter to change\",\n      \"currentValue\": \"current value\",\n      \"proposedValue\": \"new value\",\n      \"changeType\": \"increase|decrease|add|remove|modify\",\n      \"rationale\": \"Why this change will help\",\n      \"expectedImpact\": \"What improvement we expect\",\n      \"riskLevel\": \"low|medium|high\",\n      \"testDuration\": \"1 week|2 weeks|1 month\"\n    }\n  ],\n  \"timingRestrictions\": [\n    {\n      \"type\": \"disable_during|reduce_size_during\",\n      \"period\": \"first_30_min|specific_day|etc\",\n      \"rationale\": \"Why\"\n    }\n  ],\n  \"riskAdjustments\": {\n    \"positionSizeChange\": \"+20%|no_change|-20%|-50%\",\n    \"stopLossAdjustment\": \"tighten|no_change|widen\",\n    \"takeProfitAdjustment\": \"lower|no_change|raise\"\n  },\n  \"monitoringNotes\": [\"What to watch after implementing changes\"],\n  \"doNotChange\": [\"Parameters that are working well and should not be modified\"]\n}\n\nBe specific and actionable. If the strategy is performing well, say so and propose no changes. If issues exist, propose the minimum changes needed to address them.`;\n\nreturn {\n  json: {\n    prompt: prompt,\n    strategyData: data\n  }\n};"
+      },
+      "notes": "Builds detailed prompt for Claude strategy analysis"
+    },
+    {
+      "id": "learn02-0013",
+      "name": "HTTP: Call Claude for Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, 250],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 2048,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.prompt) }}\n    }\n  ]\n}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "anthropic-api-key",
+          "name": "Anthropic API Key"
+        }
+      },
+      "notes": "Calls Claude API for strategy optimization analysis"
+    },
+    {
+      "id": "learn02-0014",
+      "name": "Code: Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2420, 250],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = $json;\nconst strategyData = $('Code: Build Tuning Prompt').first().json.strategyData;\n\nlet analysis;\n\ntry {\n  const content = response.content?.[0]?.text || '';\n  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n  analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : { error: 'Could not parse AI response' };\n} catch (e) {\n  analysis = {\n    overallAssessment: 'needs_tuning',\n    confidenceScore: 30,\n    primaryIssue: 'AI parsing failed - manual review required',\n    proposals: [],\n    timingRestrictions: [],\n    riskAdjustments: { positionSizeChange: 'no_change', stopLossAdjustment: 'no_change', takeProfitAdjustment: 'no_change' },\n    monitoringNotes: ['Review raw metrics manually'],\n    doNotChange: [],\n    _parseError: e.message\n  };\n}\n\n// Add metadata\nanalysis.strategyName = strategyData.strategy.strategyName;\nanalysis.strategyId = strategyData.strategy.strategyId;\nanalysis.metrics = strategyData.metrics;\nanalysis.issues = strategyData.issues;\nanalysis.analyzedAt = new Date().toISOString();\n\nreturn { json: analysis };"
+      },
+      "notes": "Parses and validates Claude's strategy analysis"
+    },
+    {
+      "id": "learn02-0015",
+      "name": "If: Has Proposals",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2640, 250],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-proposals",
+              "leftValue": "={{ $json.proposals?.length || 0 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "notes": "Checks if Claude proposed any parameter changes"
+    },
+    {
+      "id": "learn02-0016",
+      "name": "Jira: Create INFRA Proposal Ticket",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2860, 150],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "INFRA",
+        "issueType": "Task",
+        "additionalFields": {
+          "summary": "={{ `[STRATEGY TUNE] ${$json.strategyName}: ${$json.primaryIssue?.substring(0, 50) || 'Parameter adjustment'}` }}",
+          "description": "={{ `Strategy Tuning Proposal\\n\\nStrategy: ${$json.strategyName}\\nAssessment: ${$json.overallAssessment?.toUpperCase() || 'NEEDS_REVIEW'}\\nConfidence: ${$json.confidenceScore || 0}%\\nPrimary Issue: ${$json.primaryIssue || 'N/A'}\\n\\n---\\n\\nCURRENT METRICS (30 days):\\n- Trades: ${$json.metrics?.tradeCount || 0}\\n- Win Rate: ${$json.metrics?.winRate?.toFixed(1) || 0}%\\n- Profit Factor: ${$json.metrics?.profitFactor?.toFixed(2) || 0}\\n- Max Drawdown: ${$json.metrics?.maxDrawdown?.toFixed(1) || 0}%\\n- Total P&L: $${$json.metrics?.totalPnL?.toFixed(2) || 0}\\n\\n---\\n\\nPROPOSED CHANGES:\\n${($json.proposals || []).map((p, i) => `\\n${i+1}. ${p.parameterName}\\n   Current: ${p.currentValue}\\n   Proposed: ${p.proposedValue}\\n   Change: ${p.changeType}\\n   Rationale: ${p.rationale}\\n   Expected Impact: ${p.expectedImpact}\\n   Risk: ${p.riskLevel}\\n   Test Duration: ${p.testDuration}`).join('\\n')}\\n\\n---\\n\\nTIMING RESTRICTIONS:\\n${($json.timingRestrictions || []).map(t => `- ${t.type}: ${t.period} (${t.rationale})`).join('\\n') || 'None proposed'}\\n\\n---\\n\\nRISK ADJUSTMENTS:\\n- Position Size: ${$json.riskAdjustments?.positionSizeChange || 'no_change'}\\n- Stop Loss: ${$json.riskAdjustments?.stopLossAdjustment || 'no_change'}\\n- Take Profit: ${$json.riskAdjustments?.takeProfitAdjustment || 'no_change'}\\n\\n---\\n\\nMONITORING NOTES:\\n${($json.monitoringNotes || []).map(n => `- ${n}`).join('\\n') || 'None'}\\n\\nDO NOT CHANGE:\\n${($json.doNotChange || []).map(d => `- ${d}`).join('\\n') || 'None specified'}\\n\\n---\\n\\nREQUIRES CEO APPROVAL before implementation.` }}",
+          "labels": [
+            "strategy-tuning",
+            "needs-approval",
+            "={{ $json.strategyName?.toLowerCase().replace(/\\s+/g, '-') || 'unknown' }}",
+            "={{ $json.overallAssessment || 'unknown' }}"
+          ],
+          "priority": "={{ $json.overallAssessment === 'critical' ? 'Highest' : $json.overallAssessment === 'needs_tuning' ? 'High' : 'Medium' }}"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Creates INFRA ticket with strategy tuning proposals requiring approval"
+    },
+    {
+      "id": "learn02-0017",
+      "name": "HTTP: Store Proposal in DB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3080, 150],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/strategy-proposals",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ strategy: $json.strategyName, strategyId: $json.strategyId, assessment: $json.overallAssessment, confidenceScore: $json.confidenceScore, primaryIssue: $json.primaryIssue, proposals: $json.proposals, riskAdjustments: $json.riskAdjustments, timingRestrictions: $json.timingRestrictions, metrics: $json.metrics, status: 'pending_approval', createdAt: new Date().toISOString() }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Stores proposal in database for tracking"
+    },
+    {
+      "id": "learn02-0018",
+      "name": "Code: Format Discord Approval Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3080, 300],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const analysis = $json;\n\n// Determine embed color\nlet embedColor = 3066993; // Green\nif (analysis.overallAssessment === 'critical') {\n  embedColor = 15158332; // Red\n} else if (analysis.overallAssessment === 'needs_tuning') {\n  embedColor = 16776960; // Yellow\n} else if (analysis.overallAssessment === 'should_disable') {\n  embedColor = 10038562; // Purple\n}\n\nconst fields = [\n  {\n    name: ':chart_with_upwards_trend: Win Rate',\n    value: `${analysis.metrics?.winRate?.toFixed(1) || 0}%`,\n    inline: true\n  },\n  {\n    name: ':moneybag: P&L (30d)',\n    value: `$${analysis.metrics?.totalPnL?.toFixed(2) || 0}`,\n    inline: true\n  },\n  {\n    name: ':dart: Confidence',\n    value: `${analysis.confidenceScore || 0}%`,\n    inline: true\n  }\n];\n\n// Add top proposals\nif (analysis.proposals?.length > 0) {\n  const proposalText = analysis.proposals.slice(0, 3).map((p, i) => \n    `${i + 1}. **${p.parameterName}**: ${p.currentValue} -> ${p.proposedValue} [${p.riskLevel}]`\n  ).join('\\n');\n  fields.push({\n    name: ':wrench: Proposed Changes',\n    value: proposalText,\n    inline: false\n  });\n}\n\n// Add risk adjustments if any\nconst riskChanges = [];\nif (analysis.riskAdjustments?.positionSizeChange !== 'no_change') {\n  riskChanges.push(`Position Size: ${analysis.riskAdjustments.positionSizeChange}`);\n}\nif (analysis.riskAdjustments?.stopLossAdjustment !== 'no_change') {\n  riskChanges.push(`Stop Loss: ${analysis.riskAdjustments.stopLossAdjustment}`);\n}\nif (riskChanges.length > 0) {\n  fields.push({\n    name: ':shield: Risk Adjustments',\n    value: riskChanges.join('\\n'),\n    inline: false\n  });\n}\n\nconst embed = {\n  title: `:gear: Strategy Tune Proposal: ${analysis.strategyName}`,\n  description: `**Assessment:** ${analysis.overallAssessment?.toUpperCase() || 'UNKNOWN'}\\n\\n${analysis.primaryIssue || 'Review required'}`,\n  color: embedColor,\n  fields: fields,\n  footer: {\n    text: 'React with :white_check_mark: to approve or :x: to reject | WF-LEARN-02'\n  },\n  timestamp: new Date().toISOString()\n};\n\nreturn {\n  json: {\n    embed,\n    analysis,\n    channelId: process.env.DISCORD_APPROVALS_CHANNEL_ID || 'approvals'\n  }\n};"
+      },
+      "notes": "Formats proposal as Discord embed for CEO approval"
+    },
+    {
+      "id": "learn02-0019",
+      "name": "Discord: Post to #approvals",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [3300, 300],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.channelId }}"
+        },
+        "content": "@here - Strategy tuning proposal requires CEO approval",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts proposal to #approvals for CEO review"
+    },
+    {
+      "id": "learn02-0020",
+      "name": "Code: Mark Strategy as Reviewed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2860, 350],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Strategy that's healthy or has no proposals\nconst analysis = $json;\n\nreturn {\n  json: {\n    strategyName: analysis.strategyName,\n    strategyId: analysis.strategyId,\n    status: 'healthy',\n    assessment: analysis.overallAssessment || 'healthy',\n    message: analysis.primaryIssue || 'No changes needed',\n    metrics: analysis.metrics,\n    analyzedAt: analysis.analyzedAt || new Date().toISOString()\n  }\n};"
+      },
+      "notes": "Marks healthy strategies that don't need changes"
+    },
+    {
+      "id": "learn02-0021",
+      "name": "Merge: All Strategy Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [3520, 350],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      },
+      "notes": "Collects all strategy analysis results"
+    },
+    {
+      "id": "learn02-0022",
+      "name": "Code: Skip - No Analysis Needed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1980, 450],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const data = $json;\n\nreturn {\n  json: {\n    strategyName: data.strategy?.strategyName || 'unknown',\n    strategyId: data.strategy?.strategyId || 'unknown',\n    status: 'skipped',\n    reason: data.metrics?.error || 'Insufficient data for analysis',\n    tradeCount: data.metrics?.tradeCount || 0\n  }\n};"
+      },
+      "notes": "Handles strategies that don't need analysis"
+    },
+    {
+      "id": "learn02-0023",
+      "name": "Loop Back",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [3300, 500],
+      "parameters": {},
+      "notes": "Returns to process next strategy"
+    },
+    {
+      "id": "learn02-0024",
+      "name": "Code: Compile Summary Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3740, 350],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const allResults = $input.all();\n\nconst summary = {\n  totalStrategies: 0,\n  healthy: [],\n  needsTuning: [],\n  critical: [],\n  shouldDisable: [],\n  skipped: [],\n  proposalsCreated: 0,\n  analyzedAt: new Date().toISOString()\n};\n\nallResults.forEach(item => {\n  const data = item.json;\n  summary.totalStrategies++;\n  \n  if (data.status === 'skipped') {\n    summary.skipped.push({ name: data.strategyName, reason: data.reason });\n  } else if (data.assessment === 'healthy' || data.status === 'healthy') {\n    summary.healthy.push({ name: data.strategyName, metrics: data.metrics });\n  } else if (data.assessment === 'critical') {\n    summary.critical.push({ name: data.strategyName, issue: data.primaryIssue });\n    summary.proposalsCreated++;\n  } else if (data.assessment === 'should_disable') {\n    summary.shouldDisable.push({ name: data.strategyName, issue: data.primaryIssue });\n    summary.proposalsCreated++;\n  } else if (data.assessment === 'needs_tuning' || data.proposals?.length > 0) {\n    summary.needsTuning.push({ name: data.strategyName, issue: data.primaryIssue, proposalCount: data.proposals?.length || 0 });\n    summary.proposalsCreated++;\n  }\n});\n\nreturn { json: summary };"
+      },
+      "notes": "Compiles summary of all strategy analyses"
+    },
+    {
+      "id": "learn02-0025",
+      "name": "Code: Format Summary Discord",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3960, 250],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const summary = $json;\n\n// Determine overall system health color\nlet embedColor = 3066993; // Green\nif (summary.critical.length > 0 || summary.shouldDisable.length > 0) {\n  embedColor = 15158332; // Red\n} else if (summary.needsTuning.length > 0) {\n  embedColor = 16776960; // Yellow\n}\n\nconst fields = [\n  {\n    name: ':white_check_mark: Healthy',\n    value: `${summary.healthy.length} strategies`,\n    inline: true\n  },\n  {\n    name: ':wrench: Needs Tuning',\n    value: `${summary.needsTuning.length} strategies`,\n    inline: true\n  },\n  {\n    name: ':warning: Critical',\n    value: `${summary.critical.length} strategies`,\n    inline: true\n  }\n];\n\nif (summary.needsTuning.length > 0) {\n  fields.push({\n    name: ':gear: Strategies Needing Adjustment',\n    value: summary.needsTuning.map(s => `- **${s.name}**: ${s.issue?.substring(0, 60) || 'Review needed'}...`).join('\\n').substring(0, 1000),\n    inline: false\n  });\n}\n\nif (summary.critical.length > 0) {\n  fields.push({\n    name: ':rotating_light: Critical Issues',\n    value: summary.critical.map(s => `- **${s.name}**: ${s.issue?.substring(0, 60) || 'Critical'}...`).join('\\n').substring(0, 500),\n    inline: false\n  });\n}\n\nif (summary.shouldDisable.length > 0) {\n  fields.push({\n    name: ':octagonal_sign: Consider Disabling',\n    value: summary.shouldDisable.map(s => `- ${s.name}`).join('\\n').substring(0, 300),\n    inline: false\n  });\n}\n\nif (summary.proposalsCreated > 0) {\n  fields.push({\n    name: ':clipboard: Proposals Created',\n    value: `${summary.proposalsCreated} proposals pending approval in #approvals`,\n    inline: false\n  });\n}\n\nconst embed = {\n  title: ':bar_chart: Weekly Strategy Tuning Report',\n  description: `Analyzed ${summary.totalStrategies} strategies for the upcoming trading week.`,\n  color: embedColor,\n  fields: fields,\n  footer: {\n    text: 'WF-LEARN-02 Strategy Tuner | Sunday Pre-Week Analysis'\n  },\n  timestamp: new Date().toISOString()\n};\n\nreturn {\n  json: {\n    embed,\n    summary,\n    channelId: process.env.DISCORD_CEO_CHANNEL_ID || 'ceo-briefing'\n  }\n};"
+      },
+      "notes": "Formats weekly summary for Discord"
+    },
+    {
+      "id": "learn02-0026",
+      "name": "Discord: Post Weekly Summary",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [4180, 250],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.channelId }}"
+        },
+        "content": "",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts weekly strategy tuning summary to #ceo-briefing"
+    },
+    {
+      "id": "learn02-0027",
+      "name": "HTTP: Log to Audit Trail",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [4180, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/audit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event\": \"strategy_tuning_complete\",\n  \"timestamp\": \"{{ $now.toISO() }}\",\n  \"workflow\": \"WF-LEARN-02\",\n  \"data\": {\n    \"totalStrategies\": {{ $json.summary?.totalStrategies || 0 }},\n    \"healthy\": {{ $json.summary?.healthy?.length || 0 }},\n    \"needsTuning\": {{ $json.summary?.needsTuning?.length || 0 }},\n    \"critical\": {{ $json.summary?.critical?.length || 0 }},\n    \"proposalsCreated\": {{ $json.summary?.proposalsCreated || 0 }}\n  }\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Logs strategy tuning event to audit trail"
+    },
+    {
+      "id": "learn02-0028",
+      "name": "Workflow Complete",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [4400, 350],
+      "parameters": {},
+      "notes": "End node - weekly strategy tuning complete"
+    },
+    {
+      "id": "learn02-0029",
+      "name": "Code: No Strategies Found",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 500],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return {\n  json: {\n    error: 'No active strategies found for analysis',\n    message: 'Please ensure strategies are configured and enabled in the system',\n    analyzedAt: new Date().toISOString()\n  }\n};"
+      },
+      "notes": "Handles case when no strategies are found"
+    },
+    {
+      "id": "learn02-0030",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 650],
+      "parameters": {},
+      "notes": "Catches workflow errors"
+    },
+    {
+      "id": "learn02-0031",
+      "name": "Code: Format Error Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 650],
+      "parameters": {
+        "jsCode": "const error = $json;\n\nconst errorEmbed = {\n  title: ':warning: Strategy Tuner Error',\n  description: 'WF-LEARN-02 encountered an error during weekly strategy analysis.',\n  color: 15158332,\n  fields: [\n    {\n      name: 'Error Message',\n      value: error.execution?.error?.message?.substring(0, 1000) || 'Unknown error',\n      inline: false\n    },\n    {\n      name: 'Failed Node',\n      value: error.execution?.error?.node?.name || 'Unknown',\n      inline: true\n    },\n    {\n      name: 'Execution ID',\n      value: error.execution?.id || 'Unknown',\n      inline: true\n    }\n  ],\n  footer: {\n    text: 'WF-LEARN-02 Error Handler'\n  },\n  timestamp: new Date().toISOString()\n};\n\nreturn { json: { embed: errorEmbed } };"
+      },
+      "notes": "Formats error for Discord notification"
+    },
+    {
+      "id": "learn02-0032",
+      "name": "Discord: Post Error",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [440, 650],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_ERRORS_CHANNEL_ID || 'n8n-errors' }}"
+        },
+        "content": "",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts error notification to #n8n-errors"
+    },
+    {
+      "id": "learn02-sticky-01",
+      "name": "Note: Workflow Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-200, 200],
+      "parameters": {
+        "content": "## WF-LEARN-02: Strategy Tuner\n\n**Schedule:** Every Sunday at 6 PM ET (before trading week)\n\n**Purpose:** Analyze each active strategy and propose parameter adjustments\n\n### For Each Strategy:\n1. Fetch last 30 days of trades\n2. Calculate key metrics:\n   - Win rate, Sharpe, Max DD\n   - Profit factor, Expectancy\n   - Performance by time/day\n3. Compare to baseline targets\n4. Identify underperformance\n5. Call Claude for analysis\n6. Generate tuning proposals\n\n### Outputs:\n- INFRA tickets for proposals (requires approval)\n- Discord posts to #approvals\n- Historical tracking of proposals\n\n### Key Metrics:\n- Win Rate vs Target\n- Sharpe Ratio\n- Max Drawdown\n- Profit Factor\n- Consecutive Losses"
+      }
+    },
+    {
+      "id": "learn02-sticky-02",
+      "name": "Note: Proposal Types",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [2640, 450],
+      "parameters": {
+        "content": "## Proposal Types\n\n**Parameter Changes:**\n- Stop loss adjustments\n- Take profit targets\n- Position sizing\n- Entry filters\n\n**Timing Restrictions:**\n- Disable during first 30 min\n- Reduce size on specific days\n- Skip certain market sessions\n\n**Risk Adjustments:**\n- Position size changes\n- Stop loss tightening\n- Take profit levels\n\nAll proposals require CEO approval before implementation."
+      }
+    },
+    {
+      "id": "learn02-sticky-03",
+      "name": "Note: Historical Tracking",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [3080, 450],
+      "parameters": {
+        "content": "## Proposal Tracking\n\nAll proposals are stored in the database with:\n- Original metrics\n- Proposed changes\n- Approval status\n- Implementation date\n- Outcome metrics (post-implementation)\n\nThis enables analysis of which tuning suggestions actually worked."
+      }
+    }
+  ],
+  "connections": {
+    "Schedule: Sunday 6PM ET": {
+      "main": [
+        [
+          { "node": "HTTP: Fetch Active Strategies", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Fetch Active Strategies": {
+      "main": [
+        [
+          { "node": "Code: Prepare Strategy List", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Prepare Strategy List": {
+      "main": [
+        [
+          { "node": "If: Has Strategies", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "If: Has Strategies": {
+      "main": [
+        [
+          { "node": "SplitInBatches: Process Each Strategy", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Code: No Strategies Found", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "SplitInBatches: Process Each Strategy": {
+      "main": [
+        [
+          { "node": "HTTP: Fetch Strategy Trades (30 Days)", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch Strategy Rules", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch Previous Proposals", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Code: Compile Summary Report", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Fetch Strategy Trades (30 Days)": {
+      "main": [
+        [
+          { "node": "Merge: Strategy Data", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Fetch Strategy Rules": {
+      "main": [
+        [
+          { "node": "Merge: Strategy Data", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "HTTP: Fetch Previous Proposals": {
+      "main": [
+        [
+          { "node": "Merge: Strategy Data", "type": "main", "index": 2 }
+        ]
+      ]
+    },
+    "Merge: Strategy Data": {
+      "main": [
+        [
+          { "node": "Code: Calculate Performance Metrics", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Calculate Performance Metrics": {
+      "main": [
+        [
+          { "node": "If: Needs Analysis", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "If: Needs Analysis": {
+      "main": [
+        [
+          { "node": "Code: Build Tuning Prompt", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Code: Skip - No Analysis Needed", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Build Tuning Prompt": {
+      "main": [
+        [
+          { "node": "HTTP: Call Claude for Analysis", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Call Claude for Analysis": {
+      "main": [
+        [
+          { "node": "Code: Parse AI Response", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Parse AI Response": {
+      "main": [
+        [
+          { "node": "If: Has Proposals", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "If: Has Proposals": {
+      "main": [
+        [
+          { "node": "Jira: Create INFRA Proposal Ticket", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Code: Mark Strategy as Reviewed", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Jira: Create INFRA Proposal Ticket": {
+      "main": [
+        [
+          { "node": "HTTP: Store Proposal in DB", "type": "main", "index": 0 },
+          { "node": "Code: Format Discord Approval Request", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Store Proposal in DB": {
+      "main": [
+        [
+          { "node": "Merge: All Strategy Results", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Format Discord Approval Request": {
+      "main": [
+        [
+          { "node": "Discord: Post to #approvals", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Discord: Post to #approvals": {
+      "main": [
+        [
+          { "node": "Loop Back", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Mark Strategy as Reviewed": {
+      "main": [
+        [
+          { "node": "Merge: All Strategy Results", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Skip - No Analysis Needed": {
+      "main": [
+        [
+          { "node": "Merge: All Strategy Results", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Loop Back": {
+      "main": [
+        [
+          { "node": "SplitInBatches: Process Each Strategy", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Merge: All Strategy Results": {
+      "main": [
+        [
+          { "node": "Loop Back", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Compile Summary Report": {
+      "main": [
+        [
+          { "node": "Code: Format Summary Discord", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Format Summary Discord": {
+      "main": [
+        [
+          { "node": "Discord: Post Weekly Summary", "type": "main", "index": 0 },
+          { "node": "HTTP: Log to Audit Trail", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Discord: Post Weekly Summary": {
+      "main": [
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Log to Audit Trail": {
+      "main": [
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: No Strategies Found": {
+      "main": [
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          { "node": "Code: Format Error Message", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Format Error Message": {
+      "main": [
+        [
+          { "node": "Discord: Post Error", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "self-improvement" },
+    { "name": "weekly" },
+    { "name": "strategy-tuning" },
+    { "name": "optimization" }
+  ],
+  "triggerCount": 1,
+  "versionId": "1.0.0",
+  "meta": {
+    "instanceId": "swjshak-n8n",
+    "templateCredsSetupCompleted": false
+  }
+}
