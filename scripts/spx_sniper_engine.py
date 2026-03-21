@@ -21,7 +21,12 @@ import requests
 from pathlib import Path
 from datetime import datetime, time as dtime
 import pytz
-from agent_utils import log_message, get_random_quip, save_agent_state, load_agent_state
+from agent_utils import log_message, get_random_quip, save_agent_state, load_agent_state, load_brain_knowledge
+from position_sync import sync_positions_on_startup, pre_trade_health_check, check_existing_position
+
+# ── Brain Integration ─────────────────────────────────────────────────────────
+# Load agent-specific learning and strategy knowledge from the brain system
+BRAIN = load_brain_knowledge('spx_sniper')
 
 # ── Config ────────────────────────────────────────────────────────────────────
 TICKER             = 'SPY'            # Use SPY directly — eliminates SPX/SPY price divergence
@@ -243,6 +248,11 @@ def run():
     if active_trades:
         print(f"[SPX Sniper] Restored {len(active_trades)} active trades from saved state")
 
+    # ── Sync with broker positions ──────────────────────────────────────────
+    print("[SPX Sniper] Syncing positions with Alpaca broker...")
+    active_trades = sync_positions_on_startup('spx_sniper', PROXY_SYMBOL, active_trades)
+    save_agent_state('spx_sniper', {'active_trades': active_trades, 'scan_count': scan_count})
+
     while True:
         try:
             # Check market hours
@@ -280,23 +290,32 @@ def run():
             # Only enter during safe time window
             if is_safe_time() and signals and len(active_trades) < MAX_OPEN_TRADES:
                 sig = signals[0]
-                print(f"[SPX Sniper] {sig['type']} signal: {PROXY_SYMBOL} @ ${sig['price']:.2f}")
-                success = fire_signal(
-                    action=sig['action'],
-                    price=sig['price'],
-                    stop_loss=sig['stop_loss'],
-                    take_profit=sig['take_profit'],
-                    reason=sig['reason'],
-                )
-                if success:
-                    active_trades.append({
-                        'direction':   'LONG' if sig['action'] == 'BUY' else 'SHORT',
-                        'entry_price': sig['price'],
-                        'stop_loss':   sig['stop_loss'],
-                        'take_profit': sig['take_profit'],
-                        'opened_at':   datetime.now().isoformat(),
-                        'signal_type': sig['type'],
-                    })
+
+                # Pre-trade health check: skip if position already exists
+                health = pre_trade_health_check('spx_sniper', PROXY_SYMBOL)
+                if health.get('skip'):
+                    print(f"[SPX Sniper] Skipping entry: {health.get('reason')}")
+                elif not health.get('ok'):
+                    print(f"[SPX Sniper] Health check failed: {health.get('reason')}")
+                else:
+                    print(f"[SPX Sniper] {sig['type']} signal: {PROXY_SYMBOL} @ ${sig['price']:.2f}")
+                    success = fire_signal(
+                        action=sig['action'],
+                        price=sig['price'],
+                        stop_loss=sig['stop_loss'],
+                        take_profit=sig['take_profit'],
+                        reason=sig['reason'],
+                    )
+                    if success:
+                        active_trades.append({
+                            'symbol':      PROXY_SYMBOL,
+                            'direction':   'LONG' if sig['action'] == 'BUY' else 'SHORT',
+                            'entry_price': sig['price'],
+                            'stop_loss':   sig['stop_loss'],
+                            'take_profit': sig['take_profit'],
+                            'opened_at':   datetime.now().isoformat(),
+                            'signal_type': sig['type'],
+                        })
             elif not is_safe_time():
                 print(f"   Time gate active - waiting for 10:30 AM EST")
 
