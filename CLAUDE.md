@@ -98,6 +98,164 @@ grep -r "keyword" "C:\Users\jackw\Documents\ObsidianVaults\SwjshAK-Brain\"
 
 **Design Philosophy**: "Cyber-Industrial" dark mode aesthetic with glassmorphism, electric cyan primary (`#06b6d4`), and neon purple accents (`#a855f7`).
 
+## 🎮 Halo Crew — Discord Agent System
+
+**The trading agents use Halo-themed personas** that communicate via Discord. Each persona has its own Discord bot (separate identity, avatar, name) but is powered by a single Claude session.
+
+**Architecture:** Claude Code Channels (inbound) + Multi-bot Discord REST API (outbound)
+
+| Persona | Bot | Role | Primary Channels |
+|---------|-----|------|-----------------|
+| **Chief** | Master Chief | Ops commander, briefings, decisions | #chief-announcements, #daily-standup |
+| **Arbiter** | The Arbiter | Risk auditor, kill-switch, verification | #pulse-alerts, #grade-reviews |
+| **Cortana** | Cortana | Trade grading, pattern analysis | #grade-reviews, #learn-patterns |
+| **Scout** | Scout | Forex specialist (FXAlexG 5-Box) | #chief-announcements, #back-ideas |
+| **Ops** | Ops | Crypto + Futures (zones + pivots) | #pulse-alerts, #infra-tasks |
+| **Hunter** | Hunter | Options (SPY/QQQ + SPX 0DTE) | #infra-tasks, #infra-log |
+
+### Key Files
+- **Persona definitions:** `src/lib/discord/personas.ts`
+- **Multi-bot sender:** `src/lib/discord/halo-bots.ts`
+- **Notification system:** `src/lib/notifications/discord.ts`
+- **Full personality/strategy docs:** `halo-crew/HALO_SOULS.md`
+- **Cron job configs:** `halo-crew/cron-jobs-halo.json`
+- **Bot setup/health check:** `scripts/halo-bot-setup.ts`
+- **Env template:** `.env.halo-bots`
+
+### Sending as a Persona
+```typescript
+import { sendEmbedAsPersona, sendAsPersona } from '@/lib/discord';
+
+// Send a message as Cortana
+await sendEmbedAsPersona('cortana', CHANNELS.GRADE_REVIEWS, {
+    title: '🏆 Trade Grade: A',
+    description: 'Clean entry, perfect R:R.',
+});
+
+// Auto-route by symbol
+import { sendForSymbol } from '@/lib/discord';
+await sendForSymbol('BTCUSD', channelId, embed); // → Ops
+await sendForSymbol('GBPUSD', channelId, embed); // → Scout
+await sendForSymbol('SPY',    channelId, embed); // → Hunter
+```
+
+### HW Discord Server
+- **Server ID:** `1484377910503543068`
+- **Bot tokens:** Stored in `.env.local` as `DISCORD_BOT_TOKEN_{CHIEF|ARBITER|SCOUT|CORTANA|OPS|HUNTER}`
+
+---
+
+## Jira Autonomous Agent System
+
+The project now has a fully autonomous Jira agent system that self-learns, self-improves, and self-heals 24/7.
+
+### Quick Start
+```powershell
+# Start the autonomous agent system
+.\START_JIRA_AGENTS.ps1
+
+# Or check status
+python scripts/jira_agent_loop.py status
+```
+
+### In Claude Code Sessions
+```
+/jira-pickup SCRUM          # Pick up next issue
+/orchestrate feature "..."   # Implement the feature
+/learn                       # Extract patterns
+python scripts/jira_complete.py <ISSUE_KEY> --pr <PR_URL> --learn
+```
+
+### 7 Jira Projects
+
+| Key | Purpose | Agent Mode | Halo Persona |
+|-----|---------|------------|--------------|
+| SCRUM | Core development | AUTO | Ops |
+| INFRA | Tech debt & automation | AUTO | Chief |
+| PULSE | Health monitoring | AUTO | Arbiter |
+| BACK | Research & ideas | AUTO | Scout |
+| LEARN | Pattern aggregation (brain) | MANUAL | Cortana |
+| GRADE | Trade grading | MANUAL | Cortana |
+| MGMT | Cross-project sync | MANUAL | Chief |
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `scripts/jira_client.py` | Jira REST API client |
+| `scripts/jira_agent_loop.py` | Autonomous loop runner |
+| `scripts/jira_complete.py` | Issue completion handler |
+| `data/jira-agents.json` | Agent configurations |
+| `.claude/plan/jira-agent-loop.json` | Loop config with self-healing |
+| `~/.claude/commands/jira-pickup.md` | Issue pickup command |
+
+### Self-Learning System
+
+After completing work:
+1. `/learn` extracts patterns into instincts
+2. Instincts saved to `~/.claude/homunculus/projects/{PROJECT}/instincts/`
+3. LEARN project aggregates all instincts
+4. Weekly `/evolve` generates reusable skills
+5. Skills shared across all agents
+
+### Jira URL
+https://swjshalgoknife.atlassian.net/
+
+---
+
+## 🔄 Autonomous Improvement System (Jira-Connected)
+
+The system autonomously improves itself via 6 Jira-connected agents, one per project. Each agent runs an eval→identify→fix→ticket→learn cycle every 2 minutes.
+
+### Architecture
+
+```
+agent_runner.ts spawns → run_improvement_agents.py
+  ├── InfraAgent  (INFRA project) — tech debt, code quality, deps
+  ├── PulseAgent  (PULSE project) — heartbeat, monitoring, alerting
+  ├── LearnAgent  (LEARN project) — brain freshness, learning loops
+  ├── GradeAgent  (GRADE project) — trade grading pipeline
+  ├── BackAgent   (BACK project)  — backlog, new features
+  └── MgmtAgent   (MGMT project)  — cross-agent coordination
+```
+
+### Key Files
+- `scripts/jira_client.py` — Jira REST API client (encrypted creds from `~/.swjsh/`)
+- `scripts/pr_utils.py` — PR creation with auto Jira link formatting
+- `scripts/improvement_agent_base.py` — Base class with eval→ticket→fix→close cycle
+- `scripts/run_improvement_agents.py` — 6 threaded agents, one per Jira project
+- `scripts/wire_n8n_jira.py` — Wire n8n credentials (Jira + Discord webhooks)
+- `.github/PULL_REQUEST_TEMPLATE.md` — Standard PR template with Jira placeholder
+- `skills/project-improvement/surgeon/eval_harness.ts` — Immutable scoring engine
+- `skills/project-improvement/surgeon/learnings.md` — Cumulative knowledge base
+- `skills/project-improvement/war-room/surgeon_queue.md` — Queued improvement plans
+- `skills/project-improvement/gameplan-eval.ts` — Master autonomy plan scorecard
+
+### Eval Constraints (4 immutable gates)
+1. **DATA_FLOW** — Is data flowing smart and actionable?
+2. **HEARTBEAT** — Is monitoring/alerting working via Discord?
+3. **AGENT_LEARNING** — Are agents autonomously learning?
+4. **EFFICIENCY** — Are we cost efficient and self-improving?
+
+### Running the Improvement System
+```bash
+# Standalone test
+python scripts/run_improvement_agents.py
+
+# Via agent_runner (auto-managed with restart)
+# Spawned automatically when agent_runner.ts starts
+
+# Wire n8n credentials (one-time setup)
+python scripts/wire_n8n_jira.py --api-key YOUR_N8N_API_KEY --activate
+```
+
+### Jira Instance
+- **URL**: https://swjshalgoknife.atlassian.net
+- **Projects**: MGMT, INFRA, PULSE, LEARN, GRADE, BACK
+- **Credentials**: Encrypted at `~/.swjsh/` (AES-256 via `jira_creds.py`)
+
+---
+
 ## Starting the System
 
 **ONE command to start everything** — the system runs autonomously after launch:
