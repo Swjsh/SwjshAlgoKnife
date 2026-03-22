@@ -241,8 +241,8 @@ export function AgentTerminal({ agent, onSendCommand, heartbeat, onNudge }: Agen
                             <Image
                                 src={agent.avatar}
                                 alt={agent.name}
-                                width={32}
-                                height={32}
+                                width={40}
+                                height={40}
                                 className={styles.avatar}
                                 unoptimized
                             />

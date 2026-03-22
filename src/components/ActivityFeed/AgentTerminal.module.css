@@ -23,7 +23,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 10px;
+    padding: 10px 12px;
     background: rgba(24, 24, 27, 0.95);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -35,8 +35,8 @@
 }
 
 .avatarWrapper {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     border: 2px solid var(--agent-color, #06b6d4);
     overflow: hidden;
@@ -52,7 +52,7 @@
 }
 
 .emoji {
-    font-size: 16px;
+    font-size: 24px;
 }
 
 .headerInfo {

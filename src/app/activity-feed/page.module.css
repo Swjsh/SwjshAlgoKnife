@@ -180,9 +180,13 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 8px;
+    gap: 10px;
     min-height: 0;
     overflow: hidden;
+}
+
+.agentGrid > * {
+    min-height: 220px;
 }
 
 /* Permission Panel */
