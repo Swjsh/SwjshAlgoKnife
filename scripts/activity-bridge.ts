@@ -949,17 +949,18 @@ function parseSessionLine(line: string, sessionId: string): void {
       }
     }
 
-    // Fall back to 'chief' for unidentified sessions so we still capture activity
+    // IMPORTANT: Do NOT broadcast unidentified sessions
+    // Only HALO agents (positively identified) should appear in terminals
+    // This prevents non-HALO Claude sessions from flooding the activity feed
     if (agentId === 'unknown') {
-      agentId = 'chief'; // Default to Chief for general sessions
-      agentSessions.set(sessionId, agentId);
-      // Log content snippet to help debug detection failures
-      const contentSnippet = event.type === 'user' && event.message?.content
-        ? (typeof event.message.content === 'string'
-            ? event.message.content.substring(0, 100)
-            : JSON.stringify(event.message.content).substring(0, 100))
-        : '[no content]';
-      console.log(`[Bridge] ⚠️ Unidentified session ${sessionId.substring(0, 8)} → Chief (fallback). Content: "${contentSnippet}..."`);
+      // Mark as ignored so we don't spam logs, but don't broadcast anything
+      agentSessions.set(sessionId, 'ignored');
+      return; // Exit early - no broadcast for non-HALO sessions
+    }
+
+    // Skip broadcasting for sessions marked as ignored
+    if (agentId === 'ignored') {
+      return;
     }
 
     // Handle different event types
@@ -1165,6 +1166,13 @@ function scanForSessions() {
 
 // ─── Main ──────────────────────────────────────────────────────────────────────
 
+console.log(`[Bridge] Starting activity bridge...`);
+console.log(`[Bridge] Only HALO agents will be broadcast (non-HALO sessions ignored)`);
+console.log(`[Bridge] Watching for sessions modified in last 10 minutes`);
+
+// Clear any stale session mappings from previous runs
+agentSessions.clear();
+
 // Initial scan
 scanForSessions();
 
@@ -1174,7 +1182,14 @@ setInterval(scanForSessions, 10000);
 // Heartbeat check - every 30 seconds
 setInterval(() => {
   const count = dashboards.size;
-  console.log(`[Bridge] ${count} dashboard(s) connected, ${agentSessions.size} sessions tracked, ${agentConnections.size} agent(s) directly connected`);
+  // Count HALO vs ignored sessions
+  let haloCount = 0;
+  let ignoredCount = 0;
+  for (const [, agent] of agentSessions) {
+    if (agent === 'ignored') ignoredCount++;
+    else haloCount++;
+  }
+  console.log(`[Bridge] ${count} dashboard(s), ${haloCount} HALO sessions, ${ignoredCount} ignored, ${agentConnections.size} direct agent(s)`);
 
   // Compute and broadcast heartbeat status for each agent
   const now = new Date().toISOString();
