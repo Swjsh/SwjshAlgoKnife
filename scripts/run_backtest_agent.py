@@ -37,6 +37,7 @@ def run_backtest(agent_name: str, start: str, end: str, **overrides):
     strategy = overrides.get('strategy', config['strategy'])
     capital = overrides.get('capital', config['initial_capital'])
     risk = overrides.get('risk', config['risk_per_trade'])
+    strategy_params = config.get('strategy_params', {})
 
     print(f"\n{'=' * 60}")
     print(f"  Running backtest for: {config['name']}")
@@ -44,6 +45,8 @@ def run_backtest(agent_name: str, start: str, end: str, **overrides):
     print(f"  Strategy: {strategy}")
     print(f"  Period: {start} -> {end}")
     print(f"  Timeframe: {timeframe}")
+    if strategy_params:
+        print(f"  Strategy Params: {strategy_params}")
     print(f"{'=' * 60}\n")
 
     # Build command
@@ -58,6 +61,11 @@ def run_backtest(agent_name: str, start: str, end: str, **overrides):
         "--balance", str(capital),
         "--risk", str(risk),
     ]
+
+    # Pass strategy params as JSON if present
+    if strategy_params:
+        import json
+        cmd.extend(["--params", json.dumps(strategy_params)])
 
     # Run backtest
     result = subprocess.run(cmd, cwd=Path(__file__).parent.parent)
