@@ -32,77 +32,81 @@
     flex-shrink: 0;
 }
 
-/* Master Refresh Button */
-.masterRefresh {
+/* ─── Sync Buttons ───────────────────────────────────────────── */
+.syncBtn {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 4px 12px;
-    background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(168, 85, 247, 0.12));
-    border: 1px solid rgba(6, 182, 212, 0.3);
-    border-radius: 6px;
-    color: #06b6d4;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-base);
+    background: var(--bg-subtle, rgba(255,255,255,0.04));
     font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     cursor: pointer;
     transition: all 0.25s ease;
     flex-shrink: 0;
+    white-space: nowrap;
+    height: 40px;
 }
 
-.masterRefresh:hover:not(:disabled) {
-    background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(168, 85, 247, 0.2));
-    border-color: rgba(6, 182, 212, 0.5);
-    box-shadow: 0 0 14px rgba(6, 182, 212, 0.25), 0 0 4px rgba(168, 85, 247, 0.15);
-    transform: scale(1.03);
+.syncBtn:hover:not(:disabled) {
+    transform: translateY(-1px);
 }
 
-.masterRefresh:active:not(:disabled) {
-    transform: scale(0.97);
+.syncBtn:active:not(:disabled) {
+    transform: translateY(0) scale(0.97);
 }
 
-.masterRefresh:disabled {
-    opacity: 0.7;
+.syncBtn:disabled {
+    opacity: 0.65;
     cursor: wait;
 }
 
-.refreshSpin svg {
-    animation: refreshSpin 0.6s ease-in-out;
-}
-
-.refreshLabel {
-    text-transform: uppercase;
-}
-
-@keyframes refreshSpin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-.clockSection {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 8px;
+.syncAgentsBtn {
+    border-color: rgba(6, 182, 212, 0.35);
     background: rgba(6, 182, 212, 0.08);
-    border: 1px solid rgba(6, 182, 212, 0.2);
-    border-radius: 5px;
-    flex-shrink: 0;
-    margin-left: auto;
-}
-
-.clockTime {
-    font-size: 13px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
     color: #06b6d4;
 }
 
-.clockDate {
-    font-size: 10px;
-    font-family: 'JetBrains Mono', monospace;
-    color: rgba(255, 255, 255, 0.4);
+.syncAgentsBtn:hover:not(:disabled) {
+    border-color: rgba(6, 182, 212, 0.6);
+    background: rgba(6, 182, 212, 0.15);
+    box-shadow: 0 0 18px rgba(6, 182, 212, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.syncJiraBtn {
+    border-color: rgba(168, 85, 247, 0.35);
+    background: rgba(168, 85, 247, 0.08);
+    color: #a855f7;
+}
+
+.syncJiraBtn:hover:not(:disabled) {
+    border-color: rgba(168, 85, 247, 0.6);
+    background: rgba(168, 85, 247, 0.15);
+    box-shadow: 0 0 18px rgba(168, 85, 247, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.syncBtnLabel {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.syncSpinner {
+    animation: syncRotate 0.8s linear infinite;
+}
+
+@keyframes syncRotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.refreshSpin svg:first-child {
+    animation: syncRotate 0.6s ease-in-out;
 }
 
 /* Master Broadcast Input — compact single row */
@@ -336,17 +340,16 @@
     color: rgba(0, 0, 0, 0.5);
 }
 
-:global([data-theme='light']) .clockSection {
+:global([data-theme='light']) .syncAgentsBtn {
     background: rgba(6, 182, 212, 0.06);
-    border-color: rgba(6, 182, 212, 0.15);
-}
-
-:global([data-theme='light']) .clockTime {
+    border-color: rgba(6, 182, 212, 0.25);
     color: #0891b2;
 }
 
-:global([data-theme='light']) .clockDate {
-    color: rgba(0, 0, 0, 0.5);
+:global([data-theme='light']) .syncJiraBtn {
+    background: rgba(168, 85, 247, 0.06);
+    border-color: rgba(168, 85, 247, 0.25);
+    color: #9333ea;
 }
 
 :global([data-theme='light']) .loading {

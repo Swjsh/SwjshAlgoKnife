@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo, useRef, KeyboardEvent } from 'react';
-import { Activity, Radio, Send, RefreshCw } from 'lucide-react';
+import { Activity, Radio, Send, RefreshCw, Database } from 'lucide-react';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useJiraTickets } from '@/hooks/useJiraTickets';
@@ -12,16 +12,17 @@ import { AgentTerminal } from '@/components/ActivityFeed/AgentTerminal';
 import { PermissionQueue } from '@/components/ActivityFeed/PermissionQueue';
 import { TicketStrip } from '@/components/ActivityFeed/TicketStrip';
 import { ActivityColumn } from '@/components/ActivityFeed/ActivityColumn';
+import { N8nHeartbeat } from '@/components/ActivityFeed/N8nHeartbeat';
 import styles from './page.module.css';
 
 // Agent order for the grid (7 agents: 2x3 + 1)
 const AGENT_ORDER = ['chief', 'hunter', 'ops', 'scout', 'arbiter', 'cortana'] as const;
 
 export default function ActivityFeedPage() {
-    const [currentTime, setCurrentTime] = useState(new Date());
     const [isHydrated, setIsHydrated] = useState(false);
     const [broadcastValue, setBroadcastValue] = useState('');
-    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [syncingAgents, setSyncingAgents] = useState(false);
+    const [syncingJira, setSyncingJira] = useState(false);
     const broadcastInputRef = useRef<HTMLInputElement>(null);
 
     // Connect to WebSocket for real-time updates
@@ -62,16 +63,23 @@ export default function ActivityFeedPage() {
     // Jira ticket count stats per agent
     const { stats: jiraStats } = useJiraStats();
 
-    // Master refresh — Jira tickets + agent status re-poll
-    const handleMasterRefresh = useCallback(async () => {
-        setIsRefreshing(true);
+    // Sync Agents — re-poll PM2/activity-bridge agent status
+    const handleSyncAgents = useCallback(async () => {
+        setSyncingAgents(true);
         try {
-            await Promise.all([
-                refetchTickets(),
-                fetch('/api/activity/agents').catch(() => {}),
-            ]);
+            await fetch('/api/activity/agents').catch(() => {});
         } finally {
-            setTimeout(() => setIsRefreshing(false), 600);
+            setTimeout(() => setSyncingAgents(false), 600);
+        }
+    }, []);
+
+    // Sync Jira — refetch Jira tickets for all agents
+    const handleSyncJira = useCallback(async () => {
+        setSyncingJira(true);
+        try {
+            await refetchTickets();
+        } finally {
+            setTimeout(() => setSyncingJira(false), 600);
         }
     }, [refetchTickets]);
 
@@ -136,32 +144,10 @@ export default function ActivityFeedPage() {
         enabled: true,
     });
 
-    // Update clock every second
+    // Hydration
     useEffect(() => {
         setIsHydrated(true);
-        const interval = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 1000);
-        return () => clearInterval(interval);
     }, []);
-
-    // Format time for display
-    const formattedTime = useMemo(() => {
-        return currentTime.toLocaleTimeString('en-US', {
-            hour12: false,
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-        });
-    }, [currentTime]);
-
-    const formattedDate = useMemo(() => {
-        return currentTime.toLocaleDateString('en-US', {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric',
-        });
-    }, [currentTime]);
 
     // Order agents for display
     const orderedAgents = useMemo(() => {
@@ -207,18 +193,26 @@ export default function ActivityFeedPage() {
                 onStartLoop={startLoop}
                 onStopLoop={stopLoop}
             />
-                <button
-                    className={`${styles.masterRefresh} ${isRefreshing ? styles.refreshSpin : ''}`}
-                    onClick={handleMasterRefresh}
-                    disabled={isRefreshing}
-                    title="Refresh all feeds"
-                >
-                    <RefreshCw size={14} />
-                    <span className={styles.refreshLabel}>Sync</span>
-                </button>
-                <div className={styles.clockSection}>
-                    <span className={styles.clockTime}>{formattedTime}</span>
-                    <span className={styles.clockDate}>{formattedDate}</span>
+                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <N8nHeartbeat />
+                    <button
+                        className={`${styles.syncBtn} ${styles.syncAgentsBtn} ${syncingAgents ? styles.refreshSpin : ''}`}
+                        onClick={handleSyncAgents}
+                        disabled={syncingAgents}
+                        title="Sync agent status from PM2"
+                    >
+                        <RefreshCw size={14} className={syncingAgents ? styles.syncSpinner : ''} />
+                        <span className={styles.syncBtnLabel}>Sync Agents</span>
+                    </button>
+                    <button
+                        className={`${styles.syncBtn} ${styles.syncJiraBtn} ${syncingJira ? styles.refreshSpin : ''}`}
+                        onClick={handleSyncJira}
+                        disabled={syncingJira}
+                        title="Sync Jira tickets"
+                    >
+                        <Database size={14} className={syncingJira ? styles.syncSpinner : ''} />
+                        <span className={styles.syncBtnLabel}>Sync Jira</span>
+                    </button>
                 </div>
             </div>
 
