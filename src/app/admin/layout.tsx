@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { ADMIN_EMAILS } from '@/lib/adminGuard';
+import { ADMIN_EMAILS } from '@/lib/adminEmails';
 import Link from 'next/link';
 
 interface AdminLayoutProps {
