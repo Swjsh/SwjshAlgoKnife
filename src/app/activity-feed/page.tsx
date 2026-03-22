@@ -227,30 +227,17 @@ export default function ActivityFeedPage() {
                 </button>
             </div>
 
-            {/* Main Layout: 2x3 Agent Grid + Permission Queue */}
-            <div className={styles.mainLayout}>
-                {/* Agent Terminals - 2x3 Grid */}
-                <div className={styles.agentGrid}>
-                    {orderedAgents.map((agent) => (
-                        <AgentTerminal
-                            key={agent.id}
-                            agent={agent}
-                            onSendCommand={sendCommand}
-                            heartbeat={heartbeat[agent.id]}
-                            onNudge={nudgeAgent}
-                        />
-                    ))}
-                </div>
-
-                {/* Permission Queue Panel */}
-                <div className={styles.permissionPanel}>
-                    <PermissionQueue
-                        permissions={permissions}
-                        onApprove={approve}
-                        onReject={reject}
-                        onApproveAll={approveAll}
+            {/* Agent Terminals - 2x3 Grid (full width) */}
+            <div className={styles.agentGrid}>
+                {orderedAgents.map((agent) => (
+                    <AgentTerminal
+                        key={agent.id}
+                        agent={agent}
+                        onSendCommand={sendCommand}
+                        heartbeat={heartbeat[agent.id]}
+                        onNudge={nudgeAgent}
                     />
-                </div>
+                ))}
             </div>
 
             {/* Jira Ticket Strip - Bottom Row */}
