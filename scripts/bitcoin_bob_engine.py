@@ -37,10 +37,26 @@ TICK_INTERVAL_SEC = 60       # Price check every 60 seconds
 MAX_OPEN_TRADES   = 2        # Don't open more than 2 crypto positions at once
 STATUS_FILE       = Path(__file__).parent.parent / 'data' / 'crypto_agent_status.json'
 
+# ── H-006 Confirmed Filters (Cortana pattern detection, p < 0.05) ────────────
+# See: data/brain/LEARN-H006-CONFIRMATION.md
+# SHORT trades: 43.5% WR vs LONG: 12.5% WR (+31pp effect)
+DIRECTION_FILTER   = "SHORT"                      # Only take SHORT (SELL) signals from SUPPLY zones
+AVOID_ENTRY_HOURS  = [18, 19, 20, 21, 22, 23]     # UTC hours to avoid (US PM/Night = 0% WR)
+MAX_HOLD_HOURS     = 24                           # Auto-exit trades older than 24 hours
+
 # Alpaca symbol map (yfinance ticker → Alpaca format)
 YF_TO_ALPACA = {'BTC-USD': 'BTC/USD', 'ETH-USD': 'ETH/USD', 'SOL-USD': 'SOL/USD'}
 # Webhook symbol map (yfinance ticker → signal symbol)
 YF_TO_SIGNAL = {'BTC-USD': 'BTCUSD', 'ETH-USD': 'ETHUSD', 'SOL-USD': 'SOLUSD'}
+
+# ── H-006 Session Filter ─────────────────────────────────────────────────────
+def is_toxic_hour() -> bool:
+    """
+    Check if current UTC hour is in the toxic entry window.
+    H-006 found 0% win rate for entries during 18-23 UTC (US PM/Night).
+    """
+    current_utc_hour = datetime.utcnow().hour
+    return current_utc_hour in AVOID_ENTRY_HOURS
 
 # ── ATR ───────────────────────────────────────────────────────────────────────
 def calculate_atr(df, period=14):
@@ -229,6 +245,12 @@ def check_zone_entries(zones_by_pair: dict, active_trades: list, prices: dict) -
     # Tickers already in active trade
     open_tickers = {t['ticker'] for t in active_trades}
 
+    # H-006 Filter: Skip entries during toxic hours (18-23 UTC)
+    if is_toxic_hour():
+        current_utc = datetime.utcnow().hour
+        print(f"[Bob] ⏰ H-006: Skipping entries during toxic hour {current_utc}:00 UTC")
+        return zones_by_pair, active_trades
+
     for pair, zones in zones_by_pair.items():
         price = prices.get(pair)
         if price is None:
@@ -247,10 +269,18 @@ def check_zone_entries(zones_by_pair: dict, active_trades: list, prices: dict) -
             entered = False
             action  = None
 
+            # H-006 Filter: Only take SUPPLY zones (SHORT/SELL) when direction_filter is "SHORT"
+            # LONG trades have 12.5% WR vs SHORT 43.5% WR (+31pp effect)
             if zone['type'] == 'DEMAND' and zone['bottom'] <= price <= zone['top']:
+                if DIRECTION_FILTER == "SHORT":
+                    # Skip DEMAND zones (LONG trades) per H-006
+                    continue
                 entered = True
                 action  = 'BUY'
             elif zone['type'] == 'SUPPLY' and zone['bottom'] <= price <= zone['top']:
+                if DIRECTION_FILTER == "LONG":
+                    # Skip SUPPLY zones (SHORT trades) if LONG-only filter active
+                    continue
                 entered = True
                 action  = 'SELL'
 

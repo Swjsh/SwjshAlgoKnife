@@ -116,6 +116,9 @@ The following files are **critical infrastructure**. They have been carefully de
 
 ## GIT OPERATION RESTRICTIONS
 
+> **MANDATORY:** Read `Library/agent-souls/GIT_WORKFLOW.md` for the full git workflow.
+> Key point: All 6 agents share ONE working directory. There is NO branch isolation.
+
 Git operations are one of the most dangerous things an agent can do because they affect ALL other agents' uncommitted work.
 
 **SAFE git operations (allowed):**

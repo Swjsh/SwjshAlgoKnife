@@ -1,0 +1,290 @@
+.container {
+  position: relative;
+  background: linear-gradient(135deg, hsl(222 47% 13% / 0.95), hsl(222 47% 11% / 0.9));
+  border: 1px solid hsl(220 20% 25% / 0.6);
+  border-radius: 12px;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Corner brackets */
+.corner {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: hsl(188 95% 43% / 0.5);
+  border-style: solid;
+  border-width: 0;
+  z-index: 2;
+}
+
+.topLeft {
+  top: -1px;
+  left: -1px;
+  border-top-width: 2px;
+  border-left-width: 2px;
+  border-top-left-radius: 4px;
+}
+
+.topRight {
+  top: -1px;
+  right: -1px;
+  border-top-width: 2px;
+  border-right-width: 2px;
+  border-top-right-radius: 4px;
+}
+
+.bottomLeft {
+  bottom: -1px;
+  left: -1px;
+  border-bottom-width: 2px;
+  border-left-width: 2px;
+  border-bottom-left-radius: 4px;
+}
+
+.bottomRight {
+  bottom: -1px;
+  right: -1px;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+  border-bottom-right-radius: 4px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid hsl(220 20% 22% / 0.5);
+  flex-shrink: 0;
+}
+
+.label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: hsl(188 95% 43%);
+  font-weight: 600;
+}
+
+.count {
+  font-size: 11px;
+  color: hsl(220 10% 55%);
+  background: hsl(222 47% 15%);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+}
+
+.empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: hsl(220 10% 50%);
+  font-size: 13px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tableWrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  min-height: 0;
+}
+
+/* Scrollbar styling */
+.tableWrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tableWrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb {
+  background: hsl(220 20% 25% / 0.6);
+  border-radius: 3px;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb:hover {
+  background: hsl(220 20% 35% / 0.8);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(220 10% 50%);
+  font-weight: 600;
+  background: hsl(222 47% 11% / 0.5);
+  border-bottom: 1px solid hsl(220 20% 22% / 0.5);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.table th:first-child {
+  padding-left: 16px;
+}
+
+.table th:last-child {
+  padding-right: 16px;
+}
+
+.row {
+  border-bottom: 1px solid hsl(220 20% 20% / 0.3);
+  animation: rowAppear 0.3s ease-out backwards;
+  animation-delay: var(--row-delay);
+  transition: background 0.2s ease;
+}
+
+@keyframes rowAppear {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.row:hover {
+  background: hsl(222 47% 14%);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row[data-status="error"] {
+  background: hsl(0 70% 50% / 0.03);
+}
+
+.row[data-status="running"] {
+  background: hsl(271 77% 62% / 0.03);
+}
+
+.row td {
+  padding: 10px 12px;
+  vertical-align: middle;
+}
+
+.row td:first-child {
+  padding-left: 16px;
+}
+
+.row td:last-child {
+  padding-right: 16px;
+}
+
+.statusCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconSuccess {
+  color: hsl(142 70% 50%);
+}
+
+.iconError {
+  color: hsl(0 70% 55%);
+}
+
+.iconRunning {
+  color: hsl(271 77% 62%);
+  animation: spin 1s linear infinite;
+}
+
+.iconWaiting {
+  color: hsl(45 90% 50%);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.statusBadge {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+
+.statusBadge.success {
+  background: hsl(142 70% 45% / 0.15);
+  color: hsl(142 70% 55%);
+}
+
+.statusBadge.error {
+  background: hsl(0 70% 50% / 0.15);
+  color: hsl(0 70% 60%);
+}
+
+.statusBadge.running {
+  background: hsl(271 77% 62% / 0.15);
+  color: hsl(271 77% 70%);
+}
+
+.statusBadge.waiting {
+  background: hsl(45 90% 50% / 0.15);
+  color: hsl(45 90% 60%);
+}
+
+.workflowCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workflowName {
+  font-size: 12px;
+  color: hsl(0 0% 90%);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.workflowId {
+  font-size: 9px;
+  color: hsl(220 10% 45%);
+  font-family: var(--font-mono);
+}
+
+.timeCell {
+  font-size: 11px;
+  color: hsl(220 10% 65%);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.durationCell {
+  font-size: 11px;
+  color: hsl(220 10% 60%);
+  font-family: var(--font-mono);
+}
+
+.runningIndicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: hsl(271 77% 65%);
+}
+
+.spinnerSmall {
+  animation: spin 1s linear infinite;
+}

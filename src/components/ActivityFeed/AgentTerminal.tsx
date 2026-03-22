@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback, KeyboardEvent } from 'react';
 import Image from 'next/image';
-import { Terminal, Circle, Send, Zap, CheckCircle2, Loader2, ListTodo, Play } from 'lucide-react';
+import { Terminal, Circle, Send, Zap, CheckCircle2, Loader2, ListTodo, Play, RefreshCw } from 'lucide-react';
 import styles from './AgentTerminal.module.css';
 import type { AgentState, LogEntry, AgentStatus, HeartbeatAgentState } from '@/hooks/useActivityFeed';
 import type { AgentStats } from '@/hooks/useJiraStats';
@@ -13,6 +13,7 @@ interface AgentTerminalProps {
     heartbeat?: HeartbeatAgentState;
     onNudge?: (agentId: string) => void;
     onContinue?: (agentId: string) => void;
+    onRestart?: (agentId: string) => void;
     jiraStats?: AgentStats;
 }
 
@@ -189,11 +190,12 @@ function getHeartbeatLabel(status: HeartbeatAgentState['status']): string {
     }
 }
 
-export function AgentTerminal({ agent, onSendCommand, heartbeat, onNudge, onContinue, jiraStats }: AgentTerminalProps) {
+export function AgentTerminal({ agent, onSendCommand, heartbeat, onNudge, onContinue, onRestart, jiraStats }: AgentTerminalProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const [inputValue, setInputValue] = useState('');
     const [isPending, setIsPending] = useState(false);
+    const [isRestarting, setIsRestarting] = useState(false);
 
     const heartbeatStatus = heartbeat?.status || 'unknown';
     const isStaleOrDead = heartbeatStatus === 'stale' || heartbeatStatus === 'dead';
@@ -206,6 +208,26 @@ export function AgentTerminal({ agent, onSendCommand, heartbeat, onNudge, onCont
             onNudge(agent.id);
         }
     }, [agent.id, onNudge]);
+
+    // Handle restart button click — kills and relaunches agent session
+    const handleRestart = useCallback(async () => {
+        if (isRestarting) return;
+        setIsRestarting(true);
+        try {
+            if (onRestart) {
+                onRestart(agent.id);
+            } else {
+                // Fallback: call HALO watchdog API directly
+                await fetch('/api/agents/halo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'restart', agent: agent.id }),
+                }).catch(() => {});
+            }
+        } finally {
+            setTimeout(() => setIsRestarting(false), 3000);
+        }
+    }, [agent.id, onRestart, isRestarting]);
 
     // Auto-scroll to bottom when new logs arrive
     useEffect(() => {
@@ -327,6 +349,16 @@ export function AgentTerminal({ agent, onSendCommand, heartbeat, onNudge, onCont
                             Continue
                         </button>
                     )}
+
+                    {/* Restart button — kills & relaunches agent session */}
+                    <button
+                        className={`${styles.restartButton} ${isRestarting ? styles.restartSpin : ''}`}
+                        onClick={handleRestart}
+                        disabled={isRestarting}
+                        title={`Restart ${agent.name} session`}
+                    >
+                        <RefreshCw size={13} />
+                    </button>
 
                     <div className={`${styles.status} ${styles[agent.status]}`}>
                         <Circle size={8} fill="currentColor" className={styles.statusDot} />

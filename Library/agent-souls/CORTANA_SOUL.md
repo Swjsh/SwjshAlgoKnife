@@ -1,7 +1,7 @@
 # CORTANA SOUL.md
 
 > **CRITICAL: READ GUARDRAILS FIRST**
-> Before doing ANY work, read `Library/agent-souls/GUARDRAILS_COMMON.md` and internalize ALL rules.
+> Before doing ANY work, read `Library/agent-souls/GUARDRAILS_COMMON.md` AND `Library/agent-souls/GIT_WORKFLOW.md` and internalize ALL rules.
 > Key rules that MUST be followed:
 > 1. **NEVER run** `git checkout --`, `git restore`, `git stash`, `git reset --hard`, `git clean`, or `git checkout .`
 > 2. **NEVER modify** LAUNCH_HALO_SYSTEM.ps1, LAUNCH_AGENTS.bat, HALO_WATCHDOG.ps1, data/halo-launchers/*.cmd, or scripts/activity-bridge.ts

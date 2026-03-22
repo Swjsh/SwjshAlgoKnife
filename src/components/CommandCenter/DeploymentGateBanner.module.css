@@ -1,0 +1,242 @@
+/* DeploymentGateBanner.module.css */
+
+.banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--panel-bg, rgba(17, 17, 22, 0.9));
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-base, rgba(255, 255, 255, 0.08));
+  border-radius: 16px;
+  padding: 16px 24px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.banner.passed {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+}
+
+.banner.failed {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, transparent 50%);
+}
+
+/* Shimmer effect overlay */
+.shimmerOverlay {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.passed .shimmerOverlay {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(16, 185, 129, 0.1) 50%,
+    transparent 100%
+  );
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  z-index: 1;
+}
+
+.iconSection {
+  flex-shrink: 0;
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.iconSuccess {
+  color: #10b981;
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.5));
+}
+
+.iconWarning {
+  color: #ef4444;
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+@keyframes pulse-warning {
+  0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.4)); }
+  50% { opacity: 0.7; filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.8)); }
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.status {
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+
+.passed .status {
+  color: #10b981;
+}
+
+.failed .status {
+  color: #ef4444;
+}
+
+.details {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.details strong {
+  color: var(--text-primary, #f8fafc);
+}
+
+.inlineWarning {
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.failReason {
+  color: var(--text-muted, #64748b);
+}
+
+.scoreSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 20px;
+  border-left: 1px solid var(--border-base, rgba(255, 255, 255, 0.08));
+}
+
+.scoreValue {
+  font-size: 2rem;
+  font-weight: 800;
+  font-family: var(--font-mono, monospace);
+  line-height: 1;
+}
+
+.passed .scoreValue {
+  color: #10b981;
+}
+
+.failed .scoreValue {
+  color: #ef4444;
+}
+
+.scoreLabel {
+  font-size: 0.65rem;
+  color: var(--text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+.detailsButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-base, rgba(255, 255, 255, 0.1));
+  border-radius: 8px;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.detailsButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary, #f8fafc);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Animated border glow */
+.borderGlow {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 1px;
+  pointer-events: none;
+}
+
+.passed .borderGlow {
+  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.3), transparent);
+  background-size: 200% 100%;
+  animation: border-flow 4s linear infinite;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+
+@keyframes border-flow {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .banner {
+    padding: 12px 16px;
+  }
+
+  .content {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .iconWrapper {
+    width: 44px;
+    height: 44px;
+  }
+
+  .iconWrapper svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .scoreSection {
+    padding: 8px 16px;
+  }
+
+  .scoreValue {
+    font-size: 1.5rem;
+  }
+
+  .detailsButton {
+    display: none;
+  }
+}

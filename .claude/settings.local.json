@@ -83,7 +83,11 @@
       "mcp__n8n__get_template",
       "WebFetch(domain:openclaw-ai.com)",
       "WebFetch(domain:gist.github.com)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(curl:*)",
+      "mcp__n8n__n8n_update_partial_workflow",
+      "mcp__n8n__n8n_validate_workflow",
+      "mcp__n8n__n8n_update_full_workflow"
     ]
   }
 }

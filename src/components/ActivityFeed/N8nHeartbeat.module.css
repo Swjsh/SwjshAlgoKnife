@@ -1,13 +1,15 @@
 .container {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 16px;
+  gap: 10px;
+  padding: 6px 14px;
   background: linear-gradient(135deg, rgba(255, 109, 90, 0.08) 0%, rgba(255, 109, 90, 0.03) 100%);
   border: 1px solid rgba(255, 109, 90, 0.25);
-  border-radius: 10px;
+  border-radius: 8px;
   flex-shrink: 0;
-  min-width: 320px;
+  min-width: 280px;
+  height: 48px;
+  box-sizing: border-box;
   transition: all 0.3s ease;
 }
 
@@ -29,8 +31,8 @@
 
 .statusRing {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -64,8 +66,8 @@
 }
 
 .logo {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   z-index: 2;
   filter: drop-shadow(0 0 8px rgba(255, 109, 90, 0.5));
   transition: filter 0.3s ease;

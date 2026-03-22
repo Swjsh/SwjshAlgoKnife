@@ -1,0 +1,146 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Agent Toggle Grid */
+.agentGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.agentToggle {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.agentToggle:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.agentToggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.agentToggle.selected {
+  background: rgba(var(--agent-accent-rgb, 6, 182, 212), 0.12);
+  border-color: var(--agent-accent, #06b6d4);
+  box-shadow: 0 0 12px rgba(var(--agent-accent-rgb, 6, 182, 212), 0.2);
+}
+
+.emoji {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.name {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.03em;
+}
+
+.selected .name {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.statusDot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.statusDot.online {
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+  animation: pulse 2s infinite;
+}
+
+.statusDot.dead {
+  background: #ef4444;
+}
+
+.statusDot.offline {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.checkmark {
+  position: absolute;
+  bottom: 4px;
+  right: 6px;
+  font-size: 10px;
+  color: var(--agent-accent, #06b6d4);
+  font-weight: 700;
+}
+
+/* Quick Select Row */
+.quickSelect {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.presetBtn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.presetBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.presetBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.clearBtn {
+  border-color: rgba(239, 68, 68, 0.25);
+  color: rgba(239, 68, 68, 0.7);
+}
+
+.clearBtn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .agentGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

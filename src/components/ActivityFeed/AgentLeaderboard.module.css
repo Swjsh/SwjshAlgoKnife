@@ -1,0 +1,167 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.06) 0%, rgba(168, 85, 247, 0.04) 100%);
+  border: 1px solid rgba(251, 191, 36, 0.18);
+  border-radius: 8px;
+  flex-shrink: 0;
+  min-width: 280px;
+  height: 48px;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.container:hover {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(168, 85, 247, 0.06) 100%);
+  border-color: rgba(251, 191, 36, 0.3);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.1);
+}
+
+/* Header — mirrors n8n logoSection (40x40) */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+}
+
+.headerIcon {
+  color: #fbbf24;
+  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.5));
+}
+
+.headerTitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: rgba(251, 191, 36, 0.7);
+}
+
+/* Content */
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Rankings Mode */
+.rankings {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rankRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 0;
+}
+
+.rankMedal {
+  font-size: 11px;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+
+.rankName {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: capitalize;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rankScore {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  flex-shrink: 0;
+  min-width: 28px;
+  text-align: right;
+}
+
+.rankRow[data-rank="1"] .rankScore {
+  color: #fbbf24;
+}
+
+/* Quick Stats Mode (when no agent rankings) */
+.quickStats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quickStat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.quickIcon {
+  color: rgba(251, 191, 36, 0.6);
+  flex-shrink: 0;
+}
+
+.quickValue {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.quickLabel {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.statSep {
+  width: 1px;
+  height: 18px;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+  .container {
+    min-width: 260px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .container {
+    display: none;
+  }
+}
+
+/* Light theme */
+:global([data-theme='light']) .container {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(168, 85, 247, 0.04) 100%);
+  border-color: rgba(251, 191, 36, 0.2);
+}
+
+:global([data-theme='light']) .quickValue {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+:global([data-theme='light']) .rankScore {
+  color: rgba(0, 0, 0, 0.6);
+}

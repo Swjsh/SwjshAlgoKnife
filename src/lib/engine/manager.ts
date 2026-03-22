@@ -6,6 +6,7 @@ import { BollingerBandStrategy } from './strategies/bbBreakout';
 import { ThreeDucksStrategy } from './strategies/threeDucks';
 import { GridTradingStrategy } from './strategies/gridTrading';
 import { NeverStoppedOutStrategy } from './strategies/neverStoppedOut';
+import { GoldDxyMismatchStrategy } from './strategies/goldDxyMismatch';
 import { BaseStrategy, Signal, IntelStrategyContext } from './types';
 import { IntelAdapter } from '../intel/adapter';
 
@@ -85,6 +86,24 @@ export class EngineManager {
             isActive: false,
             params: {},
             category: 'CRYPTO'
+        }));
+
+        // === FOREX/COMMODITIES CORRELATION STRATEGIES ===
+        this.strategies.push(new GoldDxyMismatchStrategy({
+            id: 'gold_dxy_mismatch',
+            name: 'Gold-DXY Mismatch',
+            isActive: true, // Enabled for Gold trading
+            params: {
+                dxyPushThreshold: 1.5,
+                goldSidewaysThreshold: 0.5,
+                retracementMin: 0.20,
+                retracementMax: 0.50,
+                correlationThreshold: -0.30,
+                lookbackPeriod: 20,
+                maxMismatchBars: 48
+            },
+            category: 'FOREX',
+            categories: ['FOREX', 'FUTURES']
         }));
     }
 

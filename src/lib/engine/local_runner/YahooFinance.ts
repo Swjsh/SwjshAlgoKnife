@@ -9,7 +9,8 @@ export class YahooFinance extends EventEmitter {
         { yahoo: 'GBPUSD=X', normalized: 'GBPUSD' },
         { yahoo: 'USDJPY=X', normalized: 'USDJPY' },
         { yahoo: 'AUDUSD=X', normalized: 'AUDUSD' },
-        { yahoo: 'USDCAD=X', normalized: 'USDCAD' }
+        { yahoo: 'USDCAD=X', normalized: 'USDCAD' },
+        { yahoo: 'DX-Y.NYB', normalized: 'DXY' }
     ];
 
     start() {

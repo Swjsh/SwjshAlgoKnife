@@ -1,0 +1,121 @@
+.container {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 1200px) {
+  .container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.card {
+  position: relative;
+  background: linear-gradient(135deg, hsl(222 47% 13% / 0.95), hsl(222 47% 11% / 0.9));
+  border: 1px solid hsl(220 20% 25% / 0.6);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: border-color 0.3s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+.card[data-accent="cyan"] {
+  border-color: hsl(188 95% 43% / 0.3);
+}
+
+.card[data-accent="cyan"]:hover {
+  border-color: hsl(188 95% 43% / 0.5);
+  box-shadow: 0 4px 20px hsl(188 95% 43% / 0.1);
+}
+
+.card[data-accent="green"] {
+  border-color: hsl(142 70% 45% / 0.3);
+}
+
+.card[data-accent="green"]:hover {
+  border-color: hsl(142 70% 45% / 0.5);
+  box-shadow: 0 4px 20px hsl(142 70% 45% / 0.1);
+}
+
+.card[data-accent="red"] {
+  border-color: hsl(0 70% 50% / 0.3);
+}
+
+.card[data-accent="red"]:hover {
+  border-color: hsl(0 70% 50% / 0.5);
+  box-shadow: 0 4px 20px hsl(0 70% 50% / 0.1);
+}
+
+.card[data-accent="yellow"] {
+  border-color: hsl(45 90% 50% / 0.3);
+}
+
+.card[data-accent="yellow"]:hover {
+  border-color: hsl(45 90% 50% / 0.5);
+  box-shadow: 0 4px 20px hsl(45 90% 50% / 0.1);
+}
+
+.card[data-accent="purple"] {
+  border-color: hsl(271 77% 62% / 0.3);
+}
+
+.card[data-accent="purple"]:hover {
+  border-color: hsl(271 77% 62% / 0.5);
+  box-shadow: 0 4px 20px hsl(271 77% 62% / 0.1);
+}
+
+.cardCorner {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid hsl(188 95% 43% / 0.5);
+  border-left: 2px solid hsl(188 95% 43% / 0.5);
+  border-top-left-radius: 4px;
+}
+
+.iconWrapper {
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  background: hsl(222 47% 15%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--stat-color);
+  flex-shrink: 0;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.value {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  line-height: 1.2;
+}
+
+.label {
+  font-size: 10px;
+  color: hsl(220 10% 55%);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

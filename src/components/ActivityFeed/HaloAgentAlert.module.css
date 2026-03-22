@@ -1,0 +1,427 @@
+/* ═══════════════════════════════════════════════════════════════
+   HaloAgentAlert — Big red pulsing alert for dead/failing agents
+   Inspired by 21st.dev/community/components/ravikatiyar/card-16
+   Adapted for HALO crew with cyber-industrial aesthetic
+   ═══════════════════════════════════════════════════════════════ */
+
+.alertContainer {
+    position: relative;
+    margin-bottom: 20px;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+/* Pulsing red glow border */
+.pulseGlow {
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    border: 2px solid rgba(239, 68, 68, 0.6);
+    box-shadow:
+        0 0 20px rgba(239, 68, 68, 0.25),
+        0 0 40px rgba(239, 68, 68, 0.1),
+        inset 0 0 20px rgba(239, 68, 68, 0.05);
+    animation: pulseRed 2s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes pulseRed {
+    0%, 100% {
+        border-color: rgba(239, 68, 68, 0.6);
+        box-shadow:
+            0 0 20px rgba(239, 68, 68, 0.25),
+            0 0 40px rgba(239, 68, 68, 0.1),
+            inset 0 0 20px rgba(239, 68, 68, 0.05);
+    }
+    50% {
+        border-color: rgba(239, 68, 68, 0.9);
+        box-shadow:
+            0 0 30px rgba(239, 68, 68, 0.4),
+            0 0 60px rgba(239, 68, 68, 0.2),
+            inset 0 0 30px rgba(239, 68, 68, 0.08);
+    }
+}
+
+.alertInner {
+    position: relative;
+    z-index: 2;
+    background: rgba(239, 68, 68, 0.06);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 16px;
+    padding: 18px 20px;
+}
+
+/* ─── Header ──────────────────────────────────────────────── */
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(239, 68, 68, 0.15);
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.alertIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    animation: pulseIcon 2s ease-in-out infinite;
+}
+
+@keyframes pulseIcon {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 800;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.12em;
+    color: #ef4444;
+}
+
+.subtitle {
+    margin: 2px 0 0;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.headerRight {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.watchdogBadge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.06em;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid;
+}
+
+.watchdogBadge.online {
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.08);
+}
+
+.watchdogBadge.offline {
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.restartAllBtn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.06em;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.restartAllBtn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.6);
+}
+
+.restartAllBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ─── Issue Cards Grid ────────────────────────────────────── */
+
+.issueGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.issueCard {
+    position: relative;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    border-left: 3px solid;
+    transition: border-color 0.15s;
+}
+
+.issueCard:hover {
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.dismissBtn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.12s;
+}
+
+.dismissBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* ─── Agent Row ───────────────────────────────────────────── */
+
+.agentRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.agentAvatar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 2px solid;
+    background: rgba(255, 255, 255, 0.04);
+    flex-shrink: 0;
+}
+
+.avatarImg {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.pulsingDot {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ef4444;
+    border: 2px solid rgba(10, 10, 16, 0.9);
+    animation: dotPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+    50% { transform: scale(1.2); box-shadow: 0 0 8px 2px rgba(239, 68, 68, 0.3); }
+}
+
+.agentInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1;
+    min-width: 0;
+}
+
+.agentName {
+    font-size: 14px;
+    font-weight: 800;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.02em;
+}
+
+.agentRole {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.35);
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.04em;
+}
+
+.statusBadge {
+    font-size: 8px;
+    font-weight: 800;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border-radius: 5px;
+    flex-shrink: 0;
+}
+
+.statusBadge.dead {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.statusBadge.error {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.statusBadge.jira_fail {
+    color: #a855f7;
+    background: rgba(168, 85, 247, 0.12);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.statusBadge.stale {
+    color: #f97316;
+    background: rgba(249, 115, 22, 0.12);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+/* ─── Error Details ───────────────────────────────────────── */
+
+.errorMessage {
+    margin: 0 0 4px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.55);
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    line-height: 1.4;
+}
+
+.errorTime {
+    margin: 0 0 12px;
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.25);
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.04em;
+}
+
+/* ─── Action Buttons ──────────────────────────────────────── */
+
+.actionRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.restartBtn,
+.fixBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.03em;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.12s ease;
+}
+
+.restartBtn {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #10b981;
+}
+
+.restartBtn:hover {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.5);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+}
+
+.fixBtn {
+    background: rgba(6, 182, 212, 0.1);
+    border-color: rgba(6, 182, 212, 0.3);
+    color: #06b6d4;
+}
+
+.fixBtn:hover {
+    background: rgba(6, 182, 212, 0.2);
+    border-color: rgba(6, 182, 212, 0.5);
+    box-shadow: 0 0 12px rgba(6, 182, 212, 0.15);
+}
+
+.restartBtn:disabled,
+.fixBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.restartBtn:active,
+.fixBtn:active {
+    transform: scale(0.97);
+}
+
+/* Spinning animation for loading state */
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ─── Light Theme ─────────────────────────────────────────── */
+
+:global([data-theme='light']) .alertInner {
+    background: rgba(239, 68, 68, 0.04);
+}
+
+:global([data-theme='light']) .issueCard {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+:global([data-theme='light']) .title {
+    color: #dc2626;
+}
+
+:global([data-theme='light']) .errorMessage {
+    color: rgba(0, 0, 0, 0.55);
+}
+
+/* ─── Responsive ──────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .issueGrid {
+        grid-template-columns: 1fr;
+    }
+    .header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+}

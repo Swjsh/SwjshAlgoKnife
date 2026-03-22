@@ -37,7 +37,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
+    padding: 6px 14px;
     border-radius: 8px;
     border: 1px solid var(--border-base);
     background: var(--bg-subtle, rgba(255,255,255,0.04));
@@ -49,7 +49,8 @@
     transition: all 0.25s ease;
     flex-shrink: 0;
     white-space: nowrap;
-    height: 40px;
+    height: 48px;
+    box-sizing: border-box;
 }
 
 .syncBtn:hover:not(:disabled) {

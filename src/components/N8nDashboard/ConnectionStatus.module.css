@@ -1,0 +1,222 @@
+.container {
+  position: relative;
+  background: linear-gradient(135deg, hsl(222 47% 13% / 0.95), hsl(222 47% 11% / 0.9));
+  border: 1px solid hsl(220 20% 25% / 0.6);
+  border-radius: 12px;
+  padding: 16px 20px;
+  backdrop-filter: blur(12px);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.container[data-status="healthy"] {
+  border-color: hsl(142 70% 45% / 0.4);
+  box-shadow: 0 0 20px hsl(142 70% 45% / 0.1);
+}
+
+.container[data-status="degraded"] {
+  border-color: hsl(45 90% 50% / 0.4);
+  box-shadow: 0 0 20px hsl(45 90% 50% / 0.1);
+}
+
+.container[data-status="error"] {
+  border-color: hsl(0 70% 50% / 0.4);
+  box-shadow: 0 0 20px hsl(0 70% 50% / 0.1);
+}
+
+/* Corner brackets */
+.corner {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: hsl(188 95% 43% / 0.5);
+  border-style: solid;
+  border-width: 0;
+}
+
+.topLeft {
+  top: -1px;
+  left: -1px;
+  border-top-width: 2px;
+  border-left-width: 2px;
+  border-top-left-radius: 4px;
+}
+
+.topRight {
+  top: -1px;
+  right: -1px;
+  border-top-width: 2px;
+  border-right-width: 2px;
+  border-top-right-radius: 4px;
+}
+
+.bottomLeft {
+  bottom: -1px;
+  left: -1px;
+  border-bottom-width: 2px;
+  border-left-width: 2px;
+  border-bottom-left-radius: 4px;
+}
+
+.bottomRight {
+  bottom: -1px;
+  right: -1px;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+  border-bottom-right-radius: 4px;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ringContainer {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+}
+
+.outerRing {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid hsl(220 20% 30% / 0.5);
+  transition: border-color 0.3s ease;
+}
+
+.outerRing[data-connected="true"] {
+  border-color: hsl(142 70% 45% / 0.6);
+}
+
+.pulseRing {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.outerRing[data-connected="true"] .pulseRing {
+  border-color: hsl(142 70% 45% / 0.3);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.5;
+  }
+}
+
+.innerRing {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, hsl(222 47% 15%) 0%, transparent 70%);
+}
+
+.logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
+}
+
+.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.label {
+  font-size: 20px;
+  font-weight: 700;
+  color: hsl(0 0% 95%);
+  font-family: var(--font-mono);
+}
+
+.badge {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.badge.healthy {
+  background: hsl(142 70% 45% / 0.15);
+  color: hsl(142 70% 55%);
+  border: 1px solid hsl(142 70% 45% / 0.3);
+}
+
+.badge.degraded {
+  background: hsl(45 90% 50% / 0.15);
+  color: hsl(45 90% 60%);
+  border: 1px solid hsl(45 90% 50% / 0.3);
+}
+
+.badge.error {
+  background: hsl(0 70% 50% / 0.15);
+  color: hsl(0 70% 60%);
+  border: 1px solid hsl(0 70% 50% / 0.3);
+}
+
+.connectionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: hsl(0 70% 50%);
+  transition: background 0.3s ease;
+}
+
+.dot[data-connected="true"] {
+  background: hsl(142 70% 50%);
+  box-shadow: 0 0 8px hsl(142 70% 50% / 0.5);
+}
+
+.connectionText {
+  font-size: 13px;
+  color: hsl(220 10% 60%);
+}
+
+.version {
+  font-size: 11px;
+  color: hsl(220 10% 50%);
+  font-family: var(--font-mono);
+}
+
+.error {
+  font-size: 11px;
+  color: hsl(0 70% 60%);
+  padding: 4px 8px;
+  background: hsl(0 70% 50% / 0.1);
+  border-radius: 4px;
+  margin-top: 2px;
+}
+
+.timestamp {
+  font-size: 10px;
+  color: hsl(220 10% 45%);
+  margin-top: 2px;
+}

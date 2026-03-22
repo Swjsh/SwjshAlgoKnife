@@ -1,16 +1,16 @@
 # 🎯 Master Tracker
 
-> **Last Updated**: 2026-03-22 (Doc Freshness Tracker + Parallel Agent Sprint + Sterling FX Fixed)
-> **Status**: 🟢 GO-LIVE READY | **Doc Freshness Tracker implemented + AutoResearch loop complete + Sterling FX 75% WR + SPX Sniper paper ready**
-> **MILESTONE**: ✅ Doc Freshness system complete (scanner + API + widget), 4 parallel agents completed: AutoResearch pipeline, Arbiter constraints, Sterling FX fixed (Sharpe 7.7), SPX Sniper paper trading
+> **Last Updated**: 2026-03-22 (HALO AGENTS ONLINE — 6/6 autonomous agents running)
+> **Status**: 🟢 HALO SYSTEM LIVE | **6/6 agents autonomous, Activity Feed connected, self-healing watchdog active**
+> **MILESTONE**: ✅ HALO Agent System fully operational — 6 Claude Code agents running autonomously, reading SOUL files, executing Jira workflows, writing heartbeats, visible on Activity Feed dashboard
 
 ---
 
 ## 🤖 Claude Session Handoff
 
-> **Last Session**: 2026-03-22 (Doc Freshness Tracker Implementation)
-> **Status**: ✅ FULLY OPERATIONAL — Doc Freshness Tracker deployed, AutoResearch pipeline built, Arbiter constraints enforced, Sterling FX fixed, SPX Sniper paper ready
-> **Milestone**: ✅ Doc Freshness system (scanner + API + dashboard widget), 4 parallel agents: AutoResearch loop, Arbiter constraints, Sterling FX (75% WR), SPX Sniper paper trading
+> **Last Session**: 2026-03-22 (HALO Agent System — 6/6 Online)
+> **Status**: ✅ HALO SYSTEM LIVE — 6 autonomous Claude Code agents running, Activity Feed showing real-time logs, Sync Agents button wired, tool call tracking active
+> **Milestone**: ✅ HALO Agent Launch: 9 attempts to get agent windows to persist (see `HALO_LESSONS.md`), root cause was PowerShell + Windows Terminal argument passing. Fixed with pure batch `start cmd.exe /k` + static .cmd files. Activity bridge regex updated to match new prompt format. Sync Agents button now triggers real bridge rescan.
 
 ### 🔒 IMPORTANT: Branch Protection Active
 
@@ -58,6 +58,15 @@ See [[GitHub & CI-CD]] for full workflow.
 - **Status**: ⬜ NEXT
 
 ### Completed (2026-03-22)
+- ✅ **HALO Agent System LIVE**: 6/6 agents running autonomously via `HALO SYSTEM.lnk` desktop shortcut
+  - `LAUNCH_AGENTS.bat` — Pure batch launcher, 6x `start cmd.exe /k` (proven reliable)
+  - `data/halo-launchers/launch-{Agent}.cmd` — 6 static launcher files with `call claude --dangerously-skip-permissions`
+  - Activity bridge `detectAgentStrict()` regex fixed to match `"You are {Agent}. FIRST:"` prompt format
+  - Sync Agents button rewired to `dashboard:rescan` WebSocket command (clears ignored sessions, rescans)
+  - Tool call counter broadened to detect `Read(`, `Bash(`, `Edit(` etc. in addition to `[TOOL]` prefix
+  - `HALO_LESSONS.md` — 10 attempts documented with full root cause analysis
+  - `HALO_DIAGNOSE.bat` — Diagnostic tool for future debugging
+  - `RESTART_BRIDGE.bat` — Quick bridge restart without touching running agents
 - ✅ **ECC + Halo Integration**: All 6 agents upgraded to "Super Agents" with ECC skills
 - ✅ **ECC Audit Plan**: `docs/ECC_AUDIT_PLAN.md` created with 3-week execution schedule
 - ✅ **n8n MCP Connected**: API key configured, 18+ workflows active on Contabo VPS
