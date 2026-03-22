@@ -149,6 +149,69 @@ pause >nul
     Start-Sleep -Seconds 3
 }
 
+# ─── Session Registration ─────────────────────────────────────────────────────
+# After launching agents, detect their session files and register them
+# This allows activity-bridge to correctly route logs to each terminal
+
+Write-Host ""
+Write-Host "  Registering agent sessions..." -ForegroundColor Yellow
+
+$claudeProjectDir = Join-Path $env:USERPROFILE ".claude\projects\C--Users-jackw-Desktop-SwjshAlgoKnife"
+$registryPath = Join-Path $scriptDir "data\agent-registry.json"
+
+# Wait for session files to be created (Claude Code creates them on startup)
+Start-Sleep -Seconds 5
+
+# Find recent JSONL files (created in the last 2 minutes)
+$cutoffTime = (Get-Date).AddMinutes(-2)
+$recentSessions = @()
+
+if (Test-Path $claudeProjectDir) {
+    $recentSessions = Get-ChildItem -Path $claudeProjectDir -Filter "*.jsonl" |
+        Where-Object { $_.LastWriteTime -gt $cutoffTime } |
+        Sort-Object LastWriteTime -Descending
+}
+
+# Build registry from detected sessions
+$registry = @{
+    description = "Registry of active Halo agents - written by LAUNCH_AGENTS.ps1"
+    agents = @{}
+    lastUpdated = (Get-Date -Format "o")
+}
+
+# Match sessions to agents by reading their content
+foreach ($sessionFile in $recentSessions) {
+    $sessionId = $sessionFile.BaseName
+
+    # Read first 30 lines to find agent identifier
+    $content = Get-Content $sessionFile.FullName -TotalCount 30 -ErrorAction SilentlyContinue | Out-String
+
+    $detectedAgent = $null
+    foreach ($agent in $agents) {
+        $agentName = $agent.Name
+        # Match "You are {Agent}" pattern from our launch prompt
+        if ($content -match "You are $agentName\b") {
+            $detectedAgent = $agentName.ToLower()
+            break
+        }
+    }
+
+    if ($detectedAgent) {
+        $registry.agents[$detectedAgent] = @{
+            agentId = $detectedAgent
+            sessionId = $sessionId
+            startedAt = $sessionFile.LastWriteTime.ToString("o")
+            status = "online"
+            cwd = $scriptDir
+        }
+        Write-Host "    ✓ $detectedAgent → $($sessionId.Substring(0,8))..." -ForegroundColor Green
+    }
+}
+
+# Write registry to disk
+$registry | ConvertTo-Json -Depth 4 | Set-Content -Path $registryPath -Encoding UTF8
+Write-Host "  Registry saved: $($registry.agents.Count) agents registered" -ForegroundColor Cyan
+
 Write-Host ""
 Write-Host "  +============================================+" -ForegroundColor Green
 Write-Host "  |   6 HALO AGENTS DEPLOYED                   |" -ForegroundColor Green

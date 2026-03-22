@@ -1183,6 +1183,19 @@ console.log(`[Bridge] Watching for sessions modified in last 10 minutes`);
 // Clear any stale session mappings from previous runs
 agentSessions.clear();
 
+// Pre-populate agentSessions from registry (populated by LAUNCH_AGENTS.ps1)
+// This is the AUTHORITATIVE source for which sessions are HALO agents
+const registeredSessions = getRegisteredSessions();
+if (registeredSessions.size > 0) {
+  console.log(`[Bridge] Loading ${registeredSessions.size} sessions from agent-registry.json:`);
+  for (const [sid, agent] of registeredSessions) {
+    agentSessions.set(sid, agent);
+    console.log(`[Bridge]   - ${sid.substring(0, 8)}... → ${agent}`);
+  }
+} else {
+  console.log(`[Bridge] No sessions in registry yet (agents may not have launched)`);
+}
+
 // Initial scan
 scanForSessions();
 
