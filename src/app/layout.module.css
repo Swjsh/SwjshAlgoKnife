@@ -11,6 +11,11 @@
     margin-left: var(--sidebar-width);
     height: 100vh;
     overflow: hidden;
+    transition: margin-left 0.3s ease;
+}
+
+.mainWrapper.sidebarCollapsed {
+    margin-left: 64px;
 }
 
 .content {

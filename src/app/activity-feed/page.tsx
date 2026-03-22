@@ -6,10 +6,12 @@ import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useJiraTickets } from '@/hooks/useJiraTickets';
 import { useJiraLoop } from '@/hooks/useJiraLoop';
+import { useJiraStats } from '@/hooks/useJiraStats';
 import { ActivityStats } from '@/components/ActivityFeed/ActivityStats';
 import { AgentTerminal } from '@/components/ActivityFeed/AgentTerminal';
 import { PermissionQueue } from '@/components/ActivityFeed/PermissionQueue';
 import { TicketStrip } from '@/components/ActivityFeed/TicketStrip';
+import { ActivityColumn } from '@/components/ActivityFeed/ActivityColumn';
 import styles from './page.module.css';
 
 // Agent order for the grid (7 agents: 2x3 + 1)
@@ -47,6 +49,8 @@ export default function ActivityFeedPage() {
         approveAll,
         sendCommand,
         broadcastCommand,
+        continueAgent,
+        waitingCount,
     } = useActivityFeed();
 
     // Fetch Jira tickets for all agents
@@ -54,6 +58,9 @@ export default function ActivityFeedPage() {
 
     // Jira loop controls
     const { loopState, isLoading: loopLoading, startLoop, stopLoop } = useJiraLoop();
+
+    // Jira ticket count stats per agent
+    const { stats: jiraStats } = useJiraStats();
 
     // Master refresh — Jira tickets + agent status re-poll
     const handleMasterRefresh = useCallback(async () => {
@@ -194,6 +201,7 @@ export default function ActivityFeedPage() {
                 toolExecutions={toolExecutions}
                 toolSuccesses={toolSuccesses}
                 toolFailures={toolFailures}
+                waitingCount={waitingCount}
                 loopState={loopState}
                 loopLoading={loopLoading}
                 onStartLoop={startLoop}
@@ -244,17 +252,27 @@ export default function ActivityFeedPage() {
                 </button>
             </div>
 
-            {/* Agent Terminals - 2x3 Grid (full width) */}
-            <div className={styles.agentGrid}>
-                {orderedAgents.map((agent) => (
-                    <AgentTerminal
-                        key={agent.id}
-                        agent={agent}
-                        onSendCommand={sendCommand}
-                        heartbeat={heartbeat[agent.id]}
-                        onNudge={nudgeAgent}
-                    />
-                ))}
+            {/* Main Content - Agent Grid + Activity Column */}
+            <div className={styles.mainContent}>
+                {/* Agent Terminals - 2x3 Grid */}
+                <div className={styles.agentGrid}>
+                    {orderedAgents.map((agent) => (
+                        <AgentTerminal
+                            key={agent.id}
+                            agent={agent}
+                            onSendCommand={sendCommand}
+                            heartbeat={heartbeat[agent.id]}
+                            onNudge={nudgeAgent}
+                            onContinue={continueAgent}
+                            jiraStats={jiraStats[agent.id]}
+                        />
+                    ))}
+                </div>
+
+                {/* Activity Column - Right Side */}
+                <div className={styles.activityColumn}>
+                    <ActivityColumn tickets={tickets} agents={agents} />
+                </div>
             </div>
 
             {/* Jira Ticket Strip - Bottom Row */}
