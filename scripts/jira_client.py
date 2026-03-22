@@ -2,12 +2,25 @@
 """
 Jira REST API Client for SwjshAlgoKnife
 Reusable client wrapping Atlassian REST API v3 with encrypted credentials.
+
+Features:
+- Exponential backoff with jitter for rate limits (429) and server errors (5xx)
+- Max 3 retries with randomized delays to prevent thundering herd
 """
 
 import sys
+import time
+import random
 import base64
 import requests
 from pathlib import Path
+
+# Retry configuration
+MAX_RETRIES = 3
+BASE_DELAY_SECONDS = 1.0
+MAX_DELAY_SECONDS = 30.0
+JITTER_RANGE = (0.8, 1.2)  # 20% jitter
+RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 
 # Ensure scripts/ is on path for jira_creds import
 sys.path.insert(0, str(Path(__file__).parent))
@@ -35,17 +48,71 @@ class JiraClient:
         })
 
     def _request(self, method, endpoint, **kwargs):
-        """Make an authenticated request, return parsed JSON or None on error."""
+        """Make an authenticated request with exponential backoff retry.
+
+        Retries on:
+        - 429 (rate limited)
+        - 500, 502, 503, 504 (server errors)
+        - Network exceptions
+
+        Does NOT retry on:
+        - 4xx client errors (except 429)
+        - Successful responses (2xx)
+        """
         url = f"{self.api_url}/{endpoint.lstrip('/')}"
-        try:
-            resp = self.session.request(method, url, timeout=15, **kwargs)
-            if resp.status_code >= 400:
+        last_error = None
+
+        for attempt in range(MAX_RETRIES + 1):
+            try:
+                resp = self.session.request(method, url, timeout=15, **kwargs)
+
+                # Success - return immediately
+                if resp.status_code < 400:
+                    if resp.status_code == 204:
+                        return {'success': True}
+                    return resp.json()
+
+                # Check if this is a retryable error
+                if resp.status_code in RETRYABLE_STATUS_CODES:
+                    last_error = {'error': True, 'status': resp.status_code, 'body': resp.text}
+
+                    # Don't sleep after the last attempt
+                    if attempt < MAX_RETRIES:
+                        delay = self._calculate_backoff_delay(attempt)
+                        print(f"[JiraClient] Retry {attempt + 1}/{MAX_RETRIES} after {delay:.1f}s "
+                              f"(HTTP {resp.status_code})", file=sys.stderr)
+                        time.sleep(delay)
+                        continue
+
+                # Non-retryable error (4xx except 429)
                 return {'error': True, 'status': resp.status_code, 'body': resp.text}
-            if resp.status_code == 204:
-                return {'success': True}
-            return resp.json()
-        except requests.RequestException as e:
-            return {'error': True, 'message': str(e)}
+
+            except requests.RequestException as e:
+                last_error = {'error': True, 'message': str(e)}
+
+                # Network errors are retryable
+                if attempt < MAX_RETRIES:
+                    delay = self._calculate_backoff_delay(attempt)
+                    print(f"[JiraClient] Retry {attempt + 1}/{MAX_RETRIES} after {delay:.1f}s "
+                          f"({type(e).__name__})", file=sys.stderr)
+                    time.sleep(delay)
+                    continue
+
+        # All retries exhausted
+        if last_error:
+            last_error['retries_exhausted'] = True
+        return last_error or {'error': True, 'message': 'Unknown error after retries'}
+
+    def _calculate_backoff_delay(self, attempt: int) -> float:
+        """Calculate exponential backoff delay with jitter.
+
+        Formula: base * 2^attempt * jitter
+        Where jitter is random between 0.8 and 1.2 (20% variance)
+        """
+        delay = BASE_DELAY_SECONDS * (2 ** attempt)
+        delay = min(delay, MAX_DELAY_SECONDS)
+        jitter = random.uniform(*JITTER_RANGE)
+        return delay * jitter
 
     def list_issues(self, project_key, jql_filter=None, max_results=50):
         """List issues in a project, optionally filtered by JQL."""
