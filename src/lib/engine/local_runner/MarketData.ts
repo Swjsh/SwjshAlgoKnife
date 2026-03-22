@@ -59,7 +59,10 @@ export class MarketData extends EventEmitter {
                     timestamp: Date.now(),
                     source: 'BINANCE'
                 });
-            } catch (e) { }
+            } catch (e) {
+                console.error('❌ [MarketData] Binance parse error:', e instanceof Error ? e.message : String(e));
+                this.emit('error', { source: 'BINANCE', error: e, rawData: data.slice(0, 200) });
+            }
         });
 
         this.binanceWs.on('error', (err) => {
@@ -97,7 +100,10 @@ export class MarketData extends EventEmitter {
                         source: 'FINNHUB'
                     });
                 }
-            } catch (e) { }
+            } catch (e) {
+                console.error('❌ [MarketData] Finnhub parse error:', e instanceof Error ? e.message : String(e));
+                this.emit('error', { source: 'FINNHUB', error: e, rawData: data.slice(0, 200) });
+            }
         });
 
         this.finnhubWs.on('error', (err) => {

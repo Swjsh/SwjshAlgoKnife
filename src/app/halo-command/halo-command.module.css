@@ -1,0 +1,666 @@
+/* ═══════════════════════════════════════════════════════════════
+   HALO COMMAND CENTER — Pixel Art Background with Live Overlays
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+/* ─── PAGE CONTAINER ─── */
+.page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 52px);
+  background: #0a0e14;
+  color: #c8d6e5;
+  font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ─── SCANLINE OVERLAY ─── */
+.scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.06) 2px,
+    rgba(0, 0, 0, 0.06) 4px
+  );
+}
+
+/* ─── TOP STATS BAR ─── */
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  background: linear-gradient(180deg, rgba(10, 20, 30, 0.95) 0%, rgba(10, 20, 30, 0.85) 100%);
+  border-bottom: 1px solid rgba(6, 182, 212, 0.25);
+  flex-shrink: 0;
+  z-index: 10;
+  gap: 12px;
+}
+
+.topLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.unscBadge {
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  color: #06b6d4;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  padding: 4px 10px;
+  border-radius: 3px;
+}
+
+.topTitle {
+  display: flex;
+  flex-direction: column;
+}
+
+.titleMain {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #e2e8f0;
+}
+
+.titleSub {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: #64748b;
+}
+
+.topStats {
+  display: flex;
+  gap: 16px;
+}
+
+.statChip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.statVal {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.statVal.cyan { color: #06b6d4; }
+.statVal.green { color: #4ade80; }
+
+.statLabel {
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: #475569;
+}
+
+.topRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.clock {
+  font-size: 16px;
+  font-weight: 700;
+  color: #06b6d4;
+  letter-spacing: 1px;
+}
+
+.clockDate {
+  font-size: 9px;
+  color: #64748b;
+  letter-spacing: 1px;
+}
+
+/* ─── MAIN LAYOUT ─── */
+.mainLayout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ─── MAP SECTION (Left — Image + Overlays) ─── */
+.mapSection {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.imageContainer {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1418 / 752;
+}
+
+.bgImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  display: block;
+  border-radius: 4px;
+}
+
+/* ─── ROOM OVERLAYS ─── */
+.roomOverlay {
+  position: absolute;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 3px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  overflow: visible;
+}
+
+.roomOverlay:hover {
+  border-color: color-mix(in srgb, var(--ac) 60%, transparent);
+  box-shadow: 0 0 12px var(--acg);
+}
+
+.roomSelected {
+  border-color: var(--ac) !important;
+  box-shadow: 0 0 18px var(--acg), inset 0 0 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+.roomActive {
+  animation: roomPulse 3s ease-in-out infinite;
+}
+
+@keyframes roomPulse {
+  0%, 100% { border-color: transparent; }
+  50% { border-color: color-mix(in srgb, var(--ac) 35%, transparent); }
+}
+
+/* ─── ROOM POSITIONS (% of the background image) ─── */
+.room_chief    { left: 0.5%;  top: 1%;  width: 29%;   height: 45%; }
+.room_arbiter  { left: 34.5%; top: 1%;  width: 31%;   height: 45%; }
+.room_cortana  { left: 70.5%; top: 1%;  width: 29%;   height: 45%; }
+
+.room_scout    { left: 0.5%;  top: 57%;  width: 29%;   height: 40%; }
+.room_ops      { left: 34.5%; top: 57%;  width: 31%;   height: 40%; }
+.room_hunter   { left: 70.5%; top: 57%;  width: 29%;   height: 40%; }
+
+/* ─── STATUS BADGE — top-right corner INSIDE the room ─── */
+.statusBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0, 0, 0, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: clamp(10px, 0.9vw, 14px);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  z-index: 8;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statusText {
+  font-weight: 600;
+}
+
+/* Status colors */
+.st_typing .statusDot,
+.st_running .statusDot { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+.st_typing .statusText,
+.st_running .statusText { color: #4ade80; }
+
+.st_reading .statusDot { background: #06b6d4; box-shadow: 0 0 6px #06b6d4; }
+.st_reading .statusText { color: #06b6d4; }
+
+.st_waiting .statusDot { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; animation: dotPulse 1.2s ease-in-out infinite; }
+.st_waiting .statusText { color: #f59e0b; }
+
+.st_idle .statusDot { background: #22d3ee; box-shadow: 0 0 6px rgba(34,211,238,0.5); }
+.st_idle .statusText { color: #22d3ee; }
+
+.st_offline .statusDot { background: #475569; }
+.st_offline .statusText { color: #475569; }
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ─── JIRA TAG — top-left corner INSIDE the room ─── */
+.jiraTag {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: rgba(0, 0, 0, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: clamp(10px, 0.9vw, 14px);
+  letter-spacing: 1.5px;
+  color: var(--ac);
+  font-weight: 700;
+  z-index: 8;
+}
+
+/* ═══════════════════════════════════════════════════
+   ACTIVITY GLOW — subtle pulse under character when active
+   ═══════════════════════════════════════════════════ */
+.activityGlow {
+  position: absolute;
+  width: 28%;
+  height: 14%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, var(--acg) 0%, transparent 70%);
+  opacity: 0;
+  z-index: 3;
+  pointer-events: none;
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.6; }
+}
+
+/* ═══════════════════════════════════════════════════
+   SPEECH BUBBLES — float above agent characters
+   ═══════════════════════════════════════════════════ */
+.speechBubble {
+  position: absolute;
+  /* left and top are set dynamically via inline styles to follow character */
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid color-mix(in srgb, var(--ac) 60%, transparent);
+  border-radius: 8px;
+  padding: 6px 12px;
+  z-index: 6;
+  max-width: 90%;
+  pointer-events: none;
+  animation: bubbleFadeIn 0.4s ease-out;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+
+.speechText {
+  font-size: clamp(11px, 1vw, 15px);
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+  letter-spacing: 0.3px;
+  font-weight: 500;
+}
+
+/* Triangle tail pointing down toward character */
+.speechTail {
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 9px solid rgba(0, 0, 0, 0.88);
+}
+
+/* Offline agents — same brightness, just italic text */
+.speechOffline {
+  opacity: 0.9;
+}
+
+.speechOffline .speechText {
+  color: #cbd5e1;
+  font-style: italic;
+}
+
+.speechOffline .speechTail {
+  border-top-color: rgba(0, 0, 0, 0.75);
+}
+
+@keyframes bubbleFadeIn {
+  0% { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ─── CENTRAL NEXUS OVERLAY ─── */
+.nexusOverlay {
+  position: absolute;
+  left: 30%;
+  top: 48%;
+  width: 40%;
+  height: 8%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.nexusStats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  border-radius: 20px;
+  padding: 3px 14px;
+}
+
+.nexusStat {
+  font-size: clamp(7px, 0.6vw, 10px);
+  letter-spacing: 1.2px;
+  color: #06b6d4;
+  font-weight: 600;
+}
+
+.nexusDivider {
+  color: rgba(6, 182, 212, 0.3);
+  font-size: 10px;
+}
+
+/* ═══════════════════════════════════════════════════
+   RIGHT SIDE PANEL — BIGGER FONTS, BETTER SPACING
+   User requested: "make it like size 16 font and space it out better"
+   ═══════════════════════════════════════════════════ */
+.sidePanel {
+  width: 380px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(6, 182, 212, 0.2) transparent;
+}
+
+/* ─── NO SELECTION ─── */
+.noSelection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  gap: 10px;
+  color: #475569;
+  font-size: 15px;
+  letter-spacing: 1px;
+  border: 1px dashed rgba(71, 85, 105, 0.3);
+  border-radius: 6px;
+  background: rgba(10, 14, 20, 0.5);
+}
+
+/* ─── AGENT CARD ─── */
+.agentCard {
+  background: rgba(10, 14, 20, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid var(--ac);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cardName {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ac);
+  letter-spacing: 1px;
+}
+
+.cardCallsign {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.cardStatus {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.cardStatus.st_typing,
+.cardStatus.st_running { color: #4ade80; border-color: rgba(74, 222, 128, 0.3); background: rgba(74, 222, 128, 0.1); }
+.cardStatus.st_reading { color: #06b6d4; border-color: rgba(6, 182, 212, 0.3); background: rgba(6, 182, 212, 0.1); }
+.cardStatus.st_waiting { color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.1); }
+.cardStatus.st_idle { color: #64748b; border-color: rgba(100, 116, 139, 0.3); background: rgba(100, 116, 139, 0.1); }
+.cardStatus.st_offline { color: #475569; border-color: rgba(71, 85, 105, 0.3); background: rgba(71, 85, 105, 0.1); }
+
+.cardBody {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cardRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.cardRow span:first-child {
+  color: #475569;
+  font-weight: 600;
+}
+
+.cardRow span:last-child {
+  color: #94a3b8;
+}
+
+.missionBox {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.missionLabel {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: #475569;
+  margin-bottom: 4px;
+}
+
+.missionText {
+  font-size: 15px;
+  color: #c8d6e5;
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════
+   PANEL COMPONENTS — Oracle + Activity Feed
+   ═══════════════════════════════════════════════════ */
+.oraclePanel,
+.activityPanel {
+  background: rgba(10, 14, 20, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.oraclePanel {
+  border-left: 3px solid #9333ea;
+}
+
+.activityPanel {
+  border-left: 3px solid #06b6d4;
+  flex: 1;
+  min-height: 120px;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #94a3b8;
+}
+
+.panelBadge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.panelBody {
+  padding: 8px 14px;
+  max-height: 180px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.2) transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ─── LOG ENTRIES ─── */
+.logEntry {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  min-width: 0;
+}
+
+.logTime {
+  color: #334155;
+  font-size: 11px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.logAgent {
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.logMsg {
+  color: #94a3b8;
+  font-size: 13px;
+  word-break: break-word;
+  min-width: 0;
+}
+
+/* ─── PANEL INPUT (Oracle query) ─── */
+.panelInput {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.inputPrompt {
+  font-size: 14px;
+  color: #9333ea;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.inputField {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+  color: #c8d6e5;
+  padding: 4px 0;
+}
+
+.inputField::placeholder {
+  color: #334155;
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 1200px) {
+  .sidePanel {
+    width: 320px;
+  }
+}
+
+@media (max-width: 900px) {
+  .mainLayout {
+    flex-direction: column;
+  }
+  .sidePanel {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    overflow-x: auto;
+    padding: 8px;
+  }
+  .oraclePanel,
+  .activityPanel,
+  .agentCard {
+    min-width: 280px;
+    flex: 1;
+  }
+}

@@ -6,14 +6,15 @@ import Link from "next/link";
 import {
     Bot, Monitor, TrendingUp,
     Brain, Swords, BookOpen,
-    Wallet, Plug, Coffee, Settings,
-    Plus, LogOut,
+    Wallet, Plug, Settings,
+    Plus, LogOut, Rss, PanelLeftClose, PanelLeft,
     Activity, FlaskConical, Layers, ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./Sidebar.module.css";
 import { LogoIcon } from "../UI/LogoIcon";
 import { useAuth } from "@/context/AuthContext";
+import { useSidebar } from "@/context/SidebarContext";
 import AgentSetupWizard from "../Agents/AgentSetupWizard";
 
 interface SubItem {
@@ -40,9 +41,10 @@ const NAV_GROUPS: NavGroup[] = [
         color: '#a855f7',
         items: [
             { label: 'Command Center', href: '/command-center', icon: Monitor,         desc: 'Fleet overview & control'  },
+            { label: 'Halo Command',   href: '/halo-command',   icon: Layers,          desc: 'Crew status & rooms'       },
             { label: 'Agents',         href: '/agents',         icon: Bot,             desc: 'Autonomous trading fleet'  },
             { label: 'Trades',         href: '/trades',         icon: TrendingUp,      desc: 'Positions & execution'     },
-            { label: 'Coffee Room',    href: '/coffeeroom',     icon: Coffee,          desc: 'Agent lounge'              },
+            { label: 'Activity Feed',  href: '/activity-feed',  icon: Rss,             desc: 'Live agent activity'       },
         ],
     },
     {
@@ -51,9 +53,10 @@ const NAV_GROUPS: NavGroup[] = [
         icon: FlaskConical,
         color: '#06b6d4',
         items: [
-            { label: 'Intel',    href: '/intel',      icon: Brain,    desc: 'Market intelligence' },
-            { label: 'Arsenal',  href: '/strategies', icon: Swords,   desc: 'Strategy library'    },
-            { label: 'Journal',  href: '/journal',    icon: BookOpen, desc: 'Trade review log'    },
+            { label: 'Research Lab', href: '/research',   icon: FlaskConical, desc: 'Overnight research agents' },
+            { label: 'Intel',        href: '/intel',      icon: Brain,        desc: 'Market intelligence'       },
+            { label: 'Arsenal',      href: '/strategies', icon: Swords,       desc: 'Strategy library'          },
+            { label: 'Journal',      href: '/journal',    icon: BookOpen,     desc: 'Trade review log'          },
         ],
     },
     {
@@ -63,7 +66,7 @@ const NAV_GROUPS: NavGroup[] = [
         color: '#64748b',
         items: [
             { label: 'Accounts',     href: '/accounts',     icon: Wallet,   desc: 'Balances & funding'   },
-            { label: 'Connections',  href: '/connections',  icon: Plug,     desc: 'Broker integrations'  },
+            { label: 'Connections',  href: '/broker-setup', icon: Plug,     desc: 'Multi-broker setup'   },
             { label: 'Settings',     href: '/settings',     icon: Settings, desc: 'Preferences & config' },
         ],
     },
@@ -73,6 +76,7 @@ export default function Sidebar() {
     const pathname  = usePathname();
     const router    = useRouter();
     const { user, logout } = useAuth();
+    const { isCollapsed, toggleCollapsed } = useSidebar();
 
     const [isWizardOpen, setIsWizardOpen] = useState(false);
     const [openGroup, setOpenGroup]        = useState<string | null>(null);
@@ -108,16 +112,25 @@ export default function Sidebar() {
     )?.id ?? null;
 
     return (
-        <aside className={styles.sidebar}>
+        <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
             {/* ── Logo ── */}
             <div className={styles.header}>
                 <Link href="/command-center" className={styles.logoContainer}>
-                    <LogoIcon size={34} className={styles.logo} />
-                    <h1 className={styles.title}>
-                        <span className={styles.nameSwjsh}>Swjsh</span>
-                        <span className={styles.nameAK}>AK</span>
-                    </h1>
+                    <LogoIcon size={isCollapsed ? 28 : 34} className={styles.logo} />
+                    {!isCollapsed && (
+                        <h1 className={styles.title}>
+                            <span className={styles.nameSwjsh}>Swjsh</span>
+                            <span className={styles.nameAK}>AK</span>
+                        </h1>
+                    )}
                 </Link>
+                <button
+                    className={styles.collapseBtn}
+                    onClick={toggleCollapsed}
+                    title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                >
+                    {isCollapsed ? <PanelLeft size={16} /> : <PanelLeftClose size={16} />}
+                </button>
             </div>
 
             {/* ── Nav ── */}
@@ -143,17 +156,22 @@ export default function Sidebar() {
                                     ? { '--group-color': group.color } as React.CSSProperties
                                     : undefined
                                 }
+                                title={isCollapsed ? group.label : undefined}
                             >
                                 <GroupIcon
                                     size={18}
                                     className={styles.groupIcon}
                                     style={isGroupActive || isOpen ? { color: group.color } : undefined}
                                 />
-                                <span className={styles.groupLabel}>{group.label}</span>
-                                <ChevronRight
-                                    size={13}
-                                    className={`${styles.groupChevron} ${isOpen ? styles.groupChevronOpen : ''}`}
-                                />
+                                {!isCollapsed && (
+                                    <>
+                                        <span className={styles.groupLabel}>{group.label}</span>
+                                        <ChevronRight
+                                            size={13}
+                                            className={`${styles.groupChevron} ${isOpen ? styles.groupChevronOpen : ''}`}
+                                        />
+                                    </>
+                                )}
                             </button>
 
                             {/* Flyout panel */}
@@ -212,9 +230,13 @@ export default function Sidebar() {
 
                 {/* Create Bot */}
                 <div className={styles.deploySection}>
-                    <button className={styles.deployBtn} onClick={() => setIsWizardOpen(true)}>
+                    <button
+                        className={styles.deployBtn}
+                        onClick={() => setIsWizardOpen(true)}
+                        title={isCollapsed ? 'Create Bot' : undefined}
+                    >
                         <Plus size={16} />
-                        <span>Create Bot</span>
+                        {!isCollapsed && <span>Create Bot</span>}
                     </button>
                 </div>
             </nav>
@@ -225,14 +247,18 @@ export default function Sidebar() {
                     <div className={styles.avatar}>
                         {user?.email?.charAt(0).toUpperCase() || 'U'}
                     </div>
-                    <div className={styles.userInfo}>
-                        <h4>{user?.email?.split('@')[0] || 'Commander'}</h4>
-                        <p>Fleet Control</p>
-                    </div>
+                    {!isCollapsed && (
+                        <div className={styles.userInfo}>
+                            <h4>{user?.email?.split('@')[0] || 'Commander'}</h4>
+                            <p>Fleet Control</p>
+                        </div>
+                    )}
                 </div>
-                <button onClick={handleSignOut} className={styles.signOutBtn} title="Sign Out">
-                    <LogOut size={16} />
-                </button>
+                {!isCollapsed && (
+                    <button onClick={handleSignOut} className={styles.signOutBtn} title="Sign Out">
+                        <LogOut size={16} />
+                    </button>
+                )}
             </div>
 
             <AgentSetupWizard

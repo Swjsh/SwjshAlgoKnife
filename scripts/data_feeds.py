@@ -197,8 +197,8 @@ class BinanceFeed(threading.Thread):
         if self._ws:
             try:
                 self._ws.close()
-            except Exception:
-                pass
+            except Exception as e:
+                log.debug(f"[BinanceFeed] Error closing WebSocket (non-critical): {e}")
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -421,8 +421,8 @@ class AlpacaFeed(threading.Thread):
         if self._ws:
             try:
                 self._ws.close()
-            except Exception:
-                pass
+            except Exception as e:
+                log.debug(f"[AlpacaFeed] Error closing WebSocket (non-critical): {e}")
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -503,8 +503,8 @@ class PriceFeed:
         for feed in self._feeds:
             try:
                 feed.stop()
-            except Exception:
-                pass
+            except Exception as e:
+                log.debug(f"[PriceFeed] Error stopping feed (non-critical): {e}")
 
 
 # ═══════════════════════════════════════════════════════════════

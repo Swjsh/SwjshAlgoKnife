@@ -794,7 +794,8 @@ def iv_rank(underlying: str, current_iv: float, lookback_days: int = 252) -> Opt
 
         rank = (current_iv - low_iv) / (high_iv - low_iv) * 100
         return round(max(0, min(100, rank)), 1)
-    except Exception:
+    except Exception as e:
+        print(f"[options_utils] Failed to calculate IV rank for {underlying}: {e}")
         return None
 
 
