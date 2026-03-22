@@ -95,7 +95,7 @@ export default function HeroParticle() {
 
     const handleEnter = () => {
         if (user) {
-            router.push('/command-center');
+            router.push('/activity-feed');
         } else {
             router.push('/sign-up');
         }
@@ -167,7 +167,7 @@ export default function HeroParticle() {
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => router.push('/command-center')}
+                            onClick={() => router.push('/activity-feed')}
                             className={styles.ctaButton}
                         >
                             ENTER DASHBOARD

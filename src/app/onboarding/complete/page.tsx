@@ -44,7 +44,7 @@ export default function OnboardingCompletePage() {
       setCountdown((c) => {
         if (c <= 1) {
           clearInterval(timer);
-          router.push('/command-center');
+          router.push('/activity-feed');
           return 0;
         }
         return c - 1;
@@ -360,7 +360,7 @@ export default function OnboardingCompletePage() {
 
           {/* Buttons */}
           <div className="cp-buttons">
-            <button onClick={() => router.push('/command-center')} className="cp-primary-btn">
+            <button onClick={() => router.push('/activity-feed')} className="cp-primary-btn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="7" height="7" rx="1.5"/>
                 <rect x="14" y="3" width="7" height="7" rx="1.5"/>

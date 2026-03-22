@@ -40,11 +40,10 @@ const NAV_GROUPS: NavGroup[] = [
         icon: Activity,
         color: '#a855f7',
         items: [
-            { label: 'Command Center', href: '/command-center', icon: Monitor,         desc: 'Fleet overview & control'  },
+            { label: 'Activity Feed',  href: '/activity-feed',  icon: Monitor,         desc: 'Fleet overview & control'  },
             { label: 'Halo Command',   href: '/halo-command',   icon: Layers,          desc: 'Crew status & rooms'       },
             { label: 'Agents',         href: '/agents',         icon: Bot,             desc: 'Autonomous trading fleet'  },
             { label: 'Trades',         href: '/trades',         icon: TrendingUp,      desc: 'Positions & execution'     },
-            { label: 'Activity Feed',  href: '/activity-feed',  icon: Rss,             desc: 'Live agent activity'       },
         ],
     },
     {
@@ -115,7 +114,7 @@ export default function Sidebar() {
         <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
             {/* ── Logo ── */}
             <div className={styles.header}>
-                <Link href="/command-center" className={styles.logoContainer}>
+                <Link href="/activity-feed" className={styles.logoContainer}>
                     <LogoIcon size={isCollapsed ? 28 : 34} className={styles.logo} />
                     {!isCollapsed && (
                         <h1 className={styles.title}>

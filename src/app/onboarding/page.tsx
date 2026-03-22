@@ -13,7 +13,7 @@ export default function OnboardingPage() {
       router.replace('/sign-up');
     }
     if (!loading && userPreferences?.onboardingComplete) {
-      router.replace('/command-center');
+      router.replace('/activity-feed');
     }
   }, [user, loading, userPreferences, router]);
 

@@ -333,12 +333,12 @@ export default function NewUserOnboarding({ onComplete, onSkip }: Props) {
             await new Promise((r) => setTimeout(r, 2200));
 
             onComplete();
-            router.push('/command-center');
+            router.push('/activity-feed');
         } catch (err) {
             console.error('Onboarding completion error:', err);
             // Complete anyway to not block user
             onComplete();
-            router.push('/command-center');
+            router.push('/activity-feed');
         }
     };
 
