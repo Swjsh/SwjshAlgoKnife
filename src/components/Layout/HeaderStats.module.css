@@ -1,0 +1,121 @@
+/* ═══════════════════════════════════════════════════════════════
+   HeaderStats — Live trading stats in the global header bar
+   ═══════════════════════════════════════════════════════════════ */
+
+.wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 4px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    flex-shrink: 0;
+    height: 42px;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: 0 10px;
+    min-width: 60px;
+}
+
+.statLabel {
+    font-size: 8px;
+    font-weight: 700;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.statValue {
+    font-size: 13px;
+    font-weight: 700;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.statValueMuted {
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.statSuffix {
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.positive {
+    color: #10b981 !important;
+}
+
+.negative {
+    color: #ef4444 !important;
+}
+
+.agentLive {
+    color: #10b981;
+}
+
+.agentOff {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.divider {
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+}
+
+/* ─── Light Theme ───────────────────────────────────────────── */
+
+:global([data-theme='light']) .wrapper {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+:global([data-theme='light']) .statLabel {
+    color: rgba(0, 0, 0, 0.35);
+}
+
+:global([data-theme='light']) .statValue {
+    color: rgba(0, 0, 0, 0.8);
+}
+
+:global([data-theme='light']) .statSuffix {
+    color: rgba(0, 0, 0, 0.35);
+}
+
+:global([data-theme='light']) .divider {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+:global([data-theme='light']) .agentOff {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+/* ─── Responsive ────────────────────────────────────────────── */
+
+@media (max-width: 1200px) {
+    .stat:nth-child(7),
+    .stat:nth-child(7) + .divider {
+        display: none;
+    }
+}
+
+@media (max-width: 900px) {
+    .wrapper {
+        display: none;
+    }
+}

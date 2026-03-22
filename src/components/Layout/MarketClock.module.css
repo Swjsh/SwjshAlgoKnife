@@ -1,0 +1,536 @@
+/* ═══════════════════════════════════════════════════════════════
+   MarketClock — Full-width inline 24hr timeline for global header
+   Big, bold, always visible. Hover for expanded detail.
+   ═══════════════════════════════════════════════════════════════ */
+
+.wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 20px;
+    background: rgba(6, 182, 212, 0.04);
+    border: 1px solid rgba(6, 182, 212, 0.12);
+    border-radius: 12px;
+    min-width: 560px;
+    height: 72px;
+    flex-shrink: 0;
+    transition: all 0.25s ease;
+}
+
+.wrapper:hover {
+    background: rgba(6, 182, 212, 0.07);
+    border-color: rgba(6, 182, 212, 0.25);
+    box-shadow: 0 0 16px rgba(6, 182, 212, 0.08);
+}
+
+/* ─── Left: Label + Session Tags ───────────────────────────── */
+
+.infoColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+    min-width: 100px;
+}
+
+.clockLabel {
+    font-size: 10px;
+    font-weight: 700;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.14em;
+    color: #06b6d4;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.sessionTags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: nowrap;
+}
+
+.sessionTag {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border: 1px solid;
+    border-radius: 4px;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+.tagDot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+.sessionTagClosed {
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.25);
+}
+
+/* ─── Center: Inline Timeline ──────────────────────────────── */
+
+.timelineArea {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.timelineInner {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-left: 36px;
+}
+
+.sessionRow {
+    display: flex;
+    align-items: center;
+    height: 10px;
+    position: relative;
+}
+
+.rowLabel {
+    position: absolute;
+    left: -36px;
+    width: 32px;
+    text-align: right;
+    font-size: 9px;
+    font-weight: 700;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.03em;
+    color: rgba(255, 255, 255, 0.25);
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.rowTrack {
+    position: relative;
+    flex: 1;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 2px;
+}
+
+.rowBlock {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border-radius: 2px;
+    border: 1px solid;
+    transition: all 0.5s ease;
+}
+
+/* NOW needle — one per row, perfectly aligned with track */
+.rowNeedle {
+    position: absolute;
+    top: -1px;
+    width: 1.5px;
+    height: calc(100% + 2px);
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.35);
+    border-radius: 1px;
+    transform: translateX(-50%);
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* Hour scale */
+.hourScale {
+    position: relative;
+    height: 13px;
+    margin-top: 2px;
+}
+
+.hourTick {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    color: rgba(255, 255, 255, 0.15);
+    font-weight: 500;
+}
+
+/* ─── Right: ET Time + Next Event ──────────────────────────── */
+
+.timeColumn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+    min-width: 90px;
+}
+
+.etTime {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+}
+
+.etLabel {
+    font-size: 10px;
+    font-weight: 600;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    color: rgba(255, 255, 255, 0.3);
+    letter-spacing: 0.1em;
+}
+
+.nextEvent {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.nextDot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.nextText {
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+/* ─── Hover Detail Panel ────────────────────────────────────── */
+
+.detailPanel {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    min-width: 480px;
+    background: rgba(10, 10, 16, 0.97);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(6, 182, 212, 0.2);
+    border-radius: 12px;
+    padding: 16px 18px;
+    z-index: 1000;
+    box-shadow:
+        0 16px 48px rgba(0, 0, 0, 0.55),
+        0 0 24px rgba(6, 182, 212, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: all 0.2s ease;
+    pointer-events: none;
+}
+
+.wrapper:hover .detailPanel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.detailHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.detailTitle {
+    font-size: 10px;
+    font-weight: 700;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.14em;
+    color: #06b6d4;
+}
+
+.detailTime {
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* Full expanded timeline */
+.fullTimeline {
+    position: relative;
+    padding-left: 72px;
+}
+
+.hourMarkers {
+    position: relative;
+    height: 14px;
+    margin-bottom: 6px;
+}
+
+.fullHourLabel {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: 8px;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    color: rgba(255, 255, 255, 0.2);
+    letter-spacing: 0.05em;
+}
+
+.fullRow {
+    position: relative;
+    height: 14px;
+    margin-bottom: 5px;
+}
+
+.fullRowLabel {
+    position: absolute;
+    left: -72px;
+    width: 66px;
+    text-align: right;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    color: rgba(255, 255, 255, 0.3);
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.fullRowPct {
+    font-size: 8px;
+    font-weight: 500;
+    opacity: 0.6;
+}
+
+.fullRowTrack {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.025);
+    border-radius: 3px;
+}
+
+.fullRowBlock {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border-radius: 3px;
+    border: 1px solid;
+    transition: all 0.5s ease;
+}
+
+/* Events in expanded view */
+.fullEventsRow {
+    position: relative;
+    height: 26px;
+    margin-top: 8px;
+}
+
+.fullEventMarker {
+    position: absolute;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    top: 0;
+}
+
+.fullEventLine {
+    width: 1px;
+    height: 14px;
+}
+
+.fullEventLabel {
+    font-size: 8px;
+    font-weight: 700;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    letter-spacing: 0.03em;
+    margin-top: 2px;
+    white-space: nowrap;
+}
+
+/* NOW cursor in expanded */
+.fullNowCursor {
+    position: absolute;
+    top: 14px;
+    bottom: 0;
+    transform: translateX(-50%);
+    z-index: 10;
+    pointer-events: none;
+}
+
+.fullNowLine {
+    width: 1.5px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.75);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+    border-radius: 1px;
+}
+
+/* Next event in expanded */
+.detailNext {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 10px;
+}
+
+.detailNextLabel {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.3);
+    letter-spacing: 0.08em;
+}
+
+.detailNextName {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.detailNextDesc {
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 400;
+}
+
+.detailNextCountdown {
+    color: rgba(255, 255, 255, 0.5);
+    margin-left: auto;
+    font-weight: 600;
+}
+
+/* ─── Light Theme ───────────────────────────────────────────── */
+
+:global([data-theme='light']) .wrapper {
+    background: rgba(6, 182, 212, 0.03);
+    border-color: rgba(6, 182, 212, 0.1);
+}
+
+:global([data-theme='light']) .wrapper:hover {
+    background: rgba(6, 182, 212, 0.06);
+    border-color: rgba(6, 182, 212, 0.2);
+}
+
+:global([data-theme='light']) .rowLabel,
+:global([data-theme='light']) .sessionTagClosed,
+:global([data-theme='light']) .hourTick {
+    color: rgba(0, 0, 0, 0.25);
+}
+
+:global([data-theme='light']) .rowTrack,
+:global([data-theme='light']) .fullRowTrack {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+:global([data-theme='light']) .rowNeedle,
+:global([data-theme='light']) .fullNowLine {
+    background: rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+}
+
+:global([data-theme='light']) .etTime {
+    color: rgba(0, 0, 0, 0.75);
+}
+
+:global([data-theme='light']) .etLabel {
+    color: rgba(0, 0, 0, 0.3);
+}
+
+:global([data-theme='light']) .nextText {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+:global([data-theme='light']) .detailPanel {
+    background: rgba(255, 255, 255, 0.97);
+    border-color: rgba(6, 182, 212, 0.12);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+}
+
+:global([data-theme='light']) .detailHeader {
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+:global([data-theme='light']) .detailTime {
+    color: rgba(0, 0, 0, 0.45);
+}
+
+:global([data-theme='light']) .fullHourLabel {
+    color: rgba(0, 0, 0, 0.2);
+}
+
+:global([data-theme='light']) .fullRowLabel {
+    color: rgba(0, 0, 0, 0.35);
+}
+
+:global([data-theme='light']) .detailNext {
+    border-top-color: rgba(0, 0, 0, 0.06);
+}
+
+:global([data-theme='light']) .detailNextLabel {
+    color: rgba(0, 0, 0, 0.35);
+}
+
+:global([data-theme='light']) .detailNextDesc {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+:global([data-theme='light']) .detailNextCountdown {
+    color: rgba(0, 0, 0, 0.45);
+}
+
+/* ─── Responsive ────────────────────────────────────────────── */
+
+@media (max-width: 1400px) {
+    .wrapper {
+        min-width: 480px;
+    }
+}
+
+@media (max-width: 1100px) {
+    .infoColumn {
+        display: none;
+    }
+    .wrapper {
+        min-width: 340px;
+    }
+}
+
+@media (max-width: 768px) {
+    .wrapper {
+        display: none;
+    }
+}

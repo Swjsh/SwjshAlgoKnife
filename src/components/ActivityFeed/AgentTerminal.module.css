@@ -80,9 +80,49 @@
     text-transform: uppercase;
 }
 
+/* Ticket Badges (Jira stats under agent name) */
+.ticketBadges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 1px;
+}
+
+.ticketBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1;
+}
+
+.ticketDone {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.ticketActive {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+}
+
+.ticketActive svg {
+    animation: spin 2s linear infinite;
+}
+
+.ticketTodo {
+    background: rgba(107, 114, 128, 0.15);
+    color: #9ca3af;
+}
+
 .headerRight {
     display: flex;
     align-items: center;
+    gap: 6px;
 }
 
 /* Heartbeat Indicator */
@@ -161,6 +201,7 @@
     cursor: pointer;
     transition: all 0.2s ease;
     margin-right: 6px;
+    font-family: inherit;
 }
 
 .wakeButton:hover {
@@ -171,6 +212,94 @@
 
 .wakeButton:active {
     transform: scale(0.98);
+}
+
+/* Continue Button (for waiting_input agents) */
+.continueButton {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    background: rgba(34, 197, 94, 0.2);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #22c55e;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.continueButton:hover {
+    background: rgba(34, 197, 94, 0.3);
+    border-color: #22c55e;
+    transform: scale(1.05);
+}
+
+.continueButton:active {
+    transform: scale(0.98);
+}
+
+/* Waiting Input Indicator */
+.waitingIndicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    background: rgba(168, 85, 247, 0.15);
+}
+
+.waitingPulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #a855f7;
+    animation: heartbeatPulse 1.5s ease-in-out infinite;
+}
+
+.waitingLabel {
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: #a855f7;
+    text-transform: uppercase;
+}
+
+/* Waiting Prompt (shown below terminal) */
+.waitingPrompt {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 6px 10px;
+    background: rgba(168, 85, 247, 0.08);
+    border-top: 1px solid rgba(168, 85, 247, 0.2);
+    font-size: 11px;
+}
+
+.waitingPromptIcon {
+    flex-shrink: 0;
+    font-size: 12px;
+}
+
+.waitingPromptText {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+/* Heartbeat waiting_input state */
+.heartbeatWaiting_input {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+}
+
+.heartbeatWaiting_input .heartbeatDot {
+    background: #a855f7;
+    animation: heartbeatPulse 1.5s ease-in-out infinite;
 }
 
 @keyframes heartbeatPulse {
