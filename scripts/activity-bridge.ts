@@ -13,6 +13,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
 import { addLogEntry, addStatusEntry, flush as flushActivityLog } from '../src/lib/activity-log';
+import { detectAgentAction, type AgentAction } from '../src/lib/agentActionPatterns';
 
 // ─── Configuration Constants ─────────────────────────────────────────────────
 
@@ -842,13 +843,27 @@ function broadcastLog(agentId: string, text: string, level: string = 'info') {
     });
   }
 
+  // Detect important actions (Jira, memory, commits, etc.)
+  const action = detectAgentAction(text, agentId, timestamp);
+  if (action) {
+    broadcast({
+      type: 'agent:action',
+      agent: agentId,
+      action,
+      timestamp,
+    });
+    console.log(`[${agentId.toUpperCase()}] ACTION: ${action.icon} ${action.label}${action.detail ? `: ${action.detail}` : ''}`);
+  }
+
   console.log(`[${agentId.toUpperCase()}] ${text.substring(0, 80)}...`);
 }
 
 // ─── Agent Detection ───────────────────────────────────────────────────────────
 
-// Broad patterns to detect agent type from session content
-// Updated to match current SOUL file names and agent role keywords
+// @deprecated DO NOT USE - matches random words in non-HALO sessions
+// This caused user conversations to appear in wrong terminals because
+// words like "bug", "debug", "research" matched Hunter, Scout, etc.
+// Use detectAgentStrict() instead - it only matches explicit HALO identifiers.
 function detectAgent(content: string): string | null {
   const patterns: Record<string, RegExp> = {
     // Match agent name, SOUL file, or role keywords
@@ -925,28 +940,22 @@ function parseSessionLine(line: string, sessionId: string): void {
       }
     }
 
-    // Detect agent from user message - try STRICT first, then fall back to BROAD detection
+    // Detect agent from user message - STRICT detection ONLY
+    // Do NOT use broad keyword detection - it matches random words in non-HALO sessions
     if (agentId === 'unknown' && event.type === 'user' && event.message?.content) {
       const content = typeof event.message.content === 'string'
         ? event.message.content
         : JSON.stringify(event.message.content);
 
-      // Try strict patterns first (explicit Terminal identifiers)
-      let detected = detectAgentStrict(content);
-
-      // Fall back to broad keyword-based detection
-      if (!detected) {
-        detected = detectAgent(content);
-      }
+      // ONLY use strict patterns - must match "You are {Agent}" or SOUL file path
+      const detected = detectAgentStrict(content);
 
       if (detected) {
         agentSessions.set(sessionId, detected);
         agentId = detected;
-        console.log(`[Bridge] Detected Halo agent: ${detected} for session ${sessionId.substring(0, 8)}`);
-
-        // Broadcast initial log
-        broadcastLog(agentId, `Session started: ${content.substring(0, 100)}`, 'action');
+        console.log(`[Bridge] HALO agent identified: ${detected} for session ${sessionId.substring(0, 8)}`);
       }
+      // If strict detection fails, session will be marked as 'ignored' below
     }
 
     // IMPORTANT: Do NOT broadcast unidentified sessions
@@ -1068,11 +1077,12 @@ async function readInitialLines(filePath: string, sessionId: string) {
           const content = typeof event.message.content === 'string'
             ? event.message.content
             : JSON.stringify(event.message.content);
-          const agent = detectAgent(content);
+          // STRICT detection only - must match "You are {Agent}" or SOUL file path
+          const agent = detectAgentStrict(content);
           if (agent) {
             agentSessions.set(sessionId, agent);
             agentStatus.set(agent, { status: 'online', lastActivity: new Date().toISOString() });
-            console.log(`[Bridge] Session ${sessionId.substring(0, 8)} is ${agent.toUpperCase()}`);
+            console.log(`[Bridge] HALO session ${sessionId.substring(0, 8)} → ${agent.toUpperCase()}`);
 
             // Broadcast status update to any connected dashboards
             broadcast({
