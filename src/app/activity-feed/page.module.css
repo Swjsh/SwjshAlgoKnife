@@ -3,81 +3,84 @@
     max-height: 100%;
     background: var(--bg-main, hsl(222, 47%, 11%));
     color: var(--text-primary, #f8fafc);
-    padding: 10px 14px;
+    padding: 6px 14px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     box-sizing: border-box;
 }
 
-/* Header */
+/* Header — single compact row */
 .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     gap: 12px;
     flex-shrink: 0;
 }
 
 .titleSection {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    gap: 10px;
 }
 
 .title {
-    font-size: 26px;
+    font-size: 20px;
     font-weight: 700;
     margin: 0;
-    line-height: 1.1;
+    line-height: 1;
     background: linear-gradient(135deg, #06b6d4, #a855f7);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    white-space: nowrap;
 }
 
 .subtitle {
-    font-size: 14px;
+    font-size: 11px;
     font-family: 'JetBrains Mono', 'Consolas', monospace;
-    color: rgba(255, 255, 255, 0.4);
-    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.35);
+    letter-spacing: 0.08em;
     text-transform: uppercase;
+    white-space: nowrap;
 }
 
 .clockSection {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
+    gap: 6px;
+    padding: 4px 10px;
     background: rgba(6, 182, 212, 0.08);
     border: 1px solid rgba(6, 182, 212, 0.2);
-    border-radius: 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
 }
 
 .clockTime {
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
     color: #06b6d4;
 }
 
 .clockDate {
-    font-size: 13px;
+    font-size: 11px;
     font-family: 'JetBrains Mono', monospace;
     color: rgba(255, 255, 255, 0.4);
 }
 
-/* Master Broadcast Input */
+/* Master Broadcast Input — compact single row */
 .broadcastSection {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    background: rgba(168, 85, 247, 0.08);
-    border: 1px solid rgba(168, 85, 247, 0.25);
-    border-radius: 10px;
+    gap: 8px;
+    padding: 5px 10px;
+    margin-bottom: 4px;
+    background: rgba(168, 85, 247, 0.06);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-radius: 8px;
     backdrop-filter: blur(8px);
     flex-shrink: 0;
 }
@@ -86,10 +89,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: 26px;
+    height: 26px;
     background: rgba(168, 85, 247, 0.15);
-    border-radius: 6px;
+    border-radius: 5px;
     color: #a855f7;
     flex-shrink: 0;
 }
@@ -97,27 +100,30 @@
 .broadcastInputWrapper {
     flex: 1;
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    align-items: center;
+    gap: 8px;
 }
 
 .broadcastLabel {
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #a855f7;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .broadcastInput {
     background: rgba(9, 9, 11, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    padding: 8px 14px;
+    border-radius: 5px;
+    padding: 5px 10px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
+    font-size: 12px;
     color: rgba(255, 255, 255, 0.9);
     outline: none;
+    flex: 1;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -172,7 +178,7 @@
 /* Jira Ticket Strip - Bottom Row */
 .ticketStripWrapper {
     flex-shrink: 0;
-    margin-top: 8px;
+    margin-top: 10px;
 }
 
 /* Agent Grid - 2x3 layout */

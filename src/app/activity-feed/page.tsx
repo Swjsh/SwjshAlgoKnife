@@ -5,6 +5,7 @@ import { Activity, Radio, Send } from 'lucide-react';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useJiraTickets } from '@/hooks/useJiraTickets';
+import { useJiraLoop } from '@/hooks/useJiraLoop';
 import { ActivityStats } from '@/components/ActivityFeed/ActivityStats';
 import { AgentTerminal } from '@/components/ActivityFeed/AgentTerminal';
 import { PermissionQueue } from '@/components/ActivityFeed/PermissionQueue';
@@ -48,7 +49,26 @@ export default function ActivityFeedPage() {
     } = useActivityFeed();
 
     // Fetch Jira tickets for all agents
-    const { tickets, isLoading: ticketsLoading } = useJiraTickets();
+    const { tickets, isLoading: ticketsLoading, refetch: refetchTickets, lastUpdated } = useJiraTickets();
+
+    // Jira loop controls
+    const { loopState, isLoading: loopLoading, startLoop, stopLoop } = useJiraLoop();
+
+    // Handle ticket status transitions
+    const handleTicketTransition = useCallback(async (key: string, status: 'In Progress' | 'Done', comment?: string) => {
+        try {
+            const response = await fetch(`/api/jira/tickets/${key}/transition`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status, comment })
+            });
+            if (!response.ok) throw new Error('Transition failed');
+            // Refresh tickets after successful transition
+            refetchTickets();
+        } catch (error) {
+            console.error('[ActivityFeed] Transition failed:', error);
+        }
+    }, [refetchTickets]);
 
     // Keyboard shortcut handlers
     const handleApproveFirst = useCallback(() => {
@@ -143,10 +163,10 @@ export default function ActivityFeedPage() {
             <header className={styles.header}>
                 <div className={styles.titleSection}>
                     <h1 className={styles.title}>
-                        <Activity size={24} style={{ display: 'inline', marginRight: 10 }} />
+                        <Activity size={18} style={{ display: 'inline', marginRight: 6 }} />
                         Activity Feed
                     </h1>
-                    <p className={styles.subtitle}>Halo Crew // Real-Time Agent Monitoring</p>
+                    <span className={styles.subtitle}>Halo Crew // Real-Time Agent Monitoring</span>
                 </div>
 
                 <div className={styles.clockSection}>
@@ -171,6 +191,10 @@ export default function ActivityFeedPage() {
                 toolExecutions={toolExecutions}
                 toolSuccesses={toolSuccesses}
                 toolFailures={toolFailures}
+                loopState={loopState}
+                loopLoading={loopLoading}
+                onStartLoop={startLoop}
+                onStopLoop={stopLoop}
             />
 
             {/* Master Broadcast Input */}
@@ -231,7 +255,13 @@ export default function ActivityFeedPage() {
 
             {/* Jira Ticket Strip - Bottom Row */}
             <div className={styles.ticketStripWrapper}>
-                <TicketStrip tickets={tickets} isLoading={ticketsLoading} />
+                <TicketStrip
+                    tickets={tickets}
+                    isLoading={ticketsLoading}
+                    onTransition={handleTicketTransition}
+                    onRefresh={refetchTickets}
+                    lastUpdated={lastUpdated}
+                />
             </div>
         </div>
     );

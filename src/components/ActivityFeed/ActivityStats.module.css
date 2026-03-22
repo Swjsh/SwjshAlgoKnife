@@ -1,13 +1,13 @@
 .statsBar {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 8px 14px;
+    gap: 12px;
+    padding: 5px 12px;
     background: rgba(17, 17, 22, 0.8);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
-    margin-bottom: 8px;
+    border-radius: 8px;
+    margin-bottom: 4px;
     flex-shrink: 0;
 }
 
@@ -15,11 +15,11 @@
 .connectionStatus {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
+    gap: 6px;
+    padding: 4px 10px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 8px;
+    border-radius: 6px;
 }
 
 .connectionDot {
@@ -215,4 +215,109 @@
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
     }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Loop Control Section - Jira agent loop controls
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.loopSection {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 14px;
+    background: rgba(17, 17, 22, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    margin-left: auto;
+}
+
+.loopStatus {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.loopRunning {
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: hsl(142 76% 36%);
+    text-shadow: 0 0 8px hsla(142, 76%, 36%, 0.5);
+}
+
+.loopStopped {
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: hsl(0 84% 60%);
+}
+
+.currentIssue {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+.loopButtons {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
+
+.startButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #ffffff;
+    background: hsl(188 95% 43%);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.startButton:hover:not(:disabled) {
+    background: hsl(188 95% 48%);
+    box-shadow: 0 0 12px hsla(188, 95%, 43%, 0.4);
+}
+
+.startButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.stopButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: hsl(0 84% 60%);
+    background: transparent;
+    border: 1px solid hsl(0 84% 60%);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.stopButton:hover:not(:disabled) {
+    background: hsla(0, 84%, 60%, 0.1);
+    box-shadow: 0 0 12px hsla(0, 84%, 60%, 0.3);
+}
+
+.stopButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
