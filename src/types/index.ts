@@ -118,3 +118,73 @@ export interface WebhookPayload {
     strategy?: string;
     notes?: string;
 }
+
+// --- Activity Feed Types (Phase 4: API Routes) ---
+
+export type ActivityType =
+    | 'tool_call'
+    | 'file_edit'
+    | 'command'
+    | 'permission_request'
+    | 'permission_response'
+    | 'agent_message'
+    | 'error'
+    | 'info';
+
+export type ActivityStatus =
+    | 'pending'
+    | 'in_progress'
+    | 'completed'
+    | 'failed'
+    | 'cancelled';
+
+export interface ActivityEntry {
+    id: string;
+    timestamp: string;
+    type: ActivityType;
+    agent: string;
+    action: string;
+    details?: string;
+    status: ActivityStatus;
+    metadata?: Record<string, unknown>;
+}
+
+export type PermissionStatus = 'pending' | 'approved' | 'rejected' | 'expired';
+
+export interface PermissionRequest {
+    id: string;
+    timestamp: string;
+    agent: string;
+    action: string;
+    resource: string;
+    reason?: string;
+    status: PermissionStatus;
+    expiresAt?: string;
+    respondedAt?: string;
+    respondedBy?: string;
+}
+
+export type AgentStatus = 'online' | 'offline' | 'busy' | 'error';
+
+export interface ActivityAgent {
+    name: string;
+    status: AgentStatus;
+    lastSeen: string;
+    currentTask?: string;
+    actionsToday?: number;
+}
+
+export interface ActivityStats {
+    agentsOnline: number;
+    pendingPermissions: number;
+    actionsToday: number;
+    totalActions: number;
+    lastActivity: string;
+}
+
+export interface ActivityFeedData {
+    entries: ActivityEntry[];
+    permissions: PermissionRequest[];
+    agents: ActivityAgent[];
+    lastUpdated: string;
+}

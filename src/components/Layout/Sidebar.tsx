@@ -7,7 +7,7 @@ import {
     Bot, Monitor, TrendingUp,
     Brain, Swords, BookOpen,
     Wallet, Plug, Coffee, Settings,
-    Plus, LogOut,
+    Plus, LogOut, Rss,
     Activity, FlaskConical, Layers, ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,6 +44,7 @@ const NAV_GROUPS: NavGroup[] = [
             { label: 'Agents',         href: '/agents',         icon: Bot,             desc: 'Autonomous trading fleet'  },
             { label: 'Trades',         href: '/trades',         icon: TrendingUp,      desc: 'Positions & execution'     },
             { label: 'Coffee Room',    href: '/coffeeroom',     icon: Coffee,          desc: 'Agent lounge'              },
+            { label: 'Activity Feed', href: '/activity-feed',  icon: Rss,             desc: 'Live agent activity'       },
         ],
     },
     {

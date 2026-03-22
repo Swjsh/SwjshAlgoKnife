@@ -1,0 +1,218 @@
+.statsBar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 14px;
+    background: rgba(17, 17, 22, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+/* Connection Status */
+.connectionStatus {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+}
+
+.connectionDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.connectionDot.connected {
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.connectionDot.disconnected {
+    background: #ef4444;
+    box-shadow: 0 0 8px #ef4444;
+}
+
+.connectionText {
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Stats Grid */
+.statsGrid {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    flex: 1;
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.stat:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.stat.alert {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.statIcon {
+    color: rgba(255, 255, 255, 0.4);
+    flex-shrink: 0;
+}
+
+.stat.alert .statIcon {
+    color: #ef4444;
+}
+
+.statContent {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.statLabel {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.statValue {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.statValue .highlight {
+    color: #10b981;
+}
+
+.statValue .muted {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.statValue .divider {
+    color: rgba(255, 255, 255, 0.2);
+    margin: 0 2px;
+}
+
+.statValue .total {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 16px;
+}
+
+.alertValue {
+    color: #ef4444 !important;
+    animation: alertPulse 1.5s ease-in-out infinite;
+}
+
+/* Approval Stats */
+.approvalStat {
+    cursor: help;
+}
+
+.statIconSuccess {
+    color: #10b981;
+    flex-shrink: 0;
+}
+
+.approvedCount {
+    color: #10b981;
+    font-weight: 700;
+}
+
+.rejectedCount {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+/* Busy Indicator */
+.busyIndicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 6px;
+    padding: 2px 6px;
+    background: rgba(251, 191, 36, 0.15);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 4px;
+    font-size: 11px;
+    color: #fbbf24;
+    animation: busyPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes busyPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes alertPulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .statsBar {
+        flex-wrap: wrap;
+    }
+
+    .statsGrid {
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .statsBar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .statsGrid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
