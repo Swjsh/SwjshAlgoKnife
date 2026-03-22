@@ -95,7 +95,9 @@ AGENT_CONFIGS = {
         "initial_capital": 50000,
         "risk_per_trade": 0.01,
         "strategy_params": {
-            "threshold_pct": 1.5,
+            # 0.4% threshold = ~40 pips, appropriate for GBP/USD 15m (daily range 30-80 pips)
+            # Previous 1.5% = 150 pips was too high, causing 0 trades
+            "threshold_pct": 0.4,
             "rr": 2.0,
         },
     },
