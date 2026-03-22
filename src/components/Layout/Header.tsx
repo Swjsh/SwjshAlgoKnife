@@ -5,6 +5,8 @@ import { Bell, CheckCircle2 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import UserMenu from "./UserMenu";
+import MarketClock from "./MarketClock";
+import HeaderStats from "./HeaderStats";
 import styles from "./Header.module.css";
 
 interface Notification {
@@ -257,15 +259,19 @@ export default function Header() {
     return (
         <header className={styles.header}>
 
-            {/* ── Left: breadcrumb ── */}
+            {/* ── Left: breadcrumb + stats ── */}
             <div className={styles.leftSection}>
                 <div className={styles.breadcrumbs}>
                     <span className={styles.crumbDivider}>/</span>
                     <span className={styles.crumbActive}>{getBreadcrumb()}</span>
                 </div>
+                <HeaderStats />
             </div>
 
-            {/* ── Center: live price ticker ── */}
+            {/* ── Center: market clock ── */}
+            <MarketClock />
+
+            {/* ── Price ticker ── */}
             <div className={styles.tickerContainer}>
                 <div className={styles.tickerTrack}>
                     {hasPrices

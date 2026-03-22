@@ -10,7 +10,6 @@ import { useJiraStats } from '@/hooks/useJiraStats';
 import { ActivityStats } from '@/components/ActivityFeed/ActivityStats';
 import { AgentTerminal } from '@/components/ActivityFeed/AgentTerminal';
 import { PermissionQueue } from '@/components/ActivityFeed/PermissionQueue';
-import { TicketStrip } from '@/components/ActivityFeed/TicketStrip';
 import { ActivityColumn } from '@/components/ActivityFeed/ActivityColumn';
 import { N8nHeartbeat } from '@/components/ActivityFeed/N8nHeartbeat';
 import styles from './page.module.css';
@@ -55,7 +54,7 @@ export default function ActivityFeedPage() {
     } = useActivityFeed();
 
     // Fetch Jira tickets for all agents
-    const { tickets, isLoading: ticketsLoading, refetch: refetchTickets, lastUpdated } = useJiraTickets();
+    const { tickets, refetch: refetchTickets } = useJiraTickets();
 
     // Jira loop controls
     const { loopState, isLoading: loopLoading, startLoop, stopLoop } = useJiraLoop();
@@ -80,22 +79,6 @@ export default function ActivityFeedPage() {
             await refetchTickets();
         } finally {
             setTimeout(() => setSyncingJira(false), 600);
-        }
-    }, [refetchTickets]);
-
-    // Handle ticket status transitions
-    const handleTicketTransition = useCallback(async (key: string, status: 'In Progress' | 'Done', comment?: string) => {
-        try {
-            const response = await fetch(`/api/jira/tickets/${key}/transition`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status, comment })
-            });
-            if (!response.ok) throw new Error('Transition failed');
-            // Refresh tickets after successful transition
-            refetchTickets();
-        } catch (error) {
-            console.error('[ActivityFeed] Transition failed:', error);
         }
     }, [refetchTickets]);
 
@@ -269,14 +252,6 @@ export default function ActivityFeedPage() {
                 </div>
             </div>
 
-            {/* Jira Ticket Strip - Bottom Row */}
-            <div className={styles.ticketStripWrapper}>
-                <TicketStrip
-                    tickets={tickets}
-                    isLoading={ticketsLoading}
-                    onTransition={handleTicketTransition}
-                />
-            </div>
         </div>
     );
 }

@@ -203,13 +203,6 @@
     box-shadow: none;
 }
 
-/* Jira Ticket Strip - Bottom Row */
-.ticketStripWrapper {
-    flex-shrink: 0;
-    margin-top: 4px;
-    max-height: 120px;
-}
-
 /* Main Content Area - Agent Grid + Activity Column */
 .mainContent {
     display: grid;
