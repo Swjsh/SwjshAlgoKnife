@@ -161,4 +161,30 @@ Meanwhile, `Start-Process cmd.exe -ArgumentList "/k", "$launcherPath"` works per
 10. **PowerShell's `Start-Process cmd.exe` is NOT equivalent to batch `start cmd.exe`** — they pass arguments differently and produce different behavior. When spawning windows that need to persist, use pure batch.
 11. **Never dynamically generate .cmd files using batch `echo >>` if the content has double quotes** — batch can't handle nested quotes with redirects. Use static pre-written files instead.
 12. **When changing the agent prompt format, update `detectAgentStrict()` in activity-bridge.ts to match**
-13. **After fixing LAUNCH_HALO_SYSTEM.ps1, verify it wasn't reverted before the next launch** -- the file was silently reverted once, dropping the watchdog step and reverting all fixes. Check for `$ErrorActionPreference = "Stop"` and missing watchdog step as canaries. — the bridge uses regex on the first user message to identify which agent a session belongs to. If the regex doesn't match, sessions are silently marked 'ignored' and never appear on the dashboard.
+13. **After fixing LAUNCH_HALO_SYSTEM.ps1, verify it wasn't reverted before the next launch** -- the file was silently reverted once, dropping the watchdog step and reverting all fixes. Check for `$ErrorActionPreference = "Stop"` and missing watchdog step as canaries.
+14. **COMMIT infrastructure changes immediately** -- uncommitted changes are destroyed by any agent git operation. The revert happened because fixes were saved to disk but never committed.
+15. **Agents can destroy each other's work** -- 6 agents sharing one repo with `--dangerously-skip-permissions` means any `git checkout`, `git stash`, or `git restore` from one agent nukes uncommitted changes from ALL agents.
+16. **Defense in depth** -- SOUL file rules alone aren't enough. Add pre-commit hooks, protected file lists, and lock files. Agents are autonomous and may not always follow instructions perfectly.
+
+---
+
+## GUARDRAIL LAYERS (added 2026-03-22)
+
+Protection is implemented at multiple levels:
+
+1. **SOUL files** — Every agent's SOUL file now has a guardrails block at the top with 5 critical rules
+2. **GUARDRAILS_COMMON.md** — Comprehensive shared rules file covering: git ops, protected files, port reservation, package rules, database rules, resource limits, simultaneous edit prevention, credential safety, network restrictions
+3. **Pre-commit hook** — `.git/hooks/pre-commit` blocks commits that touch protected infrastructure files. Jack bypasses with `--no-verify`.
+4. **File locking** — `data/locks/` directory for cooperative file locking between agents
+5. **Committed state** — All infrastructure files are now committed to git, so they survive checkout/stash operations
+6. **AGENT_ALLOWLIST.md** — Documents all 8 known risk vectors and their mitigations
+
+### 8 Risk Vectors Identified
+1. Git operations reverting files (MITIGATED — SOUL rules + pre-commit hook + committed state)
+2. Port conflicts killing dashboard/bridge/watchdog (MITIGATED — SOUL rules)
+3. Package.json modifications causing merge hell (MITIGATED — SOUL rules, only Hunter allowed)
+4. Database corruption from simultaneous writes (MITIGATED — SOUL rules)
+5. Env file modifications breaking API connections (MITIGATED — SOUL rules)
+6. Process killing (MITIGATED — GUARDRAILS_COMMON.md)
+7. Resource exhaustion from infinite loops/bulk downloads (MITIGATED — 5min timeout rule)
+8. Simultaneous file edits overwriting each other (MITIGATED — lock file system)

@@ -1,5 +1,14 @@
 # SCOUT SOUL.md
 
+> **CRITICAL: READ GUARDRAILS FIRST**
+> Before doing ANY work, read `Library/agent-souls/GUARDRAILS_COMMON.md` and internalize ALL rules.
+> Key rules that MUST be followed:
+> 1. **NEVER run** `git checkout --`, `git restore`, `git stash`, `git reset --hard`, `git clean`, or `git checkout .`
+> 2. **NEVER modify** LAUNCH_HALO_SYSTEM.ps1, LAUNCH_AGENTS.bat, HALO_WATCHDOG.ps1, data/halo-launchers/*.cmd, or scripts/activity-bridge.ts
+> 3. **Before ANY git operation**, run `git status` first. If there are uncommitted changes from OTHER agents, STOP.
+> 4. **Commit YOUR work frequently** — uncommitted changes get destroyed by git operations from other agents
+> 5. **At 70% context**, run `/compact`. At 85%, write checkpoint and `/clear`.
+
 ---
 
 ## Identity
