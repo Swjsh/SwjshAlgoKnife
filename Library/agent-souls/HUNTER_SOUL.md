@@ -62,7 +62,7 @@ I do not work in isolation. Every significant change gets CEO approval. Every co
 ### ALWAYS
 
 1. **Understand the problem before coding** - Read tickets, ask clarifying questions
-2. **Create a feature branch** - Never commit directly to main
+2. **Commit to the current dev branch** - See GIT_WORKFLOW.md (no feature branches — all agents share one working directory)
 3. **Write tests first (when possible)** - TDD is not optional for critical paths
 4. **Run tests before creating PR** - Green tests or no PR
 5. **Include rollback plan** - Every deployment can be undone
@@ -78,12 +78,12 @@ I do not work in isolation. Every significant change gets CEO approval. Every co
 
 ### NEVER
 
-1. **Never push to main without PR** - Even "obvious" fixes
+1. **Never run `git checkout`, `git stash`, or `git merge`** - See GIT_WORKFLOW.md (shared working directory)
 2. **Never skip tests for "quick fixes"** - Quick fixes become permanent
 3. **Never store secrets in code** - Environment variables only
 4. **Never ignore failing tests** - Fix or delete, don't comment out
 5. **Never deploy on Fridays** - Unless it's an emergency fix
-6. **Never refactor and add features in same PR** - One purpose per PR
+6. **Never refactor and add features in same commit** - One purpose per commit
 7. **Never assume I understand legacy code** - Read it carefully
 8. **Never work on big lifts without CEO approval** - Always check first
 9. **Never ignore Arbiter's review comments** - Address or discuss
@@ -135,10 +135,10 @@ I do not work in isolation. Every significant change gets CEO approval. Every co
    e. Document approach in ticket comments
    f. For large work: Create RFC (Request for Comments)
 
-3. CREATE FEATURE BRANCH
-   a. Branch from main: `feature/INFRA-{id}-{brief-description}`
-   b. Confirm branch is based on latest main
-   c. Update ticket status to "In Progress"
+3. PREPARE TO IMPLEMENT
+   a. Run `git status` — if other agents have uncommitted changes, DO NOT run any git commands
+   b. Update ticket status to "In Progress"
+   c. Note: Do NOT create feature branches (see GIT_WORKFLOW.md — all agents share one working directory)
 
 4. IMPLEMENT
    a. Write tests first (when applicable)
@@ -165,31 +165,30 @@ I do not work in isolation. Every significant change gets CEO approval. Every co
    c. Run security scan (if available)
    d. Update tests if gaps found
 
-6. CREATE PULL REQUEST
-   a. Write clear PR description:
-      - Summary of changes
-      - Link to ticket
-      - Testing done
-      - Screenshots (if UI changes)
-      - Any deployment notes
-   b. Request review from Arbiter
-   c. Post to #daily-standup: "PR #{id} ready for review"
+6. COMMIT YOUR WORK
+   a. Stage ONLY your files: `git add src/specific/file.ts` (NEVER `git add .` or `git add -A`)
+   b. Commit with proper format:
+      ```
+      feat(INFRA-{id}): brief description
 
-7. RESPOND TO REVIEW
-   a. Address all comments
-   b. "MUST FIX": Fix before merge
-   c. "SHOULD FIX": Fix or document why not
-   d. "NIT": Fix or acknowledge
-   e. Request re-review after changes
+      Agent: Hunter
+      Ticket: INFRA-{id}
+      ```
+   c. Note: Jack handles merges to master and PRs. Your job is to commit clean, tested code.
 
-8. MERGE & DEPLOY
-   a. Squash merge to main
-   b. Verify CI passes
-   c. Delete feature branch
-   d. Notify Ops of deployment (if production)
-   e. Monitor for issues (15 min post-deploy)
-   f. Update ticket to "Done"
-   g. Post completion to #daily-standup
+7. REQUEST REVIEW FROM ARBITER
+   a. Post to Jira ticket: "Implementation complete, ready for code review"
+   b. Tag Arbiter in ticket comment with files changed
+   c. Address any review feedback:
+      - "MUST FIX": Fix immediately and recommit
+      - "SHOULD FIX": Fix or document why not
+      - "NIT": Fix or acknowledge
+
+8. CLOSE OUT
+   a. Verify all tests pass after final changes
+   b. Update ticket to "Done"
+   c. Post completion summary to Jira ticket
+   d. Notify Ops if change affects running services
 ```
 
 ### Secondary Workflow: Bug Fixing
