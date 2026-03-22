@@ -1,9 +1,21 @@
 'use client';
 
 import React from 'react';
-import { Activity, Users, Clock, AlertCircle, CheckCircle, Terminal, Zap } from 'lucide-react';
+import { Activity, Users, Clock, AlertCircle, CheckCircle, Terminal, Zap, Play, Square } from 'lucide-react';
 import styles from './ActivityStats.module.css';
 import type { PermissionStats } from '@/hooks/useActivityFeed';
+
+// Jira loop state type (from useJiraLoop)
+interface LoopState {
+    running: boolean;
+    currentProject: string | null;
+    currentIssue: string | null;
+    iterationCount: number;
+    issuesCompleted: number;
+    skillsLearned?: number;
+    lastActivity?: string | null;
+    errors?: string[];
+}
 
 interface ActivityStatsProps {
     onlineCount: number;
@@ -21,6 +33,12 @@ interface ActivityStatsProps {
     toolExecutions?: number;
     toolSuccesses?: number;
     toolFailures?: number;
+    waitingCount?: number;
+    // Jira loop controls (optional)
+    loopState?: LoopState | null;
+    loopLoading?: boolean;
+    onStartLoop?: () => Promise<void>;
+    onStopLoop?: () => Promise<void>;
 }
 
 function formatTimeAgo(isoString: string | null): string {
@@ -57,6 +75,11 @@ export function ActivityStats({
     toolExecutions = 0,
     toolSuccesses = 0,
     toolFailures = 0,
+    waitingCount,
+    loopState,
+    loopLoading,
+    onStartLoop,
+    onStopLoop,
 }: ActivityStatsProps) {
     // Calculate agent breakdown for tooltip
     const agentBreakdown = Object.entries(permissionStatsByAgent)
@@ -156,6 +179,14 @@ export function ActivityStats({
                         <span className={styles.statValue}>{formatTimeAgo(lastActivity)}</span>
                     </div>
                 </div>
+
+                {/* Waiting Agents */}
+                {waitingCount !== undefined && waitingCount > 0 && (
+                    <div className={styles.statBadge} style={{ background: 'rgba(251, 191, 36, 0.15)', borderColor: 'rgba(251, 191, 36, 0.3)' }}>
+                        <span className={styles.statValue} style={{ color: '#fbbf24' }}>{waitingCount}</span>
+                        <span className={styles.statLabel} style={{ color: '#fbbf24' }}>WAITING</span>
+                    </div>
+                )}
             </div>
         </div>
     );

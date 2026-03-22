@@ -1,6 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import type { AgentAction } from '@/lib/agentActionPatterns';
+
+// Re-export AgentAction for consumers
+export type { AgentAction };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -75,6 +79,8 @@ export interface ActivityFeedState {
     // Heartbeat tracking
     heartbeat: Record<string, HeartbeatAgentState>;
     heartbeatConfig: HeartbeatConfig;
+    // Agent actions (Jira, memory, commits, etc.)
+    agentActions: AgentAction[];
 }
 
 // ─── Agent Definitions ────────────────────────────────────────────────────────
@@ -197,6 +203,7 @@ export function useActivityFeed(wsUrl = 'ws://localhost:3001') {
             autoNudgeIntervalMs: 120000,
             nudgeCooldownMs: 60000,
         },
+        agentActions: [],
     });
 
     const wsRef = useRef<WebSocket | null>(null);
@@ -720,6 +727,17 @@ export function useActivityFeed(wsUrl = 'ws://localhost:3001') {
                     }
                     break;
                 }
+
+                case 'agent:action': {
+                    // Important agent action detected (Jira, memory, commits, etc.)
+                    const action = (message as { action?: AgentAction }).action;
+                    if (action) {
+                        // Keep last 50 actions, newest first
+                        newState.agentActions = [action, ...prev.agentActions].slice(0, 50);
+                        newState.lastActivity = action.timestamp;
+                    }
+                    break;
+                }
             }
 
             return newState;
@@ -945,6 +963,8 @@ export function useActivityFeed(wsUrl = 'ws://localhost:3001') {
         continueAgent,
         setHeartbeatConfig,
         waitingCount,
+        // Agent actions (Jira, memory, commits, etc.)
+        agentActions: state.agentActions,
     };
 }
 
