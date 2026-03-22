@@ -27,10 +27,10 @@
 | Agent | Project | Issue | Started | Status | Notes |
 |-------|---------|-------|---------|--------|-------|
 | Chief | MGMT | MGMT-COORD | 2026-03-22T03:30:00Z | In Progress | Loop active. Build GREEN. Command queue cleared. 2 blockers (Jack action). Next: Globex 6pm ET. |
-| Arbiter | PULSE | Continuous Monitor | 2026-03-22T03:48:00Z | In Progress | HEALTH: GREEN — Build ✅ Security ✅ Tests 94%. Polling every 15m. |
-| Scout | Forex | Market Watch | 2026-03-22T02:00:00Z | Blocked | FX closed. Awaiting Sun 5pm ET open. |
-| Ops | SCRUM | SCRUM-5 | 2026-03-22T04:00:00Z | Done | Direct Alpaca execution. 9/9 tests passing. USE_DIRECT_ALPACA flag added. |
-| Hunter | INFRA | INFRA-13 | 2026-03-22T04:15:00Z | Done | Fixed WF-S02 Wait node error. 18 workflows validated. No critical errors. |
+| Arbiter | PULSE | Continuous Monitor | 2026-03-22T05:00:00Z | In Progress | HEALTH: GREEN — Build ✅ Tests 94% (19 non-blocking failures). PULSE queue clear. Polling active. |
+| Scout | BACK | BACK-11 | 2026-03-22T05:00:00Z | Done | AutoResearch architecture research complete. |
+| Ops | SCRUM | Priority 2 | 2026-03-22T21:45:00Z | Done | prepare.py + strategy.py for AutoResearch loop. Karpathy convention complete. |
+| Hunter | INFRA | Session Done | 2026-03-22T06:15:00Z | Holding | INFRA-8,10,14 done. Created INFRA-15 (BaseAgent). Awaiting commands. |
 
 ---
 
@@ -54,6 +54,12 @@
 | Cortana | GRADE | PR Review Session | 2026-03-22T02:35:00Z | 20min | Graded 3 PRs: SCRUM-3 (B+), PULSE-9 (A-), INFRA-11 (B+) |
 | Arbiter | PULSE | System Health Check | 2026-03-22T03:15:00Z | 60min | BUILD status confirmed. Security scan passed. |
 | Ops | SCRUM | SCRUM-5 | 2026-03-22T04:45:00Z | 45min | Direct Alpaca execution added. 9/9 tests passing. scrum/SCRUM-3/position-sync |
+| Cortana | GRADE | SCRUM-5 Review | 2026-03-22T05:15:00Z | 15min | Grade: A- (91%). Direct Alpaca execution well-implemented. |
+| Scout | BACK | BACK-11 | 2026-03-22T05:20:00Z | 20min | AutoResearch architecture. docs/research/BACK-11-AUTORESEARCH-ARCHITECTURE.md |
+| Ops | SCRUM | Priority 2 | 2026-03-22T22:05:00Z | 20min | prepare.py + strategy.py for AutoResearch loop. Scripts working. |
+| Hunter | INFRA | INFRA-10 | 2026-03-22T05:35:00Z | 10min | overseer_agent.ts startingBalance now configurable via ACCOUNT_BALANCE env |
+| Hunter | INFRA | INFRA-8 | 2026-03-22T05:45:00Z | 15min | jira_client.py: exponential backoff with jitter (3 retries, 1s base, 2x growth) |
+| Hunter | INFRA | INFRA-14 | 2026-03-22T06:00:00Z | 20min | Env var consolidation: 7 files → 2. Complete .env.local.example template |
 
 ---
 
@@ -192,6 +198,31 @@
 - **P050-SLIPPAGE-LOG**: Log slippage (fill_price - expected_price) on every direct order — critical for strategy tuning
 - **P051-EXIT-VIA-CLOSE**: EXIT signals should use `close_position()` not `submit_market_order()` — simpler, handles qty automatically
 
+**[Cortana 2026-03-22T05:15:00Z] SCRUM-5 Grading Pattern:**
+- **P052-GRADE-91-DIRECT**: A-grade (91%) PR characteristics — 9 tests, explicit pattern compliance (P023, P048-P051), structured return types, slippage logging, env var toggle. Sets bar for production-ready direct execution modules.
+
+**[Scout 2026-03-22T05:20:00Z] AutoResearch Architecture Pattern:**
+- **P053-AUTORESEARCH-TRIAD**: Karpathy autoresearch convention requires 3 components: prepare.py (data cache), strategy.py (mutable params), eval (scoring). Missing any breaks the loop.
+
+**[Hunter 2026-03-22T05:45:00Z] Infrastructure Patterns:**
+- **P054-CONFIG-NOT-CODE**: Hardcoded values (balances, thresholds, limits) should read from env vars with sensible defaults — enables environment-specific behavior without code changes
+- **P055-RETRY-BACKOFF**: Exponential backoff formula: `base_delay * (2 ** attempt) * jitter` where jitter = 0.8-1.2 (±20%) prevents thundering herd
+- **P056-RETRYABLE-CODES**: Only retry transient errors (429 rate limit, 5xx server errors, network exceptions) — 4xx client errors (except 429) are not retryable
+
+**[Hunter 2026-03-22T06:00:00Z] Environment Configuration Patterns:**
+- **P057-ENV-TWO-FILES**: Projects need exactly 2 env files: `.env.local` (active) + `.env.local.example` (template). Delete duplicates, backups, and single-purpose templates.
+- **P058-COMPLETE-TEMPLATE**: `.env.local.example` must document ALL vars including security keys, API tokens, and optional integrations — incomplete templates cause onboarding friction
+- **P059-NO-HARDCODE-SECRETS**: All secrets (WEBHOOK_SECRET, API keys, tokens) must use `os.getenv()` with no fallback defaults. Fail loudly at startup if missing.
+- **P054-OHLCV-CACHE**: yfinance rate limits + latency (5-15s/symbol) require local Parquet cache. Incremental updates only fetch new data.
+- **P055-PARAM-SCHEMA**: Strategy parameter mutation needs explicit bounds (min/max/step) stored in JSON schema — prevents invalid mutations.
+
+**[Ops 2026-03-22T22:00:00Z] AutoResearch Implementation Patterns:**
+- **P060-PREPARE-CACHE-CSV**: prepare.py stores OHLCV in `data/ohlcv_cache/{symbol}_{timeframe}.csv` with metadata.json — CSV for debuggability, JSON for validation.
+- **P061-STRATEGY-DELEGATE**: strategy.py should delegate to universal_backtest.py's STRATEGIES dict + run_backtest() — avoid reimplementing PaperTrader.
+- **P062-PARAM-OVERRIDE-CLI**: `--param key=value` pattern with auto-type-conversion (int/float/bool/str) enables non-destructive parameter testing.
+- **P063-EXIT-PROFITABLE**: CI/CD gates can use exit code 0=profitable, 1=not profitable, 2=error — enables automated acceptance testing.
+- **P064-ASCII-WINDOWS**: Windows console chokes on Unicode (checkmarks, etc.) — use ASCII-safe status markers like [OK]/[FAIL] instead.
+
 ---
 
 ## Cross-Agent Notes
@@ -289,6 +320,26 @@
   - **Verdict**: ✅ SHIP IT — resolves INFRA-11 blocker, production-ready
   - *"80% quality. Acceptable. The CLI works, the blocker is resolved."*
 
+- **[CORTANA 2026-03-22T05:15:00Z]** GRADE — Ops's SCRUM-5 (Direct Alpaca Execution):
+  - **Grade: A- (91%)**
+  - **Commit**: e7f3f42 | **Files**: 4 | **Lines**: +1,062
+  - **Strengths**:
+    1. Comprehensive test suite — 9 pytest cases covering config, execution, routing, exits
+    2. Explicitly follows P023 (lazy-load) and implements P048-P051 (direct execution patterns)
+    3. Full type hints with docstrings explaining args and return structure
+    4. Order polling for fill confirmation (10 attempts @ 0.5s intervals)
+    5. Slippage logging on every direct order — critical for strategy tuning
+    6. Graceful error handling with structured response: `{success, order_id, fill_price, slippage, error}`
+    7. Clean `USE_DIRECT_ALPACA` flag enables paper→live transition via env var toggle
+    8. EXIT action correctly uses `close_position()` per P051
+  - **Concerns**:
+    1. Hardcoded 1% risk per trade (line 114) — could be configurable
+    2. Poll parameters hardcoded (max_poll_attempts=10, poll_interval_sec=0.5) — acceptable defaults
+    3. Could use `typing.Optional` for cleaner type annotations
+  - **Verdict**: ✅ SHIP IT — exceeds B-grade baseline significantly. This is SPX Sniper paper-trading ready.
+  - **Pattern Extract**: P052 documented below
+  - *"91% quality. The numbers are excellent. This enables paper trading for our best-performing agent."*
+
 - **[ARBITER 2026-03-22T02:15:00Z]** ⚠️ SYSTEM HEALTH — BUILD FAILURE DETECTED:
   - **Level: YELLOW** (build blocked, not emergency during weekend)
   - **BUILD STATUS**: ❌ FAILED — 34 errors
@@ -353,16 +404,17 @@
 ## Daily Summary (MGMT fills this)
 
 ### 2026-03-22 (Weekend - Saturday)
-- **Issues Completed**: 3 (INFRA-BUILD-FIX Hunter, PR Review Session Cortana, Health Check Arbiter)
+- **Issues Completed**: 4 (INFRA-BUILD-FIX Hunter, PR Review Session Cortana ×2, Health Check Arbiter)
 - **Issues In Progress**: 2 (MGMT-COORD Chief, Crypto Monitor Ops)
 - **Issues Blocked**: 1 (FX Market Watch Scout - weekend)
 - **Blockers Resolved**: 1 (BUILD failure ✅ - Hunter fixed 34 errors)
 - **Blockers Open**: 2 (INFRA-12 credential binding HIGH, gh CLI missing MEDIUM)
 - **Highlights**:
   - BUILD RESTORED: Hunter fixed firebase-admin + WS types (34 → 0 errors)
-  - Cortana graded 3 PRs: SCRUM-3 (B+ 78%), PULSE-9 (A- 87%), INFRA-11 (B+ 80%)
-  - All 3 PRs cleared to SHIP
-  - 14 new patterns documented (P029-P042)
+  - Cortana graded 4 PRs: SCRUM-3 (B+ 78%), PULSE-9 (A- 87%), INFRA-11 (B+ 80%), **SCRUM-5 (A- 91%)**
+  - All 4 PRs cleared to SHIP
+  - SCRUM-5 enables SPX Sniper paper trading (Master Tracker Priority 5)
+  - 15 new patterns documented (P029-P052)
   - Deploy unblocked - production ready
   - Zero exposure - correct weekend posture
 - **Status**: GREEN. Awaiting Globex open Sunday 6pm ET.
