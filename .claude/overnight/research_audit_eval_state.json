@@ -1,0 +1,709 @@
+{
+  "baseline": {
+    "timestamp": "2026-03-22T16:58:05.837Z",
+    "iteration": 0,
+    "categories": {
+      "agentHealthMonitoring": {
+        "name": "Agent Health Monitoring",
+        "score": 13.1,
+        "maxScore": 15,
+        "percentage": 87,
+        "criteria": [
+          {
+            "name": "Heartbeat status file",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "data/heartbeat-status.json exists"
+          },
+          {
+            "name": "3-tier status (alive/stale/dead)",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "Status values include alive/stale/dead"
+          },
+          {
+            "name": "Stuck detection (waitingDetectedAt)",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "waitingDetectedAt field present"
+          },
+          {
+            "name": "Auto-nudge tracking (nudgeCount)",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "nudgeCount field tracked"
+          },
+          {
+            "name": "Activity Bridge script",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "scripts/activity-bridge.ts exists"
+          },
+          {
+            "name": "Agent registry file",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "data/agent-registry.json exists"
+          },
+          {
+            "name": "Health status file",
+            "met": true,
+            "points": 1.5,
+            "maxPoints": 1.5,
+            "details": "data/health_status.json exists"
+          },
+          {
+            "name": "Predictive health (ML-based)",
+            "met": false,
+            "points": 0,
+            "maxPoints": 1.5,
+            "details": "Predictive health not yet implemented"
+          }
+        ],
+        "status": "GOOD"
+      },
+      "sessionTracking": {
+        "name": "Session Tracking",
+        "score": 15,
+        "maxScore": 15,
+        "percentage": 100,
+        "criteria": [
+          {
+            "name": "Overnight API route",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "API route exists"
+          },
+          {
+            "name": "Status API endpoint",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "Status endpoint exists"
+          },
+          {
+            "name": "Logs API endpoint",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "Logs endpoint exists"
+          },
+          {
+            "name": "Command queue API",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "Command endpoint exists"
+          },
+          {
+            "name": "Morning report generator",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "Morning report script exists"
+          },
+          {
+            "name": "Morning reports generated",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "1 report(s) found"
+          },
+          {
+            "name": "Auto session summary on stop",
+            "met": true,
+            "points": 1.5,
+            "maxPoints": 1.5,
+            "details": "Auto-summary logic present"
+          },
+          {
+            "name": "Trend visualization",
+            "met": false,
+            "points": 0,
+            "maxPoints": 1.5,
+            "details": "Trend visualization not yet implemented"
+          }
+        ],
+        "status": "PERFECT"
+      },
+      "structuredOutput": {
+        "name": "Structured Output",
+        "score": 14,
+        "maxScore": 20,
+        "percentage": 70,
+        "criteria": [
+          {
+            "name": "Prompt generation script",
+            "met": true,
+            "points": 3,
+            "maxPoints": 3,
+            "details": "Script exists"
+          },
+          {
+            "name": "Terminal prompt files (≥4)",
+            "met": true,
+            "points": 3,
+            "maxPoints": 3,
+            "details": "8 prompt files found"
+          },
+          {
+            "name": "Results output schema in prompts",
+            "met": true,
+            "points": 3,
+            "maxPoints": 3,
+            "details": "Results schema defined"
+          },
+          {
+            "name": "Terminal results files",
+            "met": true,
+            "points": 3,
+            "maxPoints": 3,
+            "details": "1 results file(s) found"
+          },
+          {
+            "name": "Heartbeat JSONL logs",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "1 heartbeat log(s) found"
+          },
+          {
+            "name": "Semantic action parser",
+            "met": false,
+            "points": 0,
+            "maxPoints": 3,
+            "details": "Action parser not yet implemented"
+          },
+          {
+            "name": "Schema validator",
+            "met": false,
+            "points": 0,
+            "maxPoints": 3,
+            "details": "Schema validator not yet implemented"
+          }
+        ],
+        "status": "PARTIAL"
+      },
+      "accomplishmentAggregation": {
+        "name": "Accomplishment Aggregation",
+        "score": 6,
+        "maxScore": 20,
+        "percentage": 30,
+        "criteria": [
+          {
+            "name": "Morning report generator",
+            "met": true,
+            "points": 3,
+            "maxPoints": 3,
+            "details": "Script exists"
+          },
+          {
+            "name": "Morning reports generated",
+            "met": true,
+            "points": 3,
+            "maxPoints": 3,
+            "details": "2 report file(s) found"
+          },
+          {
+            "name": "Auto-trigger on session stop",
+            "met": false,
+            "points": 0,
+            "maxPoints": 3,
+            "details": "Auto-trigger not yet fully implemented"
+          },
+          {
+            "name": "Accomplishments SQLite table",
+            "met": false,
+            "points": 0,
+            "maxPoints": 4,
+            "details": "Missing accomplishments table"
+          },
+          {
+            "name": "Dashboard accomplishment widget",
+            "met": false,
+            "points": 0,
+            "maxPoints": 4,
+            "details": "Missing accomplishments widget"
+          },
+          {
+            "name": "Real-time streaming to Activity Feed",
+            "met": false,
+            "points": 0,
+            "maxPoints": 3,
+            "details": "Real-time streaming not yet implemented"
+          }
+        ],
+        "status": "CRITICAL"
+      },
+      "crossSessionTrends": {
+        "name": "Cross-Session Trends",
+        "score": 2,
+        "maxScore": 15,
+        "percentage": 13,
+        "criteria": [
+          {
+            "name": "Morning reports stored",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "1 JSON report(s) stored"
+          },
+          {
+            "name": "Weekly aggregation script",
+            "met": false,
+            "points": 0,
+            "maxPoints": 3,
+            "details": "Missing weekly aggregation script"
+          },
+          {
+            "name": "Trend metrics table",
+            "met": false,
+            "points": 0,
+            "maxPoints": 3,
+            "details": "Missing trend_metrics table"
+          },
+          {
+            "name": "Trends API endpoint",
+            "met": false,
+            "points": 0,
+            "maxPoints": 2,
+            "details": "Missing trends endpoint"
+          },
+          {
+            "name": "Trend chart component",
+            "met": false,
+            "points": 0,
+            "maxPoints": 3,
+            "details": "Missing TrendChart component"
+          },
+          {
+            "name": "Anomaly detection",
+            "met": false,
+            "points": 0,
+            "maxPoints": 2,
+            "details": "Anomaly detection not yet implemented"
+          }
+        ],
+        "status": "CRITICAL"
+      },
+      "unifiedAgentView": {
+        "name": "Unified Agent View",
+        "score": 6,
+        "maxScore": 15,
+        "percentage": 40,
+        "criteria": [
+          {
+            "name": "Research agents hook",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "Hook exists"
+          },
+          {
+            "name": "Activity feed hook",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "Hook exists"
+          },
+          {
+            "name": "Unified agents endpoint",
+            "met": false,
+            "points": 0,
+            "maxPoints": 3,
+            "details": "Missing unified agents endpoint"
+          },
+          {
+            "name": "Both agent types in same view",
+            "met": false,
+            "points": 0,
+            "maxPoints": 3,
+            "details": "Agent types shown separately"
+          },
+          {
+            "name": "Cross-system accomplishment rollup",
+            "met": false,
+            "points": 0,
+            "maxPoints": 3,
+            "details": "Cross-system rollup not yet implemented"
+          },
+          {
+            "name": "Jira agent mapping",
+            "met": true,
+            "points": 2,
+            "maxPoints": 2,
+            "details": "Jira mapping exists"
+          }
+        ],
+        "status": "WEAK"
+      }
+    },
+    "composite": 56,
+    "deploymentGatePassed": false,
+    "allCategoriesAbove95": false,
+    "lowestCategory": "crossSessionTrends",
+    "lowestScore": 13
+  },
+  "history": [
+    {
+      "timestamp": "2026-03-22T16:58:05.837Z",
+      "iteration": 0,
+      "categories": {
+        "agentHealthMonitoring": {
+          "name": "Agent Health Monitoring",
+          "score": 13.1,
+          "maxScore": 15,
+          "percentage": 87,
+          "criteria": [
+            {
+              "name": "Heartbeat status file",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "data/heartbeat-status.json exists"
+            },
+            {
+              "name": "3-tier status (alive/stale/dead)",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "Status values include alive/stale/dead"
+            },
+            {
+              "name": "Stuck detection (waitingDetectedAt)",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "waitingDetectedAt field present"
+            },
+            {
+              "name": "Auto-nudge tracking (nudgeCount)",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "nudgeCount field tracked"
+            },
+            {
+              "name": "Activity Bridge script",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "scripts/activity-bridge.ts exists"
+            },
+            {
+              "name": "Agent registry file",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "data/agent-registry.json exists"
+            },
+            {
+              "name": "Health status file",
+              "met": true,
+              "points": 1.5,
+              "maxPoints": 1.5,
+              "details": "data/health_status.json exists"
+            },
+            {
+              "name": "Predictive health (ML-based)",
+              "met": false,
+              "points": 0,
+              "maxPoints": 1.5,
+              "details": "Predictive health not yet implemented"
+            }
+          ],
+          "status": "GOOD"
+        },
+        "sessionTracking": {
+          "name": "Session Tracking",
+          "score": 15,
+          "maxScore": 15,
+          "percentage": 100,
+          "criteria": [
+            {
+              "name": "Overnight API route",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "API route exists"
+            },
+            {
+              "name": "Status API endpoint",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "Status endpoint exists"
+            },
+            {
+              "name": "Logs API endpoint",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "Logs endpoint exists"
+            },
+            {
+              "name": "Command queue API",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "Command endpoint exists"
+            },
+            {
+              "name": "Morning report generator",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "Morning report script exists"
+            },
+            {
+              "name": "Morning reports generated",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "1 report(s) found"
+            },
+            {
+              "name": "Auto session summary on stop",
+              "met": true,
+              "points": 1.5,
+              "maxPoints": 1.5,
+              "details": "Auto-summary logic present"
+            },
+            {
+              "name": "Trend visualization",
+              "met": false,
+              "points": 0,
+              "maxPoints": 1.5,
+              "details": "Trend visualization not yet implemented"
+            }
+          ],
+          "status": "PERFECT"
+        },
+        "structuredOutput": {
+          "name": "Structured Output",
+          "score": 14,
+          "maxScore": 20,
+          "percentage": 70,
+          "criteria": [
+            {
+              "name": "Prompt generation script",
+              "met": true,
+              "points": 3,
+              "maxPoints": 3,
+              "details": "Script exists"
+            },
+            {
+              "name": "Terminal prompt files (≥4)",
+              "met": true,
+              "points": 3,
+              "maxPoints": 3,
+              "details": "8 prompt files found"
+            },
+            {
+              "name": "Results output schema in prompts",
+              "met": true,
+              "points": 3,
+              "maxPoints": 3,
+              "details": "Results schema defined"
+            },
+            {
+              "name": "Terminal results files",
+              "met": true,
+              "points": 3,
+              "maxPoints": 3,
+              "details": "1 results file(s) found"
+            },
+            {
+              "name": "Heartbeat JSONL logs",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "1 heartbeat log(s) found"
+            },
+            {
+              "name": "Semantic action parser",
+              "met": false,
+              "points": 0,
+              "maxPoints": 3,
+              "details": "Action parser not yet implemented"
+            },
+            {
+              "name": "Schema validator",
+              "met": false,
+              "points": 0,
+              "maxPoints": 3,
+              "details": "Schema validator not yet implemented"
+            }
+          ],
+          "status": "PARTIAL"
+        },
+        "accomplishmentAggregation": {
+          "name": "Accomplishment Aggregation",
+          "score": 6,
+          "maxScore": 20,
+          "percentage": 30,
+          "criteria": [
+            {
+              "name": "Morning report generator",
+              "met": true,
+              "points": 3,
+              "maxPoints": 3,
+              "details": "Script exists"
+            },
+            {
+              "name": "Morning reports generated",
+              "met": true,
+              "points": 3,
+              "maxPoints": 3,
+              "details": "2 report file(s) found"
+            },
+            {
+              "name": "Auto-trigger on session stop",
+              "met": false,
+              "points": 0,
+              "maxPoints": 3,
+              "details": "Auto-trigger not yet fully implemented"
+            },
+            {
+              "name": "Accomplishments SQLite table",
+              "met": false,
+              "points": 0,
+              "maxPoints": 4,
+              "details": "Missing accomplishments table"
+            },
+            {
+              "name": "Dashboard accomplishment widget",
+              "met": false,
+              "points": 0,
+              "maxPoints": 4,
+              "details": "Missing accomplishments widget"
+            },
+            {
+              "name": "Real-time streaming to Activity Feed",
+              "met": false,
+              "points": 0,
+              "maxPoints": 3,
+              "details": "Real-time streaming not yet implemented"
+            }
+          ],
+          "status": "CRITICAL"
+        },
+        "crossSessionTrends": {
+          "name": "Cross-Session Trends",
+          "score": 2,
+          "maxScore": 15,
+          "percentage": 13,
+          "criteria": [
+            {
+              "name": "Morning reports stored",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "1 JSON report(s) stored"
+            },
+            {
+              "name": "Weekly aggregation script",
+              "met": false,
+              "points": 0,
+              "maxPoints": 3,
+              "details": "Missing weekly aggregation script"
+            },
+            {
+              "name": "Trend metrics table",
+              "met": false,
+              "points": 0,
+              "maxPoints": 3,
+              "details": "Missing trend_metrics table"
+            },
+            {
+              "name": "Trends API endpoint",
+              "met": false,
+              "points": 0,
+              "maxPoints": 2,
+              "details": "Missing trends endpoint"
+            },
+            {
+              "name": "Trend chart component",
+              "met": false,
+              "points": 0,
+              "maxPoints": 3,
+              "details": "Missing TrendChart component"
+            },
+            {
+              "name": "Anomaly detection",
+              "met": false,
+              "points": 0,
+              "maxPoints": 2,
+              "details": "Anomaly detection not yet implemented"
+            }
+          ],
+          "status": "CRITICAL"
+        },
+        "unifiedAgentView": {
+          "name": "Unified Agent View",
+          "score": 6,
+          "maxScore": 15,
+          "percentage": 40,
+          "criteria": [
+            {
+              "name": "Research agents hook",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "Hook exists"
+            },
+            {
+              "name": "Activity feed hook",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "Hook exists"
+            },
+            {
+              "name": "Unified agents endpoint",
+              "met": false,
+              "points": 0,
+              "maxPoints": 3,
+              "details": "Missing unified agents endpoint"
+            },
+            {
+              "name": "Both agent types in same view",
+              "met": false,
+              "points": 0,
+              "maxPoints": 3,
+              "details": "Agent types shown separately"
+            },
+            {
+              "name": "Cross-system accomplishment rollup",
+              "met": false,
+              "points": 0,
+              "maxPoints": 3,
+              "details": "Cross-system rollup not yet implemented"
+            },
+            {
+              "name": "Jira agent mapping",
+              "met": true,
+              "points": 2,
+              "maxPoints": 2,
+              "details": "Jira mapping exists"
+            }
+          ],
+          "status": "WEAK"
+        }
+      },
+      "composite": 56,
+      "deploymentGatePassed": false,
+      "allCategoriesAbove95": false,
+      "lowestCategory": "crossSessionTrends",
+      "lowestScore": 13
+    }
+  ],
+  "lastRun": "2026-03-22T16:58:05.837Z"
+}

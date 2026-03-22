@@ -1,0 +1,930 @@
+{
+  "name": "WF-BACK-01 Daily Backlog Groomer",
+  "nodes": [
+    {
+      "id": "back01-0001-4000-8000-000000000001",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 500],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * 1-5"
+            }
+          ]
+        }
+      },
+      "notes": "Triggers at 7:00 AM ET on weekdays (Mon-Fri). Runs before daily standup."
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000002",
+      "name": "Fetch MGMT Tickets",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 100],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "MGMT",
+        "options": {
+          "jql": "project = MGMT AND status NOT IN (Done, Closed, Resolved) ORDER BY priority DESC, created ASC",
+          "maxResults": 100
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches all open tickets from MGMT project"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000003",
+      "name": "Fetch LEARN Tickets",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 250],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "LEARN",
+        "options": {
+          "jql": "project = LEARN AND status NOT IN (Done, Closed, Resolved) ORDER BY priority DESC, created ASC",
+          "maxResults": 100
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches all open tickets from LEARN project"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000004",
+      "name": "Fetch GRADE Tickets",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "GRADE",
+        "options": {
+          "jql": "project = GRADE AND status NOT IN (Done, Closed, Resolved) ORDER BY priority DESC, created ASC",
+          "maxResults": 100
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches all open tickets from GRADE project"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000005",
+      "name": "Fetch PULSE Tickets",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 550],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "PULSE",
+        "options": {
+          "jql": "project = PULSE AND status NOT IN (Done, Closed, Resolved) ORDER BY priority DESC, created ASC",
+          "maxResults": 100
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches all open tickets from PULSE project"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000006",
+      "name": "Fetch INFRA Tickets",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 700],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "INFRA",
+        "options": {
+          "jql": "project = INFRA AND status NOT IN (Done, Closed, Resolved) ORDER BY priority DESC, created ASC",
+          "maxResults": 100
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches all open tickets from INFRA project"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000007",
+      "name": "Fetch BACK Tickets",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 850],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "BACK",
+        "options": {
+          "jql": "project = BACK AND status NOT IN (Done, Closed, Resolved) ORDER BY priority DESC, created ASC",
+          "maxResults": 100
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches all open tickets from BACK project"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000008",
+      "name": "Fetch All Links",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [250, 1000],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "options": {
+          "jql": "issueLink IS NOT EMPTY AND status NOT IN (Done, Closed) ORDER BY updated DESC",
+          "maxResults": 200,
+          "expand": "issuelinks"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches tickets with links to identify dependencies and blockers"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000009",
+      "name": "Merge All Tickets",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [550, 500],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "notes": "Combines all parallel Jira fetches into single stream"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000010",
+      "name": "Enrich Ticket Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 500],
+      "parameters": {
+        "jsCode": "// Gather all tickets from all projects\nconst mgmtTickets = $('Fetch MGMT Tickets').all().map(i => i.json);\nconst learnTickets = $('Fetch LEARN Tickets').all().map(i => i.json);\nconst gradeTickets = $('Fetch GRADE Tickets').all().map(i => i.json);\nconst pulseTickets = $('Fetch PULSE Tickets').all().map(i => i.json);\nconst infraTickets = $('Fetch INFRA Tickets').all().map(i => i.json);\nconst backTickets = $('Fetch BACK Tickets').all().map(i => i.json);\nconst linkedTickets = $('Fetch All Links').all().map(i => i.json);\n\n// Combine all tickets\nconst allTickets = [...mgmtTickets, ...learnTickets, ...gradeTickets, ...pulseTickets, ...infraTickets, ...backTickets];\n\n// Create a map of linked issues for quick lookup\nconst linkMap = {};\nlinkedTickets.forEach(t => {\n  if (t.fields?.issuelinks) {\n    linkMap[t.key] = t.fields.issuelinks.map(link => ({\n      type: link.type?.name || 'Related',\n      direction: link.inwardIssue ? 'inward' : 'outward',\n      linkedKey: link.inwardIssue?.key || link.outwardIssue?.key,\n      linkedStatus: link.inwardIssue?.fields?.status?.name || link.outwardIssue?.fields?.status?.name\n    }));\n  }\n});\n\n// Calculate days since creation and last update\nconst now = new Date();\nconst calcDays = (dateStr) => {\n  if (!dateStr) return 0;\n  const date = new Date(dateStr);\n  return Math.floor((now - date) / (1000 * 60 * 60 * 24));\n};\n\n// Enrich each ticket\nconst enrichedTickets = allTickets.map(ticket => {\n  const created = ticket.fields?.created;\n  const updated = ticket.fields?.updated;\n  const ageDays = calcDays(created);\n  const staleDays = calcDays(updated);\n  const links = linkMap[ticket.key] || [];\n  \n  // Check if blocked\n  const blockers = links.filter(l => \n    l.type === 'Blocks' && l.direction === 'inward' && \n    l.linkedStatus !== 'Done' && l.linkedStatus !== 'Closed'\n  );\n  \n  // Check if blocking others\n  const blocking = links.filter(l => \n    l.type === 'Blocks' && l.direction === 'outward' && \n    l.linkedStatus !== 'Done' && l.linkedStatus !== 'Closed'\n  );\n  \n  return {\n    key: ticket.key,\n    project: ticket.fields?.project?.key,\n    summary: ticket.fields?.summary?.substring(0, 100),\n    status: ticket.fields?.status?.name,\n    priority: ticket.fields?.priority?.name || 'Medium',\n    priorityId: ticket.fields?.priority?.id || '3',\n    type: ticket.fields?.issuetype?.name,\n    labels: ticket.fields?.labels || [],\n    assignee: ticket.fields?.assignee?.displayName || 'Unassigned',\n    reporter: ticket.fields?.reporter?.displayName || 'Unknown',\n    created: created,\n    updated: updated,\n    ageDays: ageDays,\n    staleDays: staleDays,\n    isStale: staleDays >= 7,\n    isVeryStale: staleDays >= 14,\n    isBlocked: blockers.length > 0,\n    blockedBy: blockers.map(b => b.linkedKey),\n    isBlocking: blocking.length > 0,\n    blockingCount: blocking.length,\n    relatedTickets: links.map(l => l.linkedKey),\n    storyPoints: ticket.fields?.customfield_10016 || ticket.fields?.customfield_storypoints || 1,\n    sprint: ticket.fields?.sprint?.name || null,\n    epicLink: ticket.fields?.customfield_10014 || null\n  };\n});\n\n// Identify different categories\nconst staleTickets = enrichedTickets.filter(t => t.isStale && !t.isBlocked);\nconst blockedTickets = enrichedTickets.filter(t => t.isBlocked);\nconst highPriorityOld = enrichedTickets.filter(t => \n  (t.priority === 'Highest' || t.priority === 'High') && t.ageDays > 14\n);\nconst unassigned = enrichedTickets.filter(t => t.assignee === 'Unassigned');\nconst criticalPath = enrichedTickets.filter(t => t.isBlocking && t.blockingCount >= 2);\n\n// Calculate project stats\nconst projectStats = {};\n['MGMT', 'LEARN', 'GRADE', 'PULSE', 'INFRA', 'BACK'].forEach(proj => {\n  const projTickets = enrichedTickets.filter(t => t.project === proj);\n  projectStats[proj] = {\n    total: projTickets.length,\n    stale: projTickets.filter(t => t.isStale).length,\n    blocked: projTickets.filter(t => t.isBlocked).length,\n    unassigned: projTickets.filter(t => t.assignee === 'Unassigned').length,\n    avgAgeDays: projTickets.length > 0 ? \n      Math.round(projTickets.reduce((s, t) => s + t.ageDays, 0) / projTickets.length) : 0\n  };\n});\n\nreturn {\n  json: {\n    timestamp: now.toISOString(),\n    totalTickets: enrichedTickets.length,\n    staleCount: staleTickets.length,\n    blockedCount: blockedTickets.length,\n    unassignedCount: unassigned.length,\n    criticalPathCount: criticalPath.length,\n    \n    projectStats,\n    \n    // For AI analysis (limited to prevent token overflow)\n    ticketsForAnalysis: enrichedTickets.slice(0, 50),\n    staleTickets: staleTickets.slice(0, 20),\n    blockedTickets: blockedTickets.slice(0, 15),\n    highPriorityOld: highPriorityOld.slice(0, 10),\n    criticalPath: criticalPath.slice(0, 10),\n    unassigned: unassigned.slice(0, 15),\n    \n    // Full data for processing\n    allEnrichedTickets: enrichedTickets\n  }\n};"
+      },
+      "notes": "Enriches tickets with age, staleness, blocker status, and relationship data"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000011",
+      "name": "Fetch Sprint Capacity",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [800, 700],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/control",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches current system state for sprint capacity context"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000012",
+      "name": "AI Prioritization Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 2500,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are the backlog grooming assistant for SwjshAK autonomous trading system. Analyze this backlog data and provide prioritization recommendations.\\n\\n## BACKLOG OVERVIEW\\n- Total Open Tickets: {{ $json.totalTickets }}\\n- Stale (7+ days no activity): {{ $json.staleCount }}\\n- Blocked: {{ $json.blockedCount }}\\n- Unassigned: {{ $json.unassignedCount }}\\n- Critical Path (blocking 2+ others): {{ $json.criticalPathCount }}\\n\\n## PROJECT STATS\\n{{ Object.entries($json.projectStats).map(([proj, stats]) => `- ${proj}: ${stats.total} tickets, ${stats.stale} stale, ${stats.blocked} blocked, avg age ${stats.avgAgeDays}d`).join('\\\\n') }}\\n\\n## STALE TICKETS (no activity 7+ days)\\n{{ $json.staleTickets.map(t => `- [${t.key}] ${t.summary} (${t.priority}, ${t.staleDays}d stale, ${t.assignee})`).join('\\\\n') || 'None' }}\\n\\n## BLOCKED TICKETS\\n{{ $json.blockedTickets.map(t => `- [${t.key}] ${t.summary} blocked by ${t.blockedBy.join(', ')}`).join('\\\\n') || 'None' }}\\n\\n## HIGH PRIORITY BUT OLD (14+ days)\\n{{ $json.highPriorityOld.map(t => `- [${t.key}] ${t.summary} (${t.priority}, ${t.ageDays}d old)`).join('\\\\n') || 'None' }}\\n\\n## CRITICAL PATH (blocking multiple tickets)\\n{{ $json.criticalPath.map(t => `- [${t.key}] ${t.summary} (blocking ${t.blockingCount} others)`).join('\\\\n') || 'None' }}\\n\\n---\\n\\nProvide your analysis in this exact JSON format:\\n```json\\n{\\n  \\\"priorityChanges\\\": [\\n    {\\\"key\\\": \\\"PROJ-123\\\", \\\"currentPriority\\\": \\\"Medium\\\", \\\"suggestedPriority\\\": \\\"High\\\", \\\"reason\\\": \\\"brief reason\\\"}\\n  ],\\n  \\\"staleActions\\\": [\\n    {\\\"key\\\": \\\"PROJ-123\\\", \\\"action\\\": \\\"comment\\\", \\\"message\\\": \\\"This ticket has been inactive for X days...\\\"}\\n  ],\\n  \\\"blockerActions\\\": [\\n    {\\\"blockedKey\\\": \\\"PROJ-123\\\", \\\"blockerKey\\\": \\\"PROJ-456\\\", \\\"action\\\": \\\"create_unblock_task\\\", \\\"summary\\\": \\\"Unblock PROJ-123: ...reason...\\\"}\\n  ],\\n  \\\"closureSuggestions\\\": [\\n    {\\\"key\\\": \\\"PROJ-123\\\", \\\"reason\\\": \\\"Appears obsolete/duplicate of PROJ-456\\\"}\\n  ],\\n  \\\"criticalPathPrioritization\\\": [\\n    {\\\"key\\\": \\\"PROJ-123\\\", \\\"reason\\\": \\\"Blocking 3 other tickets, should be top priority\\\"}\\n  ],\\n  \\\"summary\\\": \\\"Brief executive summary of backlog health and recommendations\\\"\\n}\\n```\\n\\nBe specific with ticket keys. Limit to top 5-8 items per category. Focus on actionable recommendations.\"\n    }\n  ]\n}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "anthropic-api-key",
+          "name": "Anthropic API Key"
+        }
+      },
+      "notes": "Uses Claude to analyze backlog and recommend prioritization changes"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000013",
+      "name": "Parse AI Recommendations",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1350, 400],
+      "parameters": {
+        "jsCode": "const aiResponse = $json;\nconst enrichedData = $('Enrich Ticket Data').first().json;\n\n// Extract JSON from AI response\nlet recommendations = {};\ntry {\n  const responseText = aiResponse.content?.[0]?.text || '';\n  // Find JSON block in response\n  const jsonMatch = responseText.match(/```json\\n([\\s\\S]*?)\\n```/);\n  if (jsonMatch) {\n    recommendations = JSON.parse(jsonMatch[1]);\n  } else {\n    // Try parsing the whole response as JSON\n    const cleanText = responseText.replace(/```json\\n?|```/g, '').trim();\n    recommendations = JSON.parse(cleanText);\n  }\n} catch (e) {\n  recommendations = {\n    priorityChanges: [],\n    staleActions: [],\n    blockerActions: [],\n    closureSuggestions: [],\n    criticalPathPrioritization: [],\n    summary: 'Failed to parse AI recommendations: ' + e.message,\n    parseError: true\n  };\n}\n\n// Validate and enrich recommendations with full ticket data\nconst ticketMap = {};\nenrichedData.allEnrichedTickets.forEach(t => ticketMap[t.key] = t);\n\nconst validatedPriorityChanges = (recommendations.priorityChanges || []).filter(pc => \n  ticketMap[pc.key] && pc.suggestedPriority !== pc.currentPriority\n).map(pc => ({\n  ...pc,\n  ticketData: ticketMap[pc.key]\n}));\n\nconst validatedStaleActions = (recommendations.staleActions || []).filter(sa => \n  ticketMap[sa.key] && ticketMap[sa.key].isStale\n).map(sa => ({\n  ...sa,\n  ticketData: ticketMap[sa.key]\n}));\n\nconst validatedBlockerActions = (recommendations.blockerActions || []).filter(ba => \n  ticketMap[ba.blockedKey]\n).map(ba => ({\n  ...ba,\n  ticketData: ticketMap[ba.blockedKey]\n}));\n\nreturn {\n  json: {\n    recommendations: {\n      ...recommendations,\n      priorityChanges: validatedPriorityChanges,\n      staleActions: validatedStaleActions,\n      blockerActions: validatedBlockerActions,\n      closureSuggestions: recommendations.closureSuggestions || [],\n      criticalPathPrioritization: recommendations.criticalPathPrioritization || []\n    },\n    enrichedData,\n    actionCounts: {\n      priorityChanges: validatedPriorityChanges.length,\n      staleActions: validatedStaleActions.length,\n      blockerActions: validatedBlockerActions.length,\n      closureSuggestions: (recommendations.closureSuggestions || []).length,\n      criticalPath: (recommendations.criticalPathPrioritization || []).length\n    },\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "notes": "Parses AI recommendations and validates against actual ticket data"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000014",
+      "name": "Split Actions",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1600, 400],
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "outputKey": "has_priority_changes",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "condition-priority",
+                    "leftValue": "={{ $json.actionCounts.priorityChanges }}",
+                    "rightValue": 0,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "has_stale_actions",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "condition-stale",
+                    "leftValue": "={{ $json.actionCounts.staleActions }}",
+                    "rightValue": 0,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "has_blocker_actions",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "condition-blocker",
+                    "leftValue": "={{ $json.actionCounts.blockerActions }}",
+                    "rightValue": 0,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ],
+          "fallbackOutput": "no_actions"
+        },
+        "options": {
+          "allMatchingOutputs": true
+        }
+      },
+      "notes": "Routes to different action handlers based on what recommendations exist"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000015",
+      "name": "Prepare Priority Updates",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [1850, 200],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "notes": "Splits priority changes for individual processing"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000016",
+      "name": "Extract Priority Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1850, 50],
+      "parameters": {
+        "jsCode": "const data = $('Parse AI Recommendations').first().json;\nconst priorityChanges = data.recommendations.priorityChanges || [];\n\nreturn priorityChanges.map(pc => ({ json: pc }));"
+      },
+      "notes": "Extracts priority change items for batch processing"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000017",
+      "name": "Update Ticket Priority",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2100, 200],
+      "parameters": {
+        "resource": "issue",
+        "operation": "update",
+        "issueKey": "={{ $json.key }}",
+        "updateFields": {
+          "priority": "={{ $json.suggestedPriority }}"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "continueOnFail": true,
+      "notes": "Updates ticket priority in Jira"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000018",
+      "name": "Add Priority Change Comment",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2350, 200],
+      "parameters": {
+        "resource": "issue",
+        "operation": "update",
+        "issueKey": "={{ $json.key }}",
+        "updateFields": {
+          "comment": "=:robot: **Backlog Groomer**: Priority changed from {{ $json.currentPriority }} to {{ $json.suggestedPriority }}.\n\n**Reason:** {{ $json.reason }}\n\n_Automated by WF-BACK-01_"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "continueOnFail": true,
+      "notes": "Adds comment explaining priority change"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000019",
+      "name": "Extract Stale Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1850, 400],
+      "parameters": {
+        "jsCode": "const data = $('Parse AI Recommendations').first().json;\nconst staleActions = data.recommendations.staleActions || [];\n\nreturn staleActions.map(sa => ({ json: sa }));"
+      },
+      "notes": "Extracts stale ticket items for comment processing"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000020",
+      "name": "Prepare Stale Comments",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [2100, 400],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "notes": "Splits stale tickets for individual commenting"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000021",
+      "name": "Add Stale Comment",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2350, 400],
+      "parameters": {
+        "resource": "issue",
+        "operation": "update",
+        "issueKey": "={{ $json.key }}",
+        "updateFields": {
+          "comment": "=:hourglass: **Stale Ticket Alert**\n\n{{ $json.message }}\n\nPlease update status or close if no longer relevant.\n\n_Automated by WF-BACK-01_"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "continueOnFail": true,
+      "notes": "Adds stale notification comment to inactive tickets"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000022",
+      "name": "Extract Blocker Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1850, 600],
+      "parameters": {
+        "jsCode": "const data = $('Parse AI Recommendations').first().json;\nconst blockerActions = data.recommendations.blockerActions || [];\n\n// Filter to only create_unblock_task actions\nconst createTasks = blockerActions.filter(ba => ba.action === 'create_unblock_task');\n\nreturn createTasks.map(ba => ({ json: ba }));"
+      },
+      "notes": "Extracts blocker items that need unblock tasks created"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000023",
+      "name": "Prepare Unblock Tasks",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [2100, 600],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "notes": "Splits blocker actions for individual task creation"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000024",
+      "name": "Create Unblock Task",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2350, 600],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "INFRA",
+        "issueType": "Task",
+        "additionalFields": {
+          "summary": "={{ $json.summary }}",
+          "description": "=**Unblock Task Created by Backlog Groomer**\n\nThis task was automatically created to help unblock [{{ $json.blockedKey }}|{{ process.env.JIRA_BASE_URL || 'https://swjshak.atlassian.net' }}/browse/{{ $json.blockedKey }}].\n\n**Blocker:** {{ $json.blockerKey }}\n\n_Automated by WF-BACK-01_",
+          "priority": "High",
+          "labels": ["auto-created", "unblock-task"]
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "continueOnFail": true,
+      "notes": "Creates new task in INFRA to unblock dependent tickets"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000025",
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2600, 400],
+      "parameters": {
+        "jsCode": "// Collect results from all paths\nconst parsedData = $('Parse AI Recommendations').first()?.json;\nconst recommendations = parsedData?.recommendations || {};\nconst enrichedData = parsedData?.enrichedData || {};\nconst actionCounts = parsedData?.actionCounts || {};\n\n// Build summary report\nconst report = {\n  date: new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),\n  timestamp: new Date().toISOString(),\n  \n  backlogHealth: {\n    totalTickets: enrichedData.totalTickets || 0,\n    staleTickets: enrichedData.staleCount || 0,\n    blockedTickets: enrichedData.blockedCount || 0,\n    unassigned: enrichedData.unassignedCount || 0,\n    criticalPath: enrichedData.criticalPathCount || 0\n  },\n  \n  projectStats: enrichedData.projectStats || {},\n  \n  actionsTaken: {\n    priorityChanges: actionCounts.priorityChanges || 0,\n    staleComments: actionCounts.staleActions || 0,\n    unblockTasksCreated: actionCounts.blockerActions || 0,\n    closureSuggestions: actionCounts.closureSuggestions || 0\n  },\n  \n  recommendations,\n  \n  aiSummary: recommendations.summary || 'No AI summary available'\n};\n\nreturn { json: report };"
+      },
+      "notes": "Aggregates all results and builds final summary report"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000026",
+      "name": "Format Discord Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2850, 400],
+      "parameters": {
+        "jsCode": "const report = $json;\n\n// Determine health color\nlet healthColor = 3066993; // Green\nconst staleRatio = report.backlogHealth.staleTickets / Math.max(report.backlogHealth.totalTickets, 1);\nconst blockedRatio = report.backlogHealth.blockedTickets / Math.max(report.backlogHealth.totalTickets, 1);\n\nif (staleRatio > 0.3 || blockedRatio > 0.2) {\n  healthColor = 15158332; // Red\n} else if (staleRatio > 0.15 || blockedRatio > 0.1) {\n  healthColor = 16776960; // Yellow\n}\n\n// Build project stats string\nconst projectStatsStr = Object.entries(report.projectStats || {})\n  .map(([proj, stats]) => `**${proj}**: ${stats.total} (${stats.stale} stale)`)\n  .join(' | ');\n\n// Build actions taken string\nconst actionsStr = [\n  report.actionsTaken.priorityChanges > 0 ? `:arrow_up_down: ${report.actionsTaken.priorityChanges} priorities updated` : null,\n  report.actionsTaken.staleComments > 0 ? `:hourglass: ${report.actionsTaken.staleComments} stale comments added` : null,\n  report.actionsTaken.unblockTasksCreated > 0 ? `:unlock: ${report.actionsTaken.unblockTasksCreated} unblock tasks created` : null,\n  report.actionsTaken.closureSuggestions > 0 ? `:wastebasket: ${report.actionsTaken.closureSuggestions} closure suggestions` : null\n].filter(Boolean).join('\\n') || 'No actions needed';\n\n// Build closure suggestions if any\nconst closureSuggestions = (report.recommendations.closureSuggestions || []).slice(0, 5)\n  .map(cs => `- [${cs.key}]: ${cs.reason}`)\n  .join('\\n');\n\n// Build embed\nconst embed = {\n  title: `:broom: Daily Backlog Grooming Report - ${report.date}`,\n  description: report.aiSummary.substring(0, 2000),\n  color: healthColor,\n  fields: [\n    {\n      name: ':clipboard: Backlog Health',\n      value: `Total: ${report.backlogHealth.totalTickets} | Stale: ${report.backlogHealth.staleTickets} | Blocked: ${report.backlogHealth.blockedTickets} | Unassigned: ${report.backlogHealth.unassigned}`,\n      inline: false\n    },\n    {\n      name: ':file_folder: By Project',\n      value: projectStatsStr || 'No data',\n      inline: false\n    },\n    {\n      name: ':robot: Actions Taken',\n      value: actionsStr,\n      inline: false\n    }\n  ],\n  footer: {\n    text: 'SwjshAK Backlog Groomer | WF-BACK-01'\n  },\n  timestamp: new Date().toISOString()\n};\n\n// Add closure suggestions if any\nif (closureSuggestions) {\n  embed.fields.push({\n    name: ':wastebasket: Suggested for Closure',\n    value: closureSuggestions.substring(0, 1000),\n    inline: false\n  });\n}\n\nreturn {\n  json: {\n    embed,\n    report,\n    channelId: process.env.DISCORD_STANDUP_CHANNEL_ID || 'daily-standup'\n  }\n};"
+      },
+      "notes": "Formats the summary report as a Discord embed"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000027",
+      "name": "Post to Discord Standup",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [3100, 400],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.channelId }}"
+        },
+        "content": "",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts daily backlog summary to #daily-standup channel"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000028",
+      "name": "Log to Audit Trail",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3100, 550],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/audit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event\": \"backlog_grooming_completed\",\n  \"timestamp\": \"{{ $now.toISO() }}\",\n  \"workflow\": \"WF-BACK-01\",\n  \"data\": {\n    \"totalTickets\": {{ $json.report.backlogHealth.totalTickets }},\n    \"staleTickets\": {{ $json.report.backlogHealth.staleTickets }},\n    \"blockedTickets\": {{ $json.report.backlogHealth.blockedTickets }},\n    \"priorityChanges\": {{ $json.report.actionsTaken.priorityChanges }},\n    \"staleComments\": {{ $json.report.actionsTaken.staleComments }},\n    \"unblockTasks\": {{ $json.report.actionsTaken.unblockTasksCreated }}\n  }\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Logs grooming results to audit trail"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000029",
+      "name": "Workflow Complete",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [3350, 400],
+      "parameters": {},
+      "notes": "End node - backlog grooming completed"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000030",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 1100],
+      "parameters": {},
+      "notes": "Catches any errors in this workflow"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000031",
+      "name": "Format Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [250, 1100],
+      "parameters": {
+        "jsCode": "const error = $json;\n\nreturn {\n  json: {\n    content: `:warning: **Backlog Groomer Error**\\n\\nWorkflow WF-BACK-01 encountered an error:\\n\\n\\`\\`\\`\\n${error.execution?.error?.message || 'Unknown error'}\\n\\`\\`\\`\\n\\nNode: ${error.execution?.error?.node?.name || 'Unknown'}`,\n    channelId: process.env.DISCORD_ERRORS_CHANNEL_ID || 'n8n-errors'\n  }\n};"
+      },
+      "notes": "Formats error for Discord notification"
+    },
+    {
+      "id": "back01-0001-4000-8000-000000000032",
+      "name": "Post Error",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [500, 1100],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.channelId }}"
+        },
+        "content": "={{ $json.content }}",
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts error to #n8n-errors channel"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          { "node": "Fetch MGMT Tickets", "type": "main", "index": 0 },
+          { "node": "Fetch LEARN Tickets", "type": "main", "index": 0 },
+          { "node": "Fetch GRADE Tickets", "type": "main", "index": 0 },
+          { "node": "Fetch PULSE Tickets", "type": "main", "index": 0 },
+          { "node": "Fetch INFRA Tickets", "type": "main", "index": 0 },
+          { "node": "Fetch BACK Tickets", "type": "main", "index": 0 },
+          { "node": "Fetch All Links", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch MGMT Tickets": {
+      "main": [
+        [
+          { "node": "Merge All Tickets", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch LEARN Tickets": {
+      "main": [
+        [
+          { "node": "Merge All Tickets", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Fetch GRADE Tickets": {
+      "main": [
+        [
+          { "node": "Merge All Tickets", "type": "main", "index": 2 }
+        ]
+      ]
+    },
+    "Fetch PULSE Tickets": {
+      "main": [
+        [
+          { "node": "Merge All Tickets", "type": "main", "index": 3 }
+        ]
+      ]
+    },
+    "Fetch INFRA Tickets": {
+      "main": [
+        [
+          { "node": "Merge All Tickets", "type": "main", "index": 4 }
+        ]
+      ]
+    },
+    "Fetch BACK Tickets": {
+      "main": [
+        [
+          { "node": "Merge All Tickets", "type": "main", "index": 5 }
+        ]
+      ]
+    },
+    "Fetch All Links": {
+      "main": [
+        [
+          { "node": "Merge All Tickets", "type": "main", "index": 6 }
+        ]
+      ]
+    },
+    "Merge All Tickets": {
+      "main": [
+        [
+          { "node": "Enrich Ticket Data", "type": "main", "index": 0 },
+          { "node": "Fetch Sprint Capacity", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Enrich Ticket Data": {
+      "main": [
+        [
+          { "node": "AI Prioritization Analysis", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch Sprint Capacity": {
+      "main": [
+        [
+          { "node": "AI Prioritization Analysis", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "AI Prioritization Analysis": {
+      "main": [
+        [
+          { "node": "Parse AI Recommendations", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Parse AI Recommendations": {
+      "main": [
+        [
+          { "node": "Split Actions", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Split Actions": {
+      "main": [
+        [
+          { "node": "Extract Priority Items", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Extract Stale Items", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Extract Blocker Items", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Aggregate Results", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Extract Priority Items": {
+      "main": [
+        [
+          { "node": "Prepare Priority Updates", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Prepare Priority Updates": {
+      "main": [
+        [
+          { "node": "Update Ticket Priority", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Aggregate Results", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Update Ticket Priority": {
+      "main": [
+        [
+          { "node": "Add Priority Change Comment", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Add Priority Change Comment": {
+      "main": [
+        [
+          { "node": "Prepare Priority Updates", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Extract Stale Items": {
+      "main": [
+        [
+          { "node": "Prepare Stale Comments", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Prepare Stale Comments": {
+      "main": [
+        [
+          { "node": "Add Stale Comment", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Aggregate Results", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Add Stale Comment": {
+      "main": [
+        [
+          { "node": "Prepare Stale Comments", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Extract Blocker Items": {
+      "main": [
+        [
+          { "node": "Prepare Unblock Tasks", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Prepare Unblock Tasks": {
+      "main": [
+        [
+          { "node": "Create Unblock Task", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Aggregate Results", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Create Unblock Task": {
+      "main": [
+        [
+          { "node": "Prepare Unblock Tasks", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Aggregate Results": {
+      "main": [
+        [
+          { "node": "Format Discord Summary", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Format Discord Summary": {
+      "main": [
+        [
+          { "node": "Post to Discord Standup", "type": "main", "index": 0 },
+          { "node": "Log to Audit Trail", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Post to Discord Standup": {
+      "main": [
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Log to Audit Trail": {
+      "main": [
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          { "node": "Format Error", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Format Error": {
+      "main": [
+        [
+          { "node": "Post Error", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "self-improvement" },
+    { "name": "daily" },
+    { "name": "backlog" },
+    { "name": "grooming" }
+  ],
+  "triggerCount": 1,
+  "versionId": "1.0.0",
+  "meta": {
+    "instanceId": "swjshak-n8n",
+    "templateCredsSetupCompleted": false
+  }
+}

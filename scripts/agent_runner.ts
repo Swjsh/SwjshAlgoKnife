@@ -518,7 +518,7 @@ function startORB() {
     orbProcess = spawn('npx', ['tsx', 'scripts/run_orb_agent.ts'], {
         cwd: process.cwd(),
         stdio: ['ignore', 'pipe', 'pipe'],
-        shell: true,
+        shell: false,  // Security fix: disable shell to prevent command injection
     });
 
     orbProcess.stdout.on('data', (data: Buffer) => {
@@ -800,7 +800,17 @@ market.on('price', (tick: PriceUpdate) => {
 });
 
 function saveDb() {
-    fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+    // Security fix: Use atomic file write (write to temp, then rename)
+    // This prevents data corruption if process crashes during write
+    const tempPath = DB_PATH + '.tmp';
+    try {
+        fs.writeFileSync(tempPath, JSON.stringify(db, null, 2));
+        fs.renameSync(tempPath, DB_PATH);
+    } catch (err) {
+        console.error('[Agent Runner] Failed to save db:', err);
+        // Clean up temp file if rename failed
+        try { fs.unlinkSync(tempPath); } catch {}
+    }
 }
 
 // --- Unified Audit Loop (The Watcher) ---

@@ -1,0 +1,1086 @@
+{
+  "name": "WF-OPS-01: System Health Aggregator",
+  "nodes": [
+    {
+      "id": "schedule-market-hours",
+      "name": "Schedule: Every 5 Min Market Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 400],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/5 9-16 * * 1-5"
+            }
+          ]
+        }
+      },
+      "notes": "Runs every 5 minutes from 9 AM to 4 PM ET on weekdays. Adjust cron for 9:30 start if needed."
+    },
+    {
+      "id": "check-market-window",
+      "name": "Code: Check Market Window",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 400],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Check if we're in actual market hours (9:30 AM - 4:00 PM ET)\nconst now = new Date();\nconst etHour = now.getUTCHours() - 5; // Simple EST offset\nconst etMinute = now.getUTCMinutes();\n\nconst marketOpen = (etHour === 9 && etMinute >= 30) || etHour >= 10;\nconst marketClose = etHour < 16;\nconst isWeekday = now.getUTCDay() >= 1 && now.getUTCDay() <= 5;\n\nconst inMarketHours = marketOpen && marketClose && isWeekday;\n\nreturn {\n  json: {\n    inMarketHours,\n    currentTime: now.toISOString(),\n    etHour,\n    etMinute,\n    checkType: inMarketHours ? 'full' : 'minimal'\n  }\n};"
+      },
+      "notes": "Validates we're in actual market hours (9:30-16:00 ET)"
+    },
+    {
+      "id": "if-market-hours",
+      "name": "If: In Market Hours",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, 400],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.inMarketHours }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fetch-swjshak-health",
+      "name": "HTTP: SwjshAK API Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 100],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/control",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Fetches main SwjshAK system status"
+    },
+    {
+      "id": "fetch-openclaw-health",
+      "name": "HTTP: OpenClaw Gateway Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 220],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3001/health",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Checks OpenClaw gateway health endpoint"
+    },
+    {
+      "id": "fetch-n8n-health",
+      "name": "HTTP: n8n Instance Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 340],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:5678/healthz",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Checks n8n internal health endpoint"
+    },
+    {
+      "id": "fetch-db-health",
+      "name": "HTTP: Database Health Check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 460],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/health/db",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Checks database connectivity"
+    },
+    {
+      "id": "fetch-agents-status",
+      "name": "HTTP: All Agents Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 580],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/agents",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Fetches status of all trading agents"
+    },
+    {
+      "id": "fetch-alpaca-health",
+      "name": "HTTP: Alpaca Broker Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 700],
+      "parameters": {
+        "method": "GET",
+        "url": "https://paper-api.alpaca.markets/v2/clock",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "alpaca-api-cred",
+          "name": "Alpaca API"
+        }
+      },
+      "notes": "Verifies Alpaca broker API connectivity"
+    },
+    {
+      "id": "fetch-metrics-history",
+      "name": "HTTP: Recent Health Metrics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 820],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/metrics/health?limit=12",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Fetches last hour of health metrics for trend analysis"
+    },
+    {
+      "id": "merge-health-checks",
+      "name": "Merge: Combine Health Checks",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [960, 400],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "notes": "Combines all parallel health check responses"
+    },
+    {
+      "id": "calculate-health-score",
+      "name": "Code: Calculate Composite Health Score",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 400],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Collect all health check responses\nconst swjshak = $('HTTP: SwjshAK API Health').first()?.json || {};\nconst openclaw = $('HTTP: OpenClaw Gateway Health').first()?.json || {};\nconst n8n = $('HTTP: n8n Instance Health').first()?.json || {};\nconst db = $('HTTP: Database Health Check').first()?.json || {};\nconst agents = $('HTTP: All Agents Status').first()?.json || {};\nconst alpaca = $('HTTP: Alpaca Broker Status').first()?.json || {};\nconst history = $('HTTP: Recent Health Metrics').first()?.json || {};\n\nconst now = new Date();\nconst components = [];\nlet totalWeight = 0;\nlet weightedScore = 0;\n\n// Helper: Check if response indicates healthy\nfunction isHealthy(response, healthKey = 'status') {\n  if (!response || response.statusCode >= 400) return false;\n  if (response[healthKey] === 'healthy' || response[healthKey] === 'ok') return true;\n  if (response.is_open !== undefined) return true; // Alpaca market clock\n  if (response.connected === true) return true;\n  if (typeof response === 'object' && Object.keys(response).length > 0) return true;\n  return false;\n}\n\n// SwjshAK API (weight: 25)\nconst swjshakHealthy = isHealthy(swjshak) && !swjshak.killswitch;\ncomponents.push({\n  name: 'SwjshAK API',\n  status: swjshakHealthy ? 'healthy' : 'unhealthy',\n  score: swjshakHealthy ? 100 : 0,\n  weight: 25,\n  details: { killswitch: swjshak.killswitch || false },\n  latency: swjshak.responseTime || null\n});\ntotalWeight += 25;\nweightedScore += swjshakHealthy ? 25 * 100 : 0;\n\n// OpenClaw Gateway (weight: 15)\nconst openclawHealthy = isHealthy(openclaw);\ncomponents.push({\n  name: 'OpenClaw Gateway',\n  status: openclawHealthy ? 'healthy' : 'unhealthy',\n  score: openclawHealthy ? 100 : 0,\n  weight: 15,\n  details: openclaw,\n  latency: openclaw.responseTime || null\n});\ntotalWeight += 15;\nweightedScore += openclawHealthy ? 15 * 100 : 0;\n\n// n8n Instance (weight: 10)\nconst n8nHealthy = isHealthy(n8n);\ncomponents.push({\n  name: 'n8n Instance',\n  status: n8nHealthy ? 'healthy' : 'unhealthy',\n  score: n8nHealthy ? 100 : 0,\n  weight: 10,\n  details: n8n\n});\ntotalWeight += 10;\nweightedScore += n8nHealthy ? 10 * 100 : 0;\n\n// Database (weight: 20)\nconst dbHealthy = isHealthy(db, 'connected');\ncomponents.push({\n  name: 'Database',\n  status: dbHealthy ? 'healthy' : 'unhealthy',\n  score: dbHealthy ? 100 : 0,\n  weight: 20,\n  details: db\n});\ntotalWeight += 20;\nweightedScore += dbHealthy ? 20 * 100 : 0;\n\n// Trading Agents (weight: 20)\nconst agentsList = agents.agents || agents || [];\nconst totalAgents = Array.isArray(agentsList) ? agentsList.length : 0;\nconst runningAgents = Array.isArray(agentsList) \n  ? agentsList.filter(a => a.status === 'running' || a.status === 'active').length \n  : 0;\nconst errorAgents = Array.isArray(agentsList)\n  ? agentsList.filter(a => a.status === 'error' || a.status === 'crashed').length\n  : 0;\nconst agentScore = totalAgents > 0 ? (runningAgents / totalAgents) * 100 : 0;\nconst agentHealthy = totalAgents > 0 && errorAgents === 0;\ncomponents.push({\n  name: 'Trading Agents',\n  status: errorAgents > 0 ? 'degraded' : (agentHealthy ? 'healthy' : 'unhealthy'),\n  score: agentScore,\n  weight: 20,\n  details: {\n    total: totalAgents,\n    running: runningAgents,\n    errors: errorAgents,\n    agents: Array.isArray(agentsList) ? agentsList.map(a => ({ name: a.name, status: a.status })) : []\n  }\n});\ntotalWeight += 20;\nweightedScore += 20 * agentScore;\n\n// Alpaca Broker (weight: 10)\nconst alpacaHealthy = isHealthy(alpaca);\ncomponents.push({\n  name: 'Alpaca Broker',\n  status: alpacaHealthy ? 'healthy' : 'unhealthy',\n  score: alpacaHealthy ? 100 : 0,\n  weight: 10,\n  details: {\n    is_open: alpaca.is_open,\n    next_open: alpaca.next_open,\n    next_close: alpaca.next_close\n  }\n});\ntotalWeight += 10;\nweightedScore += alpacaHealthy ? 10 * 100 : 0;\n\n// Calculate composite score\nconst compositeScore = totalWeight > 0 ? Math.round(weightedScore / totalWeight) : 0;\n\n// Determine overall status\nlet overallStatus = 'healthy';\nlet severity = 'info';\nif (compositeScore < 50) {\n  overallStatus = 'critical';\n  severity = 'P1';\n} else if (compositeScore < 80) {\n  overallStatus = 'degraded';\n  severity = 'P2';\n}\n\n// Calculate trend from history\nconst historyMetrics = history.metrics || [];\nlet trend = 'stable';\nlet trendValue = 0;\nif (historyMetrics.length >= 3) {\n  const recentAvg = historyMetrics.slice(0, 3).reduce((s, m) => s + (m.score || 0), 0) / 3;\n  const olderAvg = historyMetrics.slice(-3).reduce((s, m) => s + (m.score || 0), 0) / 3;\n  trendValue = recentAvg - olderAvg;\n  if (trendValue > 5) trend = 'improving';\n  else if (trendValue < -5) trend = 'degrading';\n}\n\n// Check for degradation alerts\nconst isDegrading = trend === 'degrading' && trendValue < -10;\n\nreturn {\n  json: {\n    timestamp: now.toISOString(),\n    compositeScore,\n    overallStatus,\n    severity,\n    components,\n    trend: {\n      direction: trend,\n      value: trendValue,\n      isDegrading\n    },\n    alerts: {\n      needsDiscordAlert: compositeScore < 50,\n      needsPulseTicket: compositeScore < 80,\n      needsAutoRecovery: compositeScore < 50 && errorAgents > 0,\n      isHourlySummary: new Date().getMinutes() < 5\n    },\n    agentDetails: {\n      total: totalAgents,\n      running: runningAgents,\n      errors: errorAgents\n    }\n  }\n};"
+      },
+      "notes": "Calculates weighted composite health score (0-100) from all components"
+    },
+    {
+      "id": "store-metrics",
+      "name": "HTTP: Store Health Metrics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/metrics/health",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ timestamp: $json.timestamp, score: $json.compositeScore, status: $json.overallStatus, components: $json.components, trend: $json.trend }) }}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Stores metrics to time-series endpoint for historical tracking"
+    },
+    {
+      "id": "switch-alert-level",
+      "name": "Switch: Alert Level",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1680, 400],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "outputKey": "critical",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.compositeScore }}",
+                    "rightValue": 50,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lt"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "degraded",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.compositeScore }}",
+                    "rightValue": 80,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lt"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "hourly_summary",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.alerts.isHourlySummary }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "healthy",
+              "conditions": {
+                "options": {
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.compositeScore }}",
+                    "rightValue": 80,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      }
+    },
+    {
+      "id": "discord-critical-alert",
+      "name": "Discord: Critical Alert",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [1920, 100],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_CHIEF_CHANNEL }}",
+        "content": "@here CRITICAL SYSTEM HEALTH ALERT",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "CRITICAL: System Health Below 50%",
+              "description": "={{ `Composite Health Score: **${$json.compositeScore}%**\\n\\nImmediate attention required.` }}",
+              "color": "15158332",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Status",
+                    "value": "={{ $json.overallStatus.toUpperCase() }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Trend",
+                    "value": "={{ $json.trend.direction }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Agents",
+                    "value": "={{ `${$json.agentDetails.running}/${$json.agentDetails.total} (${$json.agentDetails.errors} errors)` }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Failing Components",
+                    "value": "={{ $json.components.filter(c => c.status !== 'healthy').map(c => `- ${c.name}: ${c.status}`).join('\\n') || 'None' }}",
+                    "inline": false
+                  }
+                ]
+              },
+              "footer": "WF-OPS-01 Health Aggregator",
+              "timestamp": "={{ $json.timestamp }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "check-auto-recovery",
+      "name": "If: Auto-Recovery Possible",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2160, 100],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.alerts.needsAutoRecovery }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "identify-recovery-targets",
+      "name": "Code: Identify Recovery Targets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2400, 0],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $input.first().json;\nconst components = data.components || [];\nconst recoveryActions = [];\n\n// Find agents that need restart\nconst agentComponent = components.find(c => c.name === 'Trading Agents');\nif (agentComponent && agentComponent.details?.agents) {\n  agentComponent.details.agents\n    .filter(a => a.status === 'error' || a.status === 'crashed')\n    .forEach(agent => {\n      recoveryActions.push({\n        type: 'restart_agent',\n        target: agent.name,\n        command: { command: 'restart', agentId: agent.name }\n      });\n    });\n}\n\n// Check if OpenClaw needs restart\nconst openclawComponent = components.find(c => c.name === 'OpenClaw Gateway');\nif (openclawComponent && openclawComponent.status === 'unhealthy') {\n  recoveryActions.push({\n    type: 'restart_service',\n    target: 'openclaw',\n    command: { command: 'docker_restart', service: 'openclaw' }\n  });\n}\n\nreturn recoveryActions.map(action => ({ json: action }));"
+      },
+      "notes": "Identifies which components can be auto-recovered"
+    },
+    {
+      "id": "execute-recovery",
+      "name": "HTTP: Execute Recovery",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2640, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/control",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.command) }}",
+        "options": {
+          "timeout": 60000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Executes auto-recovery commands for failed components"
+    },
+    {
+      "id": "log-recovery-attempt",
+      "name": "HTTP: Log Recovery Attempt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2880, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/incidents",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ type: 'auto_recovery', target: $json.target, action: $json.type, timestamp: new Date().toISOString(), source: 'WF-OPS-01' }) }}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Logs auto-recovery attempt to incidents table"
+    },
+    {
+      "id": "jira-pulse-critical",
+      "name": "Jira: Create PULSE Ticket (Critical)",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2400, 180],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "PULSE",
+        "issueType": "Bug",
+        "additionalFields": {
+          "summary": "={{ `[P1] System Health Critical: ${$('Code: Calculate Composite Health Score').first().json.compositeScore}%` }}",
+          "description": "={{ `System Health Alert\\n\\nTimestamp: ${$('Code: Calculate Composite Health Score').first().json.timestamp}\\nHealth Score: ${$('Code: Calculate Composite Health Score').first().json.compositeScore}%\\nStatus: ${$('Code: Calculate Composite Health Score').first().json.overallStatus}\\n\\nFailing Components:\\n${$('Code: Calculate Composite Health Score').first().json.components.filter(c => c.status !== 'healthy').map(c => '- ' + c.name + ': ' + c.status + ' (' + c.score + '%)').join('\\n')}\\n\\nTrend: ${$('Code: Calculate Composite Health Score').first().json.trend.direction} (${$('Code: Calculate Composite Health Score').first().json.trend.value.toFixed(1)} points)\\n\\nAuto-recovery ${$('Code: Calculate Composite Health Score').first().json.alerts.needsAutoRecovery ? 'was triggered' : 'not available'}.` }}",
+          "labels": [
+            "health-alert",
+            "critical",
+            "auto-generated"
+          ],
+          "priority": "Highest"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      }
+    },
+    {
+      "id": "jira-pulse-degraded",
+      "name": "Jira: Create PULSE Ticket (Degraded)",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [1920, 280],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "PULSE",
+        "issueType": "Bug",
+        "additionalFields": {
+          "summary": "={{ `[P2] System Health Degraded: ${$json.compositeScore}%` }}",
+          "description": "={{ `System Health Degradation Alert\\n\\nTimestamp: ${$json.timestamp}\\nHealth Score: ${$json.compositeScore}%\\nStatus: ${$json.overallStatus}\\n\\nDegraded Components:\\n${$json.components.filter(c => c.status !== 'healthy').map(c => '- ' + c.name + ': ' + c.status + ' (' + c.score + '%)').join('\\n')}\\n\\nTrend: ${$json.trend.direction}\\n\\nMonitor closely. Escalates to P1 if score drops below 50%.` }}",
+          "labels": [
+            "health-alert",
+            "degraded",
+            "auto-generated"
+          ],
+          "priority": "High"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      }
+    },
+    {
+      "id": "discord-hourly-summary",
+      "name": "Discord: Hourly Health Summary",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [1920, 440],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_SYSTEM_CHANNEL }}",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "Hourly System Health Report",
+              "description": "={{ `Health Score: **${$json.compositeScore}%** | Status: **${$json.overallStatus.toUpperCase()}**` }}",
+              "color": "={{ $json.compositeScore >= 80 ? 3066993 : ($json.compositeScore >= 50 ? 16776960 : 15158332) }}",
+              "fields": {
+                "values": [
+                  {
+                    "name": "SwjshAK API",
+                    "value": "={{ $json.components.find(c => c.name === 'SwjshAK API')?.status || 'unknown' }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "OpenClaw",
+                    "value": "={{ $json.components.find(c => c.name === 'OpenClaw Gateway')?.status || 'unknown' }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Database",
+                    "value": "={{ $json.components.find(c => c.name === 'Database')?.status || 'unknown' }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Agents",
+                    "value": "={{ `${$json.agentDetails.running}/${$json.agentDetails.total} running` }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Alpaca",
+                    "value": "={{ $json.components.find(c => c.name === 'Alpaca Broker')?.status || 'unknown' }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Trend",
+                    "value": "={{ $json.trend.direction }} ({{ $json.trend.value > 0 ? '+' : '' }}{{ $json.trend.value.toFixed(1) }})",
+                    "inline": true
+                  }
+                ]
+              },
+              "footer": "WF-OPS-01 Hourly Summary",
+              "timestamp": "={{ $json.timestamp }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "check-degradation-trend",
+      "name": "If: Degradation Trend",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1920, 600],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.trend.isDegrading }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "discord-degradation-warning",
+      "name": "Discord: Degradation Warning",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2160, 500],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_SYSTEM_CHANNEL }}",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "Health Degradation Trend Detected",
+              "description": "={{ `System health is trending downward. Current score: **${$json.compositeScore}%**\\n\\nDegradation rate: ${$json.trend.value.toFixed(1)} points over last hour.` }}",
+              "color": "16776960",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Action",
+                    "value": "Monitoring closely. Will alert if score drops below 50%.",
+                    "inline": false
+                  }
+                ]
+              },
+              "footer": "WF-OPS-01 Trend Alert",
+              "timestamp": "={{ $json.timestamp }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "end-healthy",
+      "name": "NoOp: Healthy - No Action",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1920, 760],
+      "parameters": {},
+      "notes": "System healthy, no alerts needed"
+    },
+    {
+      "id": "end-outside-hours",
+      "name": "NoOp: Outside Market Hours",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [660, 560],
+      "parameters": {},
+      "notes": "Minimal check outside market hours"
+    },
+    {
+      "id": "merge-outcomes",
+      "name": "Merge: All Outcomes",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [3100, 400],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      },
+      "notes": "Combines all workflow paths for final logging"
+    },
+    {
+      "id": "final-log",
+      "name": "HTTP: Log Workflow Execution",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3340, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/audit",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ event: 'health_check_complete', workflow: 'WF-OPS-01', timestamp: new Date().toISOString(), score: $('Code: Calculate Composite Health Score').first()?.json?.compositeScore || 0, status: $('Code: Calculate Composite Health Score').first()?.json?.overallStatus || 'unknown' }) }}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Logs every workflow execution for audit trail"
+    },
+    {
+      "id": "error-handler",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 700],
+      "parameters": {}
+    },
+    {
+      "id": "format-error",
+      "name": "Code: Format Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 700],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const error = $json;\n\nreturn {\n  json: {\n    title: 'WF-OPS-01 Health Aggregator Error',\n    description: `The health aggregator workflow encountered an error.`,\n    color: 15158332,\n    errorMessage: error.execution?.error?.message?.substring(0, 500) || 'Unknown error',\n    failedNode: error.execution?.error?.node?.name || 'Unknown',\n    executionId: error.execution?.id || 'Unknown',\n    timestamp: new Date().toISOString()\n  }\n};"
+      }
+    },
+    {
+      "id": "discord-error",
+      "name": "Discord: Post Error",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [440, 700],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": "={{ $env.DISCORD_ERRORS_CHANNEL || 'n8n-errors' }}",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "={{ $json.title }}",
+              "description": "={{ $json.description }}",
+              "color": "={{ $json.color }}",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Error",
+                    "value": "={{ $json.errorMessage }}",
+                    "inline": false
+                  },
+                  {
+                    "name": "Failed Node",
+                    "value": "={{ $json.failedNode }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Execution ID",
+                    "value": "={{ $json.executionId }}",
+                    "inline": true
+                  }
+                ]
+              },
+              "timestamp": "={{ $json.timestamp }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "sticky-overview",
+      "name": "Note: Workflow Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-200, 100],
+      "parameters": {
+        "content": "## WF-OPS-01: System Health Aggregator\n\n**Schedule:** Every 5 minutes during market hours (9:30 AM - 4 PM ET weekdays)\n\n**Purpose:** Comprehensive system health monitoring with composite scoring\n\n### Health Components & Weights:\n- SwjshAK API: 25%\n- Database: 20%\n- Trading Agents: 20%\n- OpenClaw Gateway: 15%\n- Alpaca Broker: 10%\n- n8n Instance: 10%\n\n### Alert Thresholds:\n- Score < 50: CRITICAL (P1) - Discord alert + PULSE ticket + auto-recovery\n- Score < 80: DEGRADED (P2) - PULSE ticket created\n- Hourly: Summary posted to #system\n\n### Trend Tracking:\n- Compares last hour of metrics\n- Alerts on degradation trend (>10 point drop)"
+      }
+    },
+    {
+      "id": "sticky-scoring",
+      "name": "Note: Health Scoring",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1200, 600],
+      "parameters": {
+        "content": "## Composite Health Score\n\n**Formula:** Weighted average of component scores\n\n**Component Scoring:**\n- Healthy: 100 points\n- Degraded: Partial (e.g., agents: running/total * 100)\n- Unhealthy: 0 points\n\n**Status Thresholds:**\n- >= 80%: Healthy (green)\n- 50-79%: Degraded (yellow)\n- < 50%: Critical (red)\n\n**Auto-Recovery:**\nTriggered for crashed agents and failed services when score < 50%"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule: Every 5 Min Market Hours": {
+      "main": [
+        [
+          { "node": "Code: Check Market Window", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Check Market Window": {
+      "main": [
+        [
+          { "node": "If: In Market Hours", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "If: In Market Hours": {
+      "main": [
+        [
+          { "node": "HTTP: SwjshAK API Health", "type": "main", "index": 0 },
+          { "node": "HTTP: OpenClaw Gateway Health", "type": "main", "index": 0 },
+          { "node": "HTTP: n8n Instance Health", "type": "main", "index": 0 },
+          { "node": "HTTP: Database Health Check", "type": "main", "index": 0 },
+          { "node": "HTTP: All Agents Status", "type": "main", "index": 0 },
+          { "node": "HTTP: Alpaca Broker Status", "type": "main", "index": 0 },
+          { "node": "HTTP: Recent Health Metrics", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "NoOp: Outside Market Hours", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: SwjshAK API Health": {
+      "main": [
+        [
+          { "node": "Merge: Combine Health Checks", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: OpenClaw Gateway Health": {
+      "main": [
+        [
+          { "node": "Merge: Combine Health Checks", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "HTTP: n8n Instance Health": {
+      "main": [
+        [
+          { "node": "Merge: Combine Health Checks", "type": "main", "index": 2 }
+        ]
+      ]
+    },
+    "HTTP: Database Health Check": {
+      "main": [
+        [
+          { "node": "Merge: Combine Health Checks", "type": "main", "index": 3 }
+        ]
+      ]
+    },
+    "HTTP: All Agents Status": {
+      "main": [
+        [
+          { "node": "Merge: Combine Health Checks", "type": "main", "index": 4 }
+        ]
+      ]
+    },
+    "HTTP: Alpaca Broker Status": {
+      "main": [
+        [
+          { "node": "Merge: Combine Health Checks", "type": "main", "index": 5 }
+        ]
+      ]
+    },
+    "HTTP: Recent Health Metrics": {
+      "main": [
+        [
+          { "node": "Merge: Combine Health Checks", "type": "main", "index": 6 }
+        ]
+      ]
+    },
+    "Merge: Combine Health Checks": {
+      "main": [
+        [
+          { "node": "Code: Calculate Composite Health Score", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Calculate Composite Health Score": {
+      "main": [
+        [
+          { "node": "HTTP: Store Health Metrics", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Store Health Metrics": {
+      "main": [
+        [
+          { "node": "Switch: Alert Level", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Switch: Alert Level": {
+      "main": [
+        [
+          { "node": "Discord: Critical Alert", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Jira: Create PULSE Ticket (Degraded)", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Discord: Hourly Health Summary", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "NoOp: Healthy - No Action", "type": "main", "index": 0 },
+          { "node": "If: Degradation Trend", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "NoOp: Healthy - No Action", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Discord: Critical Alert": {
+      "main": [
+        [
+          { "node": "If: Auto-Recovery Possible", "type": "main", "index": 0 },
+          { "node": "Jira: Create PULSE Ticket (Critical)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "If: Auto-Recovery Possible": {
+      "main": [
+        [
+          { "node": "Code: Identify Recovery Targets", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Merge: All Outcomes", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Identify Recovery Targets": {
+      "main": [
+        [
+          { "node": "HTTP: Execute Recovery", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Execute Recovery": {
+      "main": [
+        [
+          { "node": "HTTP: Log Recovery Attempt", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Log Recovery Attempt": {
+      "main": [
+        [
+          { "node": "Merge: All Outcomes", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Jira: Create PULSE Ticket (Critical)": {
+      "main": [
+        [
+          { "node": "Merge: All Outcomes", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Jira: Create PULSE Ticket (Degraded)": {
+      "main": [
+        [
+          { "node": "Merge: All Outcomes", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Discord: Hourly Health Summary": {
+      "main": [
+        [
+          { "node": "Merge: All Outcomes", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "If: Degradation Trend": {
+      "main": [
+        [
+          { "node": "Discord: Degradation Warning", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Merge: All Outcomes", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Discord: Degradation Warning": {
+      "main": [
+        [
+          { "node": "Merge: All Outcomes", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "NoOp: Healthy - No Action": {
+      "main": [
+        [
+          { "node": "Merge: All Outcomes", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "NoOp: Outside Market Hours": {
+      "main": [
+        [
+          { "node": "Merge: All Outcomes", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Merge: All Outcomes": {
+      "main": [
+        [
+          { "node": "HTTP: Log Workflow Execution", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          { "node": "Code: Format Error", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Format Error": {
+      "main": [
+        [
+          { "node": "Discord: Post Error", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveExecutionProgress": true,
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "operations" },
+    { "name": "health-monitoring" },
+    { "name": "self-improvement" }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-20T00:00:00.000Z",
+  "versionId": "1.0.0",
+  "meta": {
+    "instanceId": "swjshak-n8n",
+    "templateCredsSetupCompleted": false
+  }
+}

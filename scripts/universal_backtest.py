@@ -347,22 +347,41 @@ class ORBStrategy:
 
 
 class BBSqueezeStrategy:
-    """Bollinger Band Squeeze and Breakout detection."""
+    """Bollinger Band Squeeze and Breakout detection.
+
+    H-006 Filters (Cortana pattern detection, statistically confirmed p < 0.05):
+    - direction_filter: "SHORT", "LONG", or None (both)
+    - max_bandwidth: Skip signals when bandwidth exceeds this (tighter = better)
+    - max_hold_hours: Hint for trade management (not enforced here)
+    - avoid_entry_hours: List of UTC hours to skip signal generation
+    """
     name = "bb_squeeze"
     display_name = "Bollinger Band Squeeze & Breakout"
 
-    def __init__(self, period=20, squeeze_threshold=0.04, rr=2.0):
+    def __init__(self, period=20, squeeze_threshold=0.04, rr=2.0,
+                 direction_filter=None, max_bandwidth=None, max_hold_hours=None,
+                 avoid_entry_hours=None):
         self.period = period
         self.squeeze_threshold = squeeze_threshold
         self.rr = rr
         self.prices = []
         self.is_squeezed = False
 
+        # H-006 filters
+        self.direction_filter = direction_filter  # "SHORT", "LONG", or None
+        self.max_bandwidth = max_bandwidth or 1.0  # Default to no filter
+        self.max_hold_hours = max_hold_hours  # For trade management reference
+        self.avoid_entry_hours = avoid_entry_hours or []  # UTC hours to skip
+
     def on_candle(self, ts, o, h, l, c, v, symbol):
         self.prices.append(c)
         if len(self.prices) > self.period:
             self.prices.pop(0)
         if len(self.prices) < self.period:
+            return None
+
+        # H-006 Filter: Skip toxic entry hours (UTC)
+        if self.avoid_entry_hours and ts.hour in self.avoid_entry_hours:
             return None
 
         sma = sum(self.prices) / self.period
@@ -377,18 +396,28 @@ class BBSqueezeStrategy:
             self.is_squeezed = True
 
         if self.is_squeezed:
+            # H-006 Filter: Skip if bandwidth too wide (only tight squeezes)
+            if bandwidth > self.max_bandwidth:
+                return None
+
             risk = abs(c - sma)
             if risk < 0.001:
                 return None
 
             if c > upper:
                 self.is_squeezed = False
+                # H-006 Filter: Skip LONG if direction_filter is "SHORT"
+                if self.direction_filter == "SHORT":
+                    return None
                 sl = sma
                 tp = c + risk * self.rr
                 return BacktestSignal(ts, symbol, "BUY", c, self.name, sl, tp,
                                       f"BB squeeze breakout UP (bw={bandwidth:.4f})")
             if c < lower:
                 self.is_squeezed = False
+                # H-006 Filter: Skip SHORT if direction_filter is "LONG"
+                if self.direction_filter == "LONG":
+                    return None
                 sl = sma
                 tp = c - risk * self.rr
                 return BacktestSignal(ts, symbol, "SELL", c, self.name, sl, tp,
@@ -398,16 +427,27 @@ class BBSqueezeStrategy:
 
 
 class VWAPStrategy:
-    """VWAP Mean Reversion — trades deviation from volume-weighted average."""
+    """VWAP Mean Reversion — trades deviation from volume-weighted average.
+
+    Falls back to SMA (Simple Moving Average) when volume is zero (forex pairs).
+    yfinance returns zero volume for forex symbols like GBPUSD=X, EURUSD=X, etc.
+    """
     name = "vwap"
     display_name = "VWAP Mean Reversion"
 
-    def __init__(self, threshold_pct=1.5, rr=2.0):
+    def __init__(self, threshold_pct=1.5, rr=2.0, sma_period=20):
         self.threshold_pct = threshold_pct
         self.rr = rr
+        self.sma_period = sma_period
+
+        # VWAP tracking (for symbols with volume)
         self.vwap_sum = 0
         self.volume_sum = 0
         self.session_date = None
+
+        # SMA tracking (fallback for zero-volume symbols like forex)
+        self.prices = []
+        self.use_sma_fallback = False
 
     def on_candle(self, ts, o, h, l, c, v, symbol):
         day = ts.strftime("%Y-%m-%d")
@@ -415,31 +455,46 @@ class VWAPStrategy:
             self.session_date = day
             self.vwap_sum = 0
             self.volume_sum = 0
+            # Don't reset SMA prices — they carry across days for smoother average
 
         self.vwap_sum += c * v
         self.volume_sum += v
 
-        if self.volume_sum == 0:
+        # Track prices for SMA fallback
+        self.prices.append(c)
+        if len(self.prices) > self.sma_period:
+            self.prices.pop(0)
+
+        # Determine anchor price: VWAP if volume exists, SMA otherwise
+        if self.volume_sum > 0:
+            anchor = self.vwap_sum / self.volume_sum
+            anchor_type = "VWAP"
+        elif len(self.prices) >= self.sma_period:
+            # SMA fallback for forex/zero-volume instruments
+            anchor = sum(self.prices) / len(self.prices)
+            anchor_type = "SMA"
+            self.use_sma_fallback = True
+        else:
+            # Not enough data yet
             return None
 
-        vwap = self.vwap_sum / self.volume_sum
-        deviation = ((c - vwap) / vwap) * 100 if vwap > 0 else 0
+        deviation = ((c - anchor) / anchor) * 100 if anchor > 0 else 0
 
-        risk = abs(c - vwap)
-        if risk < 0.001:
+        risk = abs(c - anchor)
+        if risk < 0.0001:  # Tighter threshold for forex
             return None
 
         if deviation < -self.threshold_pct:
             sl = c - risk
-            tp = vwap  # Target is the VWAP itself (mean reversion)
+            tp = anchor  # Target is the anchor (mean reversion)
             return BacktestSignal(ts, symbol, "BUY", c, self.name, sl, tp,
-                                  f"VWAP reversion LONG (dev={deviation:.2f}%)")
+                                  f"{anchor_type} reversion LONG (dev={deviation:.2f}%)")
 
         if deviation > self.threshold_pct:
             sl = c + risk
-            tp = vwap
+            tp = anchor
             return BacktestSignal(ts, symbol, "SELL", c, self.name, sl, tp,
-                                  f"VWAP reversion SHORT (dev={deviation:.2f}%)")
+                                  f"{anchor_type} reversion SHORT (dev={deviation:.2f}%)")
 
         return None
 
@@ -603,13 +658,28 @@ class PaperTrader:
             "notes": signal.notes,
         }
 
-    def update_price(self, timestamp, high, low, close):
-        """Check SL/TP hits on the current open trade."""
+    def update_price(self, timestamp, high, low, close, max_hold_hours=None):
+        """Check SL/TP hits on the current open trade.
+
+        Args:
+            timestamp: Current bar timestamp
+            high/low/close: OHLC prices
+            max_hold_hours: Optional max hold duration (H-006 filter)
+        """
         if self.open_trade is None:
             return
 
         t = self.open_trade
         side = t["side"]
+
+        # H-006 Filter: Check max hold duration
+        if max_hold_hours is not None:
+            entry_dt = pd.Timestamp(t["entry_time"])
+            current_dt = pd.Timestamp(str(timestamp))
+            hours_held = (current_dt - entry_dt).total_seconds() / 3600
+            if hours_held >= max_hold_hours:
+                self._close_trade(close, str(timestamp), "MAX_HOLD")
+                return
 
         # Check stop loss
         if t["stop_loss"] is not None:
@@ -726,14 +796,17 @@ def run_backtest(symbol, strategy_name, strategy_instance, df, balance, risk_pct
 
     trader = PaperTrader(balance=balance, risk_pct=risk_pct, asset_class=asset_class)
 
+    # H-006 Filter: Get max_hold_hours from strategy if defined
+    max_hold_hours = getattr(strategy_instance, 'max_hold_hours', None)
+
     signals_emitted = 0
 
     for idx, row in df.iterrows():
         ts = idx.to_pydatetime() if hasattr(idx, "to_pydatetime") else idx
         o, h, l, c, v = row["open"], row["high"], row["low"], row["close"], row["volume"]
 
-        # Update open positions with OHLC (check SL/TP)
-        trader.update_price(ts, h, l, c)
+        # Update open positions with OHLC (check SL/TP + max_hold)
+        trader.update_price(ts, h, l, c, max_hold_hours=max_hold_hours)
 
         # Run strategy
         signal = strategy_instance.on_candle(ts, o, h, l, c, v, symbol)
@@ -792,8 +865,18 @@ def main():
     parser.add_argument("--tf", default="1d", help="Timeframe: 1m,5m,15m,30m,1h,1d,1wk (default: 1d)")
     parser.add_argument("--balance", type=float, default=100000, help="Starting balance (default: 100000)")
     parser.add_argument("--risk", type=float, default=0.01, help="Risk per trade as decimal (default: 0.01 = 1%%)")
+    parser.add_argument("--params", help="Strategy parameters as JSON string (e.g., '{\"threshold_pct\": 0.4}')")
     parser.add_argument("--out", help="Custom output path for JSON results")
     args = parser.parse_args()
+
+    # Parse strategy params if provided
+    strategy_params = {}
+    if args.params:
+        try:
+            strategy_params = json.loads(args.params)
+        except json.JSONDecodeError as e:
+            print(f"  ERROR: Invalid --params JSON: {e}")
+            sys.exit(1)
 
     symbol = args.symbol
     start = args.start
@@ -834,7 +917,8 @@ def main():
 
     for strat_name in strats_to_run:
         strat_cls = STRATEGIES[strat_name]
-        strat_instance = strat_cls()
+        # Pass strategy_params if provided via CLI
+        strat_instance = strat_cls(**strategy_params) if strategy_params else strat_cls()
 
         metrics, trades = run_backtest(symbol, strat_name, strat_instance, df, balance, risk_pct)
         print_results(symbol, strat_name, strat_instance.display_name,

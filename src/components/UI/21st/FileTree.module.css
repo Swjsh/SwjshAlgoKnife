@@ -1,0 +1,200 @@
+/* FileTree — Cyber-Industrial Explorer
+   Inspired by 21st.dev/jatin-yadav05/file-tree
+   Adapted for SwjshAK dark theme */
+
+.container {
+  background: rgba(10, 10, 12, 0.9);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  border-radius: 12px;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 0 30px rgba(168, 85, 247, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+/* ── Title bar ── */
+.titleBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(17, 17, 22, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.trafficLights {
+  display: flex;
+  gap: 6px;
+}
+
+.tlRed,
+.tlYellow,
+.tlGreen {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.tlRed    { background: #ef4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.4); }
+.tlYellow { background: #f59e0b; box-shadow: 0 0 6px rgba(245, 158, 11, 0.4); }
+.tlGreen  { background: #22c55e; box-shadow: 0 0 6px rgba(34, 197, 94, 0.4); }
+
+.titleText {
+  font-size: 11px;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+}
+
+/* ── Tree body ── */
+.treeBody {
+  padding: 8px 0;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.treeBody::-webkit-scrollbar {
+  width: 4px;
+}
+
+.treeBody::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.treeBody::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.25);
+  border-radius: 2px;
+}
+
+/* ── Node ── */
+.nodeWrapper {
+  position: relative;
+}
+
+.node {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  cursor: default;
+  position: relative;
+  transition: background 0.15s ease;
+  min-height: 28px;
+}
+
+.node:hover {
+  background: rgba(168, 85, 247, 0.06);
+}
+
+.nodeFolder {
+  cursor: pointer;
+}
+
+.nodeFolder:hover {
+  background: rgba(168, 85, 247, 0.1);
+}
+
+/* ── Guide lines ── */
+.guideLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ── Chevron ── */
+.chevron {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  color: #475569;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chevronOpen {
+  transform: rotate(90deg);
+}
+
+.chevronSpacer {
+  width: 12px;
+  flex-shrink: 0;
+}
+
+/* ── Icons ── */
+.fileIcon,
+.folderIcon {
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.node:hover .fileIcon,
+.node:hover .folderIcon {
+  transform: scale(1.1);
+}
+
+/* ── Name ── */
+.nodeName {
+  font-size: 12px;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nodeFolder .nodeName {
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+/* ── Extension badge ── */
+.extBadge {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.node:hover .extBadge {
+  opacity: 0.7;
+}
+
+/* ── Optional badge ── */
+.badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-left: auto;
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/* ── Children animation ── */
+.children {
+  animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

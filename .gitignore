@@ -78,3 +78,18 @@ server.log
 /data/_paper/
 /data/pivot_pete_backtest_*.json
 /data/pivot_pete_paper_latest.json
+
+# HALO Agent runtime state (NOT code — regenerated each session)
+/data/halo-heartbeats/*.json
+/data/locks/*.lock
+/data/agent-registry.json
+/data/ops/*.json
+/data/sentinel/*.json
+/agent_logs.json
+/agent_state/*.json
+
+# HALO Agent launcher test files (keep the real launchers)
+/data/halo-launchers/test-*.cmd
+
+# Git lock files (from crashed agent operations)
+.git/*.lock

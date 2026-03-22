@@ -1,0 +1,119 @@
+{
+  "version": "1.1.0",
+  "generated": "2026-03-20T06:00:00Z",
+  "totalWorkflows": 49,
+  "categories": {
+    "health": {
+      "count": 5,
+      "workflows": ["WF-001", "WF-002", "WF-003", "WF-004", "WF-005"]
+    },
+    "reports": {
+      "count": 4,
+      "workflows": ["WF-006", "WF-007", "WF-008", "WF-009"]
+    },
+    "brain": {
+      "count": 3,
+      "workflows": ["WF-010", "WF-011", "WF-012"]
+    },
+    "signals": {
+      "count": 4,
+      "workflows": ["WF-013", "WF-014", "WF-015", "WF-016"]
+    },
+    "trades": {
+      "count": 5,
+      "workflows": ["WF-017", "WF-018", "WF-019", "WF-020", "WF-021"]
+    },
+    "risk": {
+      "count": 4,
+      "workflows": ["WF-022", "WF-023", "WF-024", "WF-025"]
+    },
+    "intel": {
+      "count": 8,
+      "workflows": ["WF-026", "WF-027", "WF-028", "WF-029", "WF-030", "WF-031", "WF-032", "WF-033"]
+    },
+    "recovery": {
+      "count": 4,
+      "workflows": ["WF-034", "WF-035", "WF-036", "WF-037"]
+    },
+    "learning": {
+      "count": 4,
+      "workflows": ["WF-038", "WF-039", "WF-040", "WF-041"]
+    },
+    "advanced": {
+      "count": 6,
+      "workflows": ["WF-042", "WF-043", "WF-044", "WF-045", "WF-046", "WF-047"]
+    },
+    "self-improvement": {
+      "count": 2,
+      "workflows": ["WF-INFRA-01", "WF-INFRA-02"],
+      "description": "Automated codebase health and dependency security monitoring"
+    }
+  },
+  "phases": {
+    "week1_foundation": {
+      "workflows": ["WF-001", "WF-002", "WF-003", "WF-004", "WF-005", "WF-006", "WF-007", "WF-008", "WF-009", "WF-010", "WF-011", "WF-012"],
+      "estimatedHours": 8,
+      "priority": "CRITICAL"
+    },
+    "week2_trading": {
+      "workflows": ["WF-013", "WF-014", "WF-015", "WF-016", "WF-017", "WF-018", "WF-019", "WF-020", "WF-021", "WF-022", "WF-023", "WF-024", "WF-025"],
+      "estimatedHours": 12,
+      "priority": "HIGH"
+    },
+    "week3_intel": {
+      "workflows": ["WF-026", "WF-027", "WF-028", "WF-029", "WF-030", "WF-031", "WF-032", "WF-033"],
+      "estimatedHours": 8,
+      "priority": "HIGH"
+    },
+    "week4_healing": {
+      "workflows": ["WF-034", "WF-035", "WF-036", "WF-037", "WF-038", "WF-039", "WF-040", "WF-041"],
+      "estimatedHours": 10,
+      "priority": "MEDIUM"
+    },
+    "week5_advanced": {
+      "workflows": ["WF-042", "WF-043", "WF-044", "WF-045", "WF-046", "WF-047"],
+      "estimatedHours": 12,
+      "priority": "MEDIUM"
+    }
+  },
+  "integrations": {
+    "internal": [
+      "/api/control",
+      "/api/agents",
+      "/api/trades",
+      "/api/signals",
+      "/api/intel",
+      "/api/brain",
+      "/api/brokers",
+      "/api/webhook/tradingview",
+      "journal.db",
+      "agents_db.json"
+    ],
+    "external": [
+      "Discord",
+      "Alpaca",
+      "OANDA",
+      "Binance",
+      "TradingView",
+      "GitHub",
+      "Claude API",
+      "Fear & Greed API",
+      "Economic Calendar"
+    ],
+    "openClaw": [
+      "POST /hooks/agent",
+      "POST /hooks/wake"
+    ]
+  },
+  "triggers": {
+    "cron": 28,
+    "webhook": 8,
+    "event": 11
+  },
+  "costEstimate": {
+    "n8nSelfHosted": 0,
+    "claudeApi": 50,
+    "infrastructure": 0,
+    "totalMonthly": 50
+  }
+}

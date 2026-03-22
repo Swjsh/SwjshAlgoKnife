@@ -9,6 +9,7 @@ Boba — Options S&D Zone Trader (Paper via SPY Proxy)
 • Broadcasts AGENT_STATUS_UPDATE for the dashboard
 """
 
+import os
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -18,7 +19,12 @@ import requests
 from pathlib import Path
 from datetime import datetime, time as dtime
 import pytz
-from agent_utils import log_message, get_random_quip
+from agent_utils import log_message, get_random_quip, load_brain_knowledge, save_agent_state, load_agent_state
+from position_sync import sync_positions_on_startup, pre_trade_health_check
+
+# ── Brain Integration ─────────────────────────────────────────────────────────
+# Load agent-specific learning and strategy knowledge from the brain system
+BRAIN = load_brain_knowledge('boba')
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL              = 'SPY'
@@ -30,7 +36,9 @@ SL_PCT              = 0.015          # 1.5% stop (tighter for equity proxy)
 TP_PCT              = 0.03           # 3% target (simulates options leverage gain)
 STATUS_FILE         = Path(__file__).parent.parent / 'data' / 'boba_agent_status.json'
 WEBHOOK_URL         = "http://localhost:3000/api/webhook/tradingview"
-WEBHOOK_SECRET      = "swjshak-tv-webhook-2026"
+WEBHOOK_SECRET      = os.getenv("WEBHOOK_SECRET")
+if not WEBHOOK_SECRET:
+    raise RuntimeError("WEBHOOK_SECRET environment variable is required")
 
 EST = pytz.timezone('US/Eastern')
 
@@ -172,6 +180,15 @@ def check_zone_entries(demand_zones: list, supply_zones: list,
     if len(active_trades) >= MAX_OPEN_TRADES:
         return demand_zones, supply_zones, active_trades
 
+    # Pre-trade health check: skip if position already exists on broker
+    health = pre_trade_health_check('boba', SYMBOL)
+    if health.get('skip'):
+        print(f"[Boba] Skipping entry: {health.get('reason')}")
+        return demand_zones, supply_zones, active_trades
+    if not health.get('ok'):
+        print(f"[Boba] Health check failed: {health.get('reason')}")
+        return demand_zones, supply_zones, active_trades
+
     # Check demand zones (LONG)
     for zone in demand_zones:
         if not zone['fresh']:
@@ -190,6 +207,7 @@ def check_zone_entries(demand_zones: list, supply_zones: list,
             if success:
                 zone['fresh'] = False
                 active_trades.append({
+                    'symbol':      SYMBOL,
                     'direction':   'LONG',
                     'entry_price': price,
                     'stop_loss':   sl,
@@ -220,6 +238,7 @@ def check_zone_entries(demand_zones: list, supply_zones: list,
             if success:
                 zone['fresh'] = False
                 active_trades.append({
+                    'symbol':      SYMBOL,
                     'direction':   'SHORT',
                     'entry_price': price,
                     'stop_loss':   sl,
@@ -271,11 +290,26 @@ def run():
     log_message('boba', get_random_quip('boba'))
     log_message('boba', f"Boba online - scanning {SYMBOL} for options setups")
 
-    demand_zones    = []
-    supply_zones    = []
-    active_trades   = []
-    scan_count      = 0
+    # ── Restore persisted state ──────────────────────────────────────────────
+    saved = load_agent_state('boba')
+    demand_zones    = saved.get('demand_zones', [])
+    supply_zones    = saved.get('supply_zones', [])
+    active_trades   = saved.get('active_trades', [])
+    scan_count      = saved.get('scan_count', 0)
     last_zone_scan  = 0
+
+    if active_trades:
+        print(f"[Boba] Restored {len(active_trades)} active trades from saved state")
+
+    # ── Sync with broker positions ──────────────────────────────────────────
+    print("[Boba] Syncing positions with Alpaca broker...")
+    active_trades = sync_positions_on_startup('boba', SYMBOL, active_trades)
+    save_agent_state('boba', {
+        'active_trades': active_trades,
+        'demand_zones': demand_zones,
+        'supply_zones': supply_zones,
+        'scan_count': scan_count,
+    })
 
     while True:
         try:

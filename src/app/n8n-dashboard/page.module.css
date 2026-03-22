@@ -1,0 +1,234 @@
+.container {
+  height: 100vh;
+  background: linear-gradient(180deg, hsl(222 47% 9%) 0%, hsl(222 47% 7%) 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header — fixed height, no sticky needed */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  border-bottom: 1px solid hsl(220 20% 18% / 0.6);
+  background: hsl(222 47% 10% / 0.8);
+  backdrop-filter: blur(12px);
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.titleIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, hsl(0 80% 60%), hsl(20 80% 55%));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 12px hsl(0 80% 50% / 0.3);
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 700;
+  color: hsl(0 0% 95%);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 11px;
+  color: hsl(220 10% 55%);
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.errorBadge {
+  padding: 5px 10px;
+  background: hsl(0 70% 50% / 0.15);
+  border: 1px solid hsl(0 70% 50% / 0.3);
+  border-radius: 6px;
+  font-size: 11px;
+  color: hsl(0 70% 65%);
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lastUpdate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lastUpdateLabel {
+  font-size: 11px;
+  color: hsl(220 10% 50%);
+}
+
+.lastUpdateTime {
+  font-size: 12px;
+  color: hsl(220 10% 70%);
+  font-family: var(--font-mono);
+}
+
+.refreshBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: hsl(222 47% 15%);
+  border: 1px solid hsl(220 20% 30% / 0.6);
+  border-radius: 8px;
+  color: hsl(0 0% 90%);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.refreshBtn:hover:not(:disabled) {
+  background: hsl(222 47% 18%);
+  border-color: hsl(188 95% 43% / 0.5);
+}
+
+.refreshBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Main Content — fills remaining viewport */
+.main {
+  flex: 1;
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+  overflow: hidden;
+  min-height: 0; /* crucial for flex children to shrink */
+}
+
+/* Top Row: Connection + Stats — fixed height */
+.topRow {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 1000px) {
+  .topRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statsWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Bottom Row: Workflows + Executions side-by-side, fills remaining space */
+.bottomRow {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  min-height: 0; /* allow shrinking */
+  overflow: hidden;
+}
+
+@media (max-width: 1100px) {
+  .bottomRow {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+}
+
+/* Sections fill their grid cell */
+.workflowSection {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.executionsSection {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Footer — compact */
+.footer {
+  padding: 10px 24px;
+  border-top: 1px solid hsl(220 20% 15% / 0.5);
+  background: hsl(222 47% 8%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.footerText {
+  font-size: 10px;
+  color: hsl(220 10% 45%);
+}
+
+.footerDivider {
+  color: hsl(220 10% 30%);
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid hsl(220 20% 25%);
+  border-top-color: hsl(188 95% 43%);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loadingText {
+  font-size: 14px;
+  color: hsl(220 10% 55%);
+}

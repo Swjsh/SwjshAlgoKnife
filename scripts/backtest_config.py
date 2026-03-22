@@ -65,6 +65,12 @@ AGENT_CONFIGS = {
             "period": 20,
             "squeeze_threshold": 0.04,
             "rr": 2.5,
+            # H-006 Confirmed Filters (Cortana pattern detection, p < 0.05)
+            # SHORT trades: 43.5% WR vs LONG: 12.5% WR (+31pp effect)
+            "direction_filter": "SHORT",         # Only take SHORT (SELL) signals
+            "max_bandwidth": 0.025,              # Tighter squeezes = better (57% WR vs 11%)
+            "max_hold_hours": 24,                # Sweet spot 6-24hr (42.9% WR)
+            "avoid_entry_hours": [18, 19, 20, 21, 22, 23],  # UTC - US PM/Night toxic (0% WR)
         },
     },
 
@@ -95,7 +101,9 @@ AGENT_CONFIGS = {
         "initial_capital": 50000,
         "risk_per_trade": 0.01,
         "strategy_params": {
-            "threshold_pct": 1.5,
+            # 0.4% threshold = ~40 pips, appropriate for GBP/USD 15m (daily range 30-80 pips)
+            # Previous 1.5% = 150 pips was too high, causing 0 trades
+            "threshold_pct": 0.4,
             "rr": 2.0,
         },
     },

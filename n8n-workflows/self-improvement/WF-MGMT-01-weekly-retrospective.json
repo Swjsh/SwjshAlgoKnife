@@ -1,0 +1,829 @@
+{
+  "name": "WF-MGMT-01 Weekly Retrospective",
+  "nodes": [
+    {
+      "id": "mgmt01-schedule-trigger",
+      "name": "Schedule: Friday 6 PM ET",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 500],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 18 * * 5"
+            }
+          ]
+        }
+      },
+      "notes": "Triggers at 6:00 PM ET on Fridays for weekly retrospective"
+    },
+    {
+      "id": "mgmt01-fetch-trade-completed",
+      "name": "Jira: Fetch TRADE Completed",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [280, 100],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "TRADE",
+        "options": {
+          "jql": "project = TRADE AND status changed to Done AFTER -7d ORDER BY resolved DESC",
+          "maxResults": 100
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches TRADE tickets completed this week"
+    },
+    {
+      "id": "mgmt01-fetch-infra-completed",
+      "name": "Jira: Fetch INFRA Completed",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [280, 240],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "INFRA",
+        "options": {
+          "jql": "project = INFRA AND status changed to Done AFTER -7d ORDER BY resolved DESC",
+          "maxResults": 100
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches INFRA tickets completed this week"
+    },
+    {
+      "id": "mgmt01-fetch-learn-completed",
+      "name": "Jira: Fetch LEARN Completed",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [280, 380],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "LEARN",
+        "options": {
+          "jql": "project = LEARN AND status changed to Done AFTER -7d ORDER BY resolved DESC",
+          "maxResults": 100
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches LEARN tickets completed this week"
+    },
+    {
+      "id": "mgmt01-fetch-mgmt-completed",
+      "name": "Jira: Fetch MGMT Completed",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [280, 520],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "project": "MGMT",
+        "options": {
+          "jql": "project = MGMT AND status changed to Done AFTER -7d ORDER BY resolved DESC",
+          "maxResults": 100
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches MGMT tickets completed this week"
+    },
+    {
+      "id": "mgmt01-fetch-week-trades",
+      "name": "HTTP: Fetch Week Trades",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [280, 660],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'http://localhost:3000/api/trades?startDate=' + $now.minus({days: 7}).toFormat('yyyy-MM-dd') + '&endDate=' + $now.toFormat('yyyy-MM-dd') }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches all trades from the past week"
+    },
+    {
+      "id": "mgmt01-fetch-trade-grades",
+      "name": "HTTP: Fetch Trade Grades",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [280, 800],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'http://localhost:3000/api/grades?startDate=' + $now.minus({days: 7}).toFormat('yyyy-MM-dd') + '&endDate=' + $now.toFormat('yyyy-MM-dd') }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches all trade grades from the past week"
+    },
+    {
+      "id": "mgmt01-fetch-incidents",
+      "name": "Jira: Fetch Incidents",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [280, 940],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "options": {
+          "jql": "labels = incident AND created >= -7d ORDER BY priority DESC, created DESC",
+          "maxResults": 50
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches incidents from the past week"
+    },
+    {
+      "id": "mgmt01-fetch-agent-logs",
+      "name": "HTTP: Fetch Agent Activity",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [280, 1080],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/agents/activity?days=7",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches agent activity logs for the week"
+    },
+    {
+      "id": "mgmt01-fetch-approvals",
+      "name": "HTTP: Fetch CEO Approvals",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [280, 1220],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/approvals?days=7",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches CEO approval decisions from the week"
+    },
+    {
+      "id": "mgmt01-fetch-uptime",
+      "name": "HTTP: Fetch System Uptime",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [280, 1360],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/health/uptime?days=7",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches system uptime metrics for the week"
+    },
+    {
+      "id": "mgmt01-merge-jira-data",
+      "name": "Merge: Jira Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [560, 310],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "notes": "Combines all Jira project data"
+    },
+    {
+      "id": "mgmt01-merge-metrics-data",
+      "name": "Merge: Metrics Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [560, 940],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "notes": "Combines trading, incidents, agents, approvals, and uptime data"
+    },
+    {
+      "id": "mgmt01-merge-all-data",
+      "name": "Merge: All Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [800, 620],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "notes": "Combines Jira and metrics data"
+    },
+    {
+      "id": "mgmt01-calculate-metrics",
+      "name": "Code: Calculate Retrospective Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 620],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Get all fetched data\nconst tradeTickets = $('Jira: Fetch TRADE Completed').all().map(i => i.json);\nconst infraTickets = $('Jira: Fetch INFRA Completed').all().map(i => i.json);\nconst learnTickets = $('Jira: Fetch LEARN Completed').all().map(i => i.json);\nconst mgmtTickets = $('Jira: Fetch MGMT Completed').all().map(i => i.json);\nconst trades = $('HTTP: Fetch Week Trades').first()?.json?.trades || [];\nconst grades = $('HTTP: Fetch Trade Grades').first()?.json?.grades || [];\nconst incidents = $('Jira: Fetch Incidents').all().map(i => i.json);\nconst agentActivity = $('HTTP: Fetch Agent Activity').first()?.json || {};\nconst approvals = $('HTTP: Fetch CEO Approvals').first()?.json?.approvals || [];\nconst uptimeData = $('HTTP: Fetch System Uptime').first()?.json || {};\n\n// Calculate story points helper\nconst getPoints = (issue) => {\n  return issue.fields?.customfield_storypoints || \n         issue.fields?.customfield_10016 || 1;\n};\n\n// Sprint Velocity\nconst allCompleted = [...tradeTickets, ...infraTickets, ...learnTickets, ...mgmtTickets];\nconst totalVelocity = allCompleted.reduce((sum, i) => sum + getPoints(i), 0);\nconst velocityByProject = {\n  TRADE: tradeTickets.reduce((sum, i) => sum + getPoints(i), 0),\n  INFRA: infraTickets.reduce((sum, i) => sum + getPoints(i), 0),\n  LEARN: learnTickets.reduce((sum, i) => sum + getPoints(i), 0),\n  MGMT: mgmtTickets.reduce((sum, i) => sum + getPoints(i), 0)\n};\n\n// Trading P&L\nconst totalPnL = trades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);\nconst winningTrades = trades.filter(t => parseFloat(t.pnl) > 0);\nconst losingTrades = trades.filter(t => parseFloat(t.pnl) < 0);\nconst winRate = trades.length > 0 ? (winningTrades.length / trades.length * 100) : 0;\nconst avgWin = winningTrades.length > 0 \n  ? winningTrades.reduce((s, t) => s + parseFloat(t.pnl), 0) / winningTrades.length \n  : 0;\nconst avgLoss = losingTrades.length > 0 \n  ? Math.abs(losingTrades.reduce((s, t) => s + parseFloat(t.pnl), 0) / losingTrades.length)\n  : 0;\nconst profitFactor = avgLoss > 0 ? avgWin / avgLoss : avgWin > 0 ? Infinity : 0;\n\n// Grade distribution\nconst gradeDistribution = {};\ngrades.forEach(g => {\n  const grade = g.grade || 'Ungraded';\n  gradeDistribution[grade] = (gradeDistribution[grade] || 0) + 1;\n});\nconst avgGradeScore = grades.length > 0 \n  ? grades.reduce((s, g) => s + (g.score || 60), 0) / grades.length \n  : 0;\n\n// Incidents analysis\nconst resolvedIncidents = incidents.filter(i => i.fields?.status?.name === 'Done');\nconst openIncidents = incidents.filter(i => i.fields?.status?.name !== 'Done');\nconst criticalIncidents = incidents.filter(i => \n  i.fields?.priority?.name === 'Highest' || i.fields?.priority?.name === 'High'\n);\n\n// Agent efficiency\nconst agents = agentActivity.agents || [];\nconst totalTasks = agents.reduce((s, a) => s + (a.tasksCompleted || 0), 0);\nconst totalErrors = agents.reduce((s, a) => s + (a.errors || 0), 0);\nconst agentEfficiency = totalTasks > 0 ? ((totalTasks - totalErrors) / totalTasks * 100) : 100;\n\n// System uptime\nconst uptimePercent = uptimeData.uptimePercent || 99.9;\nconst downtimeMinutes = uptimeData.downtimeMinutes || 0;\n\n// CEO Approvals analysis\nconst approved = approvals.filter(a => a.decision === 'approved');\nconst rejected = approvals.filter(a => a.decision === 'rejected');\nconst pending = approvals.filter(a => a.decision === 'pending');\nconst approvalRate = approvals.length > 0 \n  ? (approved.length / approvals.length * 100) \n  : 100;\n\n// Identify highlights and lowlights\nconst highlights = [];\nconst lowlights = [];\n\nif (totalPnL > 0) highlights.push(`Profitable week: +$${totalPnL.toFixed(2)}`);\nelse if (totalPnL < 0) lowlights.push(`Week loss: -$${Math.abs(totalPnL).toFixed(2)}`);\n\nif (totalVelocity >= 15) highlights.push(`Strong velocity: ${totalVelocity} story points`);\nelse if (totalVelocity < 8) lowlights.push(`Low velocity: ${totalVelocity} story points`);\n\nif (winRate >= 60) highlights.push(`High win rate: ${winRate.toFixed(1)}%`);\nelse if (winRate < 40) lowlights.push(`Low win rate: ${winRate.toFixed(1)}%`);\n\nif (criticalIncidents.length === 0) highlights.push('No critical incidents this week');\nelse lowlights.push(`${criticalIncidents.length} critical incident(s)`);\n\nif (uptimePercent >= 99.5) highlights.push(`Excellent uptime: ${uptimePercent.toFixed(2)}%`);\nelse if (uptimePercent < 95) lowlights.push(`Uptime issues: ${uptimePercent.toFixed(2)}%`);\n\nif (agentEfficiency >= 95) highlights.push(`High agent efficiency: ${agentEfficiency.toFixed(1)}%`);\nelse if (agentEfficiency < 80) lowlights.push(`Agent issues: ${agentEfficiency.toFixed(1)}% efficiency`);\n\n// Week dates\nconst weekStart = new Date();\nweekStart.setDate(weekStart.getDate() - 7);\nconst weekEnd = new Date();\n\nreturn {\n  json: {\n    weekRange: `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,\n    \n    velocity: {\n      total: totalVelocity,\n      ticketCount: allCompleted.length,\n      byProject: velocityByProject\n    },\n    \n    trading: {\n      totalPnL: totalPnL.toFixed(2),\n      tradeCount: trades.length,\n      winRate: winRate.toFixed(1),\n      avgWin: avgWin.toFixed(2),\n      avgLoss: avgLoss.toFixed(2),\n      profitFactor: profitFactor === Infinity ? 'N/A' : profitFactor.toFixed(2),\n      avgGradeScore: avgGradeScore.toFixed(0),\n      gradeDistribution\n    },\n    \n    incidents: {\n      total: incidents.length,\n      resolved: resolvedIncidents.length,\n      open: openIncidents.length,\n      critical: criticalIncidents.length,\n      details: incidents.slice(0, 5).map(i => ({\n        key: i.key,\n        summary: i.fields?.summary?.substring(0, 60),\n        status: i.fields?.status?.name,\n        priority: i.fields?.priority?.name\n      }))\n    },\n    \n    agents: {\n      totalTasks,\n      totalErrors,\n      efficiency: agentEfficiency.toFixed(1),\n      details: agents.map(a => ({\n        name: a.name,\n        tasks: a.tasksCompleted || 0,\n        errors: a.errors || 0\n      }))\n    },\n    \n    system: {\n      uptimePercent: uptimePercent.toFixed(2),\n      downtimeMinutes\n    },\n    \n    approvals: {\n      total: approvals.length,\n      approved: approved.length,\n      rejected: rejected.length,\n      pending: pending.length,\n      approvalRate: approvalRate.toFixed(1)\n    },\n    \n    highlights,\n    lowlights,\n    \n    completedTickets: allCompleted.slice(0, 15).map(t => ({\n      key: t.key,\n      summary: t.fields?.summary?.substring(0, 50),\n      project: t.fields?.project?.key,\n      points: getPoints(t)\n    })),\n    \n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "notes": "Calculates all retrospective metrics from raw data"
+    },
+    {
+      "id": "mgmt01-build-retro-prompt",
+      "name": "Code: Build Retrospective Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 620],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const metrics = $input.first().json;\n\nconst prompt = `You are the weekly retrospective facilitator for SwjshAK autonomous trading system.\n\nGenerate a comprehensive yet concise weekly retrospective based on this data:\n\n## WEEK: ${metrics.weekRange}\n\n### SPRINT VELOCITY\n- Total Story Points: ${metrics.velocity.total}\n- Tickets Completed: ${metrics.velocity.ticketCount}\n- By Project: TRADE=${metrics.velocity.byProject.TRADE}, INFRA=${metrics.velocity.byProject.INFRA}, LEARN=${metrics.velocity.byProject.LEARN}, MGMT=${metrics.velocity.byProject.MGMT}\n\n### TRADING PERFORMANCE\n- Total P&L: $${metrics.trading.totalPnL}\n- Win Rate: ${metrics.trading.winRate}%\n- Trade Count: ${metrics.trading.tradeCount}\n- Avg Win: $${metrics.trading.avgWin} | Avg Loss: $${metrics.trading.avgLoss}\n- Profit Factor: ${metrics.trading.profitFactor}\n- Average Trade Grade: ${metrics.trading.avgGradeScore}/100\n- Grade Distribution: ${JSON.stringify(metrics.trading.gradeDistribution)}\n\n### SYSTEM RELIABILITY\n- Uptime: ${metrics.system.uptimePercent}%\n- Downtime: ${metrics.system.downtimeMinutes} minutes\n\n### INCIDENTS\n- Total: ${metrics.incidents.total}\n- Resolved: ${metrics.incidents.resolved}\n- Open: ${metrics.incidents.open}\n- Critical: ${metrics.incidents.critical}\n\n### AGENT EFFICIENCY\n- Tasks Completed: ${metrics.agents.totalTasks}\n- Errors: ${metrics.agents.totalErrors}\n- Efficiency Rate: ${metrics.agents.efficiency}%\n\n### CEO APPROVALS\n- Total Decisions: ${metrics.approvals.total}\n- Approved: ${metrics.approvals.approved}\n- Rejected: ${metrics.approvals.rejected}\n- Pending: ${metrics.approvals.pending}\n- Approval Rate: ${metrics.approvals.approvalRate}%\n\n### KEY HIGHLIGHTS\n${metrics.highlights.map(h => '- ' + h).join('\\n')}\n\n### AREAS OF CONCERN\n${metrics.lowlights.map(l => '- ' + l).join('\\n')}\n\n### COMPLETED TICKETS (Sample)\n${metrics.completedTickets.map(t => '- [' + t.key + '] ' + t.summary + ' (' + t.points + ' pts)').join('\\n')}\n\n---\n\nProvide a retrospective in this format:\n\n## WHAT WENT WELL\n(3-5 specific wins with context - be celebratory)\n\n## WHAT WENT WRONG\n(2-4 honest assessments - be constructive, not harsh)\n\n## WHAT TO IMPROVE\n(3-5 actionable items for next week - specific and measurable)\n\n## NEXT WEEK FOCUS AREAS\n(2-3 priority areas based on the data)\n\n## TEAM KUDOS\n(Call out any standout agent or system performance)\n\nBe honest, data-driven, and actionable. Max 500 words. Use emojis sparingly for emphasis.`;\n\nreturn {\n  json: {\n    prompt,\n    metrics,\n    weekRange: metrics.weekRange\n  }\n};"
+      },
+      "notes": "Builds the AI prompt for retrospective generation"
+    },
+    {
+      "id": "mgmt01-call-claude",
+      "name": "HTTP: Call Claude for Retrospective",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1550, 620],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 2000,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.prompt) }}\n    }\n  ]\n}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "anthropic-api-key",
+          "name": "Anthropic API Key"
+        }
+      },
+      "notes": "Calls Claude to generate the weekly retrospective"
+    },
+    {
+      "id": "mgmt01-parse-response",
+      "name": "Code: Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1800, 620],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = $json;\nconst prevData = $('Code: Build Retrospective Prompt').first().json;\n\n// Extract retrospective text\nlet retroText = '';\nif (response?.content?.[0]?.text) {\n  retroText = response.content[0].text;\n} else {\n  retroText = 'Failed to generate retrospective. Please review manually.';\n}\n\n// Parse sections for structured storage\nconst sections = {\n  wentWell: '',\n  wentWrong: '',\n  toImprove: '',\n  focusAreas: '',\n  kudos: ''\n};\n\nconst wellMatch = retroText.match(/## WHAT WENT WELL([\\s\\S]*?)(?=## WHAT WENT WRONG|$)/i);\nif (wellMatch) sections.wentWell = wellMatch[1].trim();\n\nconst wrongMatch = retroText.match(/## WHAT WENT WRONG([\\s\\S]*?)(?=## WHAT TO IMPROVE|$)/i);\nif (wrongMatch) sections.wentWrong = wrongMatch[1].trim();\n\nconst improveMatch = retroText.match(/## WHAT TO IMPROVE([\\s\\S]*?)(?=## NEXT WEEK|$)/i);\nif (improveMatch) sections.toImprove = improveMatch[1].trim();\n\nconst focusMatch = retroText.match(/## NEXT WEEK FOCUS([\\s\\S]*?)(?=## TEAM KUDOS|$)/i);\nif (focusMatch) sections.focusAreas = focusMatch[1].trim();\n\nconst kudosMatch = retroText.match(/## TEAM KUDOS([\\s\\S]*?)$/i);\nif (kudosMatch) sections.kudos = kudosMatch[1].trim();\n\nreturn {\n  json: {\n    retroText,\n    sections,\n    metrics: prevData.metrics,\n    weekRange: prevData.weekRange\n  }\n};"
+      },
+      "notes": "Parses the AI response and extracts sections"
+    },
+    {
+      "id": "mgmt01-format-discord-embed",
+      "name": "Code: Format Discord Embed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2050, 620],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const data = $json;\nconst metrics = data.metrics;\n\n// Determine color based on overall performance\nlet embedColor = 3066993; // Green\nconst pnl = parseFloat(metrics.trading.totalPnL);\nconst velocity = metrics.velocity.total;\n\nif (pnl < -500 || metrics.incidents.critical > 2) {\n  embedColor = 15158332; // Red\n} else if (pnl < 0 || metrics.incidents.critical > 0 || velocity < 8) {\n  embedColor = 16776960; // Yellow\n}\n\n// Build embed\nconst embed = {\n  title: `:clipboard: Weekly Retrospective - ${data.weekRange}`,\n  description: data.retroText.substring(0, 4000),\n  color: embedColor,\n  fields: [\n    {\n      name: ':chart_with_upwards_trend: Velocity',\n      value: `${metrics.velocity.total} points (${metrics.velocity.ticketCount} tickets)`,\n      inline: true\n    },\n    {\n      name: ':dollar: P&L',\n      value: `$${metrics.trading.totalPnL}`,\n      inline: true\n    },\n    {\n      name: ':dart: Win Rate',\n      value: `${metrics.trading.winRate}%`,\n      inline: true\n    },\n    {\n      name: ':shield: Uptime',\n      value: `${metrics.system.uptimePercent}%`,\n      inline: true\n    },\n    {\n      name: ':warning: Incidents',\n      value: `${metrics.incidents.total} (${metrics.incidents.critical} critical)`,\n      inline: true\n    },\n    {\n      name: ':robot: Agent Efficiency',\n      value: `${metrics.agents.efficiency}%`,\n      inline: true\n    }\n  ],\n  footer: {\n    text: 'SwjshAK Weekly Retrospective | WF-MGMT-01'\n  },\n  timestamp: new Date().toISOString()\n};\n\nreturn {\n  json: {\n    embed,\n    retroText: data.retroText,\n    sections: data.sections,\n    metrics,\n    weekRange: data.weekRange,\n    channelId: process.env.DISCORD_CEO_CHANNEL_ID || 'ceo-briefing'\n  }\n};"
+      },
+      "notes": "Formats the retrospective as a Discord embed"
+    },
+    {
+      "id": "mgmt01-create-mgmt-ticket",
+      "name": "Jira: Create MGMT Retro Ticket",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2300, 500],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "MGMT",
+        "issueType": "Task",
+        "additionalFields": {
+          "summary": "={{ `[RETRO] Weekly Retrospective - ${$json.weekRange}` }}",
+          "description": "={{ `Weekly Retrospective Summary\\n\\n${$json.retroText}\\n\\n---\\n\\n## Key Metrics\\n- Velocity: ${$json.metrics.velocity.total} story points\\n- P&L: $${$json.metrics.trading.totalPnL}\\n- Win Rate: ${$json.metrics.trading.winRate}%\\n- Uptime: ${$json.metrics.system.uptimePercent}%\\n- Incidents: ${$json.metrics.incidents.total}\\n- Agent Efficiency: ${$json.metrics.agents.efficiency}%\\n\\n---\\nGenerated by WF-MGMT-01` }}",
+          "labels": [
+            "retrospective",
+            "weekly",
+            "auto-generated"
+          ],
+          "priority": "Medium"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Creates MGMT ticket with retrospective summary"
+    },
+    {
+      "id": "mgmt01-post-discord",
+      "name": "Discord: Post to CEO Briefing",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2300, 740],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.channelId }}"
+        },
+        "content": ":mega: **Weekly Retrospective Posted**\n\nSee embedded summary below. Full details in MGMT ticket.",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts the retrospective to #ceo-briefing"
+    },
+    {
+      "id": "mgmt01-archive-brain",
+      "name": "Code: Prepare Brain Archive",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2550, 620],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $('Code: Format Discord Embed').first().json;\nconst jiraTicket = $('Jira: Create MGMT Retro Ticket').first().json;\n\n// Format date for filename\nconst now = new Date();\nconst dateStr = now.toISOString().split('T')[0];\n\n// Build markdown for Brain archive\nconst markdown = `# Weekly Retrospective - ${data.weekRange}\n\n**Generated:** ${now.toISOString()}\n**MGMT Ticket:** ${jiraTicket.key || 'N/A'}\n\n---\n\n${data.retroText}\n\n---\n\n## Raw Metrics\n\n### Velocity\n- Total: ${data.metrics.velocity.total} story points\n- Tickets: ${data.metrics.velocity.ticketCount}\n- TRADE: ${data.metrics.velocity.byProject.TRADE}\n- INFRA: ${data.metrics.velocity.byProject.INFRA}\n- LEARN: ${data.metrics.velocity.byProject.LEARN}\n- MGMT: ${data.metrics.velocity.byProject.MGMT}\n\n### Trading\n- P&L: $${data.metrics.trading.totalPnL}\n- Trade Count: ${data.metrics.trading.tradeCount}\n- Win Rate: ${data.metrics.trading.winRate}%\n- Profit Factor: ${data.metrics.trading.profitFactor}\n- Avg Grade: ${data.metrics.trading.avgGradeScore}/100\n\n### System\n- Uptime: ${data.metrics.system.uptimePercent}%\n- Downtime: ${data.metrics.system.downtimeMinutes} min\n\n### Incidents\n- Total: ${data.metrics.incidents.total}\n- Critical: ${data.metrics.incidents.critical}\n- Resolved: ${data.metrics.incidents.resolved}\n- Open: ${data.metrics.incidents.open}\n\n### Agents\n- Tasks: ${data.metrics.agents.totalTasks}\n- Errors: ${data.metrics.agents.totalErrors}\n- Efficiency: ${data.metrics.agents.efficiency}%\n\n### CEO Approvals\n- Total: ${data.metrics.approvals.total}\n- Approval Rate: ${data.metrics.approvals.approvalRate}%\n\n---\n\n*Auto-generated by WF-MGMT-01*\n`;\n\nreturn {\n  json: {\n    filename: `retro-${dateStr}.md`,\n    content: markdown,\n    metrics: data.metrics,\n    weekRange: data.weekRange\n  }\n};"
+      },
+      "notes": "Prepares markdown content for Brain archive"
+    },
+    {
+      "id": "mgmt01-write-brain-file",
+      "name": "HTTP: Archive to Brain",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2800, 620],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/brain/archive",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"path\": \"retrospectives/{{ $json.filename }}\",\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"metadata\": {\n    \"type\": \"retrospective\",\n    \"weekRange\": \"{{ $json.weekRange }}\",\n    \"velocity\": {{ $json.metrics.velocity.total }},\n    \"pnl\": \"{{ $json.metrics.trading.totalPnL }}\"\n  }\n}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Archives retrospective to Brain data folder"
+    },
+    {
+      "id": "mgmt01-log-completion",
+      "name": "HTTP: Log Completion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3050, 620],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/audit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event\": \"weekly_retrospective_completed\",\n  \"timestamp\": \"{{ $now.toISO() }}\",\n  \"workflow\": \"WF-MGMT-01\",\n  \"data\": {\n    \"weekRange\": \"{{ $('Code: Prepare Brain Archive').first().json.weekRange }}\",\n    \"velocity\": {{ $('Code: Prepare Brain Archive').first().json.metrics.velocity.total }},\n    \"pnl\": \"{{ $('Code: Prepare Brain Archive').first().json.metrics.trading.totalPnL }}\",\n    \"brainArchived\": true,\n    \"mgmtTicketCreated\": true,\n    \"discordPosted\": true\n  }\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Logs retrospective completion to audit trail"
+    },
+    {
+      "id": "mgmt01-workflow-complete",
+      "name": "Workflow Complete",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [3300, 620],
+      "parameters": {},
+      "notes": "End node - retrospective workflow completed"
+    },
+    {
+      "id": "mgmt01-error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 1500],
+      "parameters": {},
+      "notes": "Catches any errors in this workflow"
+    },
+    {
+      "id": "mgmt01-format-error",
+      "name": "Code: Format Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [280, 1500],
+      "parameters": {
+        "jsCode": "const error = $json;\n\nreturn {\n  json: {\n    embed: {\n      title: ':warning: Weekly Retrospective Error',\n      description: 'The retrospective workflow encountered an error.',\n      color: 15158332,\n      fields: [\n        {\n          name: 'Error',\n          value: error.execution?.error?.message?.substring(0, 500) || 'Unknown',\n          inline: false\n        },\n        {\n          name: 'Node',\n          value: error.execution?.error?.node?.name || 'Unknown',\n          inline: true\n        },\n        {\n          name: 'Time',\n          value: new Date().toISOString(),\n          inline: true\n        }\n      ],\n      footer: { text: 'WF-MGMT-01 Error Handler' }\n    }\n  }\n};"
+      },
+      "notes": "Formats error for Discord notification"
+    },
+    {
+      "id": "mgmt01-post-error",
+      "name": "Discord: Post Error",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [560, 1500],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_ERRORS_CHANNEL_ID || 'n8n-errors' }}"
+        },
+        "content": "",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts error to #n8n-errors channel"
+    },
+    {
+      "id": "mgmt01-sticky-overview",
+      "name": "Note: Workflow Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-250, 300],
+      "parameters": {
+        "content": "## WF-MGMT-01: Weekly Retrospective\n\n**Trigger:** Friday 6 PM ET\n**Purpose:** Generate comprehensive weekly retrospective\n\n### Data Sources:\n- Jira tickets (all projects)\n- Trade performance & grades\n- Incident reports\n- Agent activity logs\n- CEO approval decisions\n- System uptime metrics\n\n### Outputs:\n1. MGMT ticket with full summary\n2. Discord embed to #ceo-briefing\n3. Markdown archive to Brain\n4. Audit log entry\n\n### Metrics Calculated:\n- Sprint velocity by project\n- Trading P&L & win rate\n- System reliability %\n- Agent efficiency ratio\n- Approval rates"
+      }
+    },
+    {
+      "id": "mgmt01-sticky-ai",
+      "name": "Note: AI Generation",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1300, 850],
+      "parameters": {
+        "content": "## AI Retrospective Generation\n\nClaude generates structured retrospective:\n- What went well (celebrate wins)\n- What went wrong (honest assessment)\n- What to improve (actionable items)\n- Next week focus areas\n- Team kudos\n\nMax 500 words, data-driven analysis."
+      }
+    }
+  ],
+  "connections": {
+    "Schedule: Friday 6 PM ET": {
+      "main": [
+        [
+          { "node": "Jira: Fetch TRADE Completed", "type": "main", "index": 0 },
+          { "node": "Jira: Fetch INFRA Completed", "type": "main", "index": 0 },
+          { "node": "Jira: Fetch LEARN Completed", "type": "main", "index": 0 },
+          { "node": "Jira: Fetch MGMT Completed", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch Week Trades", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch Trade Grades", "type": "main", "index": 0 },
+          { "node": "Jira: Fetch Incidents", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch Agent Activity", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch CEO Approvals", "type": "main", "index": 0 },
+          { "node": "HTTP: Fetch System Uptime", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Jira: Fetch TRADE Completed": {
+      "main": [
+        [
+          { "node": "Merge: Jira Data", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Jira: Fetch INFRA Completed": {
+      "main": [
+        [
+          { "node": "Merge: Jira Data", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Jira: Fetch LEARN Completed": {
+      "main": [
+        [
+          { "node": "Merge: Jira Data", "type": "main", "index": 2 }
+        ]
+      ]
+    },
+    "Jira: Fetch MGMT Completed": {
+      "main": [
+        [
+          { "node": "Merge: Jira Data", "type": "main", "index": 3 }
+        ]
+      ]
+    },
+    "HTTP: Fetch Week Trades": {
+      "main": [
+        [
+          { "node": "Merge: Metrics Data", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Fetch Trade Grades": {
+      "main": [
+        [
+          { "node": "Merge: Metrics Data", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Jira: Fetch Incidents": {
+      "main": [
+        [
+          { "node": "Merge: Metrics Data", "type": "main", "index": 2 }
+        ]
+      ]
+    },
+    "HTTP: Fetch Agent Activity": {
+      "main": [
+        [
+          { "node": "Merge: Metrics Data", "type": "main", "index": 3 }
+        ]
+      ]
+    },
+    "HTTP: Fetch CEO Approvals": {
+      "main": [
+        [
+          { "node": "Merge: Metrics Data", "type": "main", "index": 4 }
+        ]
+      ]
+    },
+    "HTTP: Fetch System Uptime": {
+      "main": [
+        [
+          { "node": "Merge: Metrics Data", "type": "main", "index": 5 }
+        ]
+      ]
+    },
+    "Merge: Jira Data": {
+      "main": [
+        [
+          { "node": "Merge: All Data", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Merge: Metrics Data": {
+      "main": [
+        [
+          { "node": "Merge: All Data", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Merge: All Data": {
+      "main": [
+        [
+          { "node": "Code: Calculate Retrospective Metrics", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Calculate Retrospective Metrics": {
+      "main": [
+        [
+          { "node": "Code: Build Retrospective Prompt", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Build Retrospective Prompt": {
+      "main": [
+        [
+          { "node": "HTTP: Call Claude for Retrospective", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Call Claude for Retrospective": {
+      "main": [
+        [
+          { "node": "Code: Parse AI Response", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Parse AI Response": {
+      "main": [
+        [
+          { "node": "Code: Format Discord Embed", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Format Discord Embed": {
+      "main": [
+        [
+          { "node": "Jira: Create MGMT Retro Ticket", "type": "main", "index": 0 },
+          { "node": "Discord: Post to CEO Briefing", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Jira: Create MGMT Retro Ticket": {
+      "main": [
+        [
+          { "node": "Code: Prepare Brain Archive", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Discord: Post to CEO Briefing": {
+      "main": [
+        [
+          { "node": "Code: Prepare Brain Archive", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Prepare Brain Archive": {
+      "main": [
+        [
+          { "node": "HTTP: Archive to Brain", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Archive to Brain": {
+      "main": [
+        [
+          { "node": "HTTP: Log Completion", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP: Log Completion": {
+      "main": [
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          { "node": "Code: Format Error", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Code: Format Error": {
+      "main": [
+        [
+          { "node": "Discord: Post Error", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "self-improvement" },
+    { "name": "weekly" },
+    { "name": "retrospective" },
+    { "name": "management" }
+  ],
+  "triggerCount": 1,
+  "versionId": "1.0.0",
+  "meta": {
+    "instanceId": "swjshak-n8n",
+    "templateCredsSetupCompleted": false
+  }
+}

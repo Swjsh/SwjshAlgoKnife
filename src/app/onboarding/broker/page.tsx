@@ -865,7 +865,7 @@ export default function BrokerSetupPage() {
             </div>
           </form>
 
-          <button onClick={() => router.push('/command-center')} className="bk-skip">
+          <button onClick={() => router.push('/activity-feed')} className="bk-skip">
             Skip for now — add broker later in Settings
           </button>
 

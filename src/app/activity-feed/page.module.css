@@ -1,0 +1,357 @@
+.container {
+    height: 100%;
+    max-height: 100%;
+    background: var(--bg-main, hsl(222, 47%, 11%));
+    color: var(--text-primary, #f8fafc);
+    padding: 4px 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* Unified top bar — title + stats + clock in one row */
+.topBar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2px;
+    flex-shrink: 0;
+}
+
+.title {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1;
+    background: linear-gradient(135deg, #06b6d4, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ─── Sync Buttons ───────────────────────────────────────────── */
+.syncBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border-base);
+    background: var(--bg-subtle, rgba(255,255,255,0.04));
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+    white-space: nowrap;
+    height: 48px;
+    box-sizing: border-box;
+}
+
+.syncBtn:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+.syncBtn:active:not(:disabled) {
+    transform: translateY(0) scale(0.97);
+}
+
+.syncBtn:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.syncAgentsBtn {
+    border-color: rgba(6, 182, 212, 0.35);
+    background: rgba(6, 182, 212, 0.08);
+    color: #06b6d4;
+}
+
+.syncAgentsBtn:hover:not(:disabled) {
+    border-color: rgba(6, 182, 212, 0.6);
+    background: rgba(6, 182, 212, 0.15);
+    box-shadow: 0 0 18px rgba(6, 182, 212, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.syncJiraBtn {
+    border-color: rgba(168, 85, 247, 0.35);
+    background: rgba(168, 85, 247, 0.08);
+    color: #a855f7;
+}
+
+.syncJiraBtn:hover:not(:disabled) {
+    border-color: rgba(168, 85, 247, 0.6);
+    background: rgba(168, 85, 247, 0.15);
+    box-shadow: 0 0 18px rgba(168, 85, 247, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.syncBtnLabel {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.syncSpinner {
+    animation: syncRotate 0.8s linear infinite;
+}
+
+@keyframes syncRotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.refreshSpin svg:first-child {
+    animation: syncRotate 0.6s ease-in-out;
+}
+
+/* Master Broadcast Input — compact single row */
+.broadcastSection {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    margin-bottom: 2px;
+    background: rgba(168, 85, 247, 0.06);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-radius: 8px;
+    backdrop-filter: blur(8px);
+    flex-shrink: 0;
+}
+
+.broadcastIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    background: rgba(168, 85, 247, 0.15);
+    border-radius: 5px;
+    color: #a855f7;
+    flex-shrink: 0;
+}
+
+.broadcastInputWrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.broadcastLabel {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #a855f7;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.broadcastInput {
+    background: rgba(9, 9, 11, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    outline: none;
+    flex: 1;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.broadcastInput::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.broadcastInput:focus {
+    border-color: #a855f7;
+    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.15);
+}
+
+.broadcastButton {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    border: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.broadcastButton:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 16px rgba(168, 85, 247, 0.35);
+}
+
+.broadcastButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Main Content Area - Agent Grid + Activity Column */
+.mainContent {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 8px;
+    flex: 1.2;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Agent Grid - 2x3 layout */
+.agentGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 6px;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Activity Column - Right Side */
+.activityColumn {
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Loading State */
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: var(--bg-main, hsl(222, 47%, 11%));
+    gap: 16px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(6, 182, 212, 0.2);
+    border-top-color: #06b6d4;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.loadingText {
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+/* Responsive Design */
+@media (max-width: 1600px) {
+    .mainContent {
+        grid-template-columns: 1fr 240px;
+    }
+}
+
+@media (max-width: 1400px) {
+    .mainContent {
+        grid-template-columns: 1fr 220px;
+    }
+
+    .agentGrid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 1100px) {
+    .mainContent {
+        grid-template-columns: 1fr;
+    }
+
+    .activityColumn {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+
+    .topBar {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .agentGrid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+    }
+}
+
+/* Animations */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Glassmorphism enhancement for panels */
+.glassPanel {
+    background: rgba(17, 17, 22, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+}
+
+/* Theme Overrides */
+:global([data-theme='light']) .container {
+    background: var(--bg-main);
+    color: var(--text-primary);
+}
+
+:global([data-theme='light']) .title {
+    background: linear-gradient(135deg, #0891b2, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+:global([data-theme='light']) .subtitle {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+:global([data-theme='light']) .syncAgentsBtn {
+    background: rgba(6, 182, 212, 0.06);
+    border-color: rgba(6, 182, 212, 0.25);
+    color: #0891b2;
+}
+
+:global([data-theme='light']) .syncJiraBtn {
+    background: rgba(168, 85, 247, 0.06);
+    border-color: rgba(168, 85, 247, 0.25);
+    color: #9333ea;
+}
+
+:global([data-theme='light']) .loading {
+    background: var(--bg-main);
+    color: rgba(0, 0, 0, 0.5);
+}
+
+:global([data-theme='light']) .spinner {
+    border-color: rgba(8, 145, 178, 0.2);
+    border-top-color: #0891b2;
+}

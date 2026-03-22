@@ -18,10 +18,16 @@ import type { Candle, StrategyConfig } from '../src/lib/engine/types';
 
 // ── Config ──────────────────────────────────────────────────────────────────
 const SYMBOL = process.argv[2] || 'ES';
-const PROXY = SYMBOL === 'ES' ? 'SPY' : SYMBOL === 'NQ' ? 'QQQ' : 'SPY';
+// Security: Only allow known safe proxy symbols (prevent injection)
+const PROXY_MAP: Record<string, string> = { ES: 'SPY', NQ: 'QQQ' };
+const PROXY = PROXY_MAP[SYMBOL] || 'SPY';
 const SCAN_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const WEBHOOK_URL = 'http://localhost:3000/api/webhook/tradingview';
-const WEBHOOK_SECRET = 'swjshak-tv-webhook-2026';
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
+if (!WEBHOOK_SECRET) {
+  console.error('FATAL: WEBHOOK_SECRET environment variable is required');
+  process.exit(1);
+}
 const DATA_DIR = path.join(process.cwd(), 'data');
 const STATE_FILE = path.join(DATA_DIR, 'orb_agent_state.json');
 const STATUS_FILE = path.join(DATA_DIR, 'orb_agent_status.json');
@@ -41,13 +47,20 @@ function isMarketHours(): boolean {
 // ── Fetch Real Candles via yfinance ─────────────────────────────────────────
 function fetchCandles(): Candle[] {
   try {
+    // Security: Write Python script to temp file instead of using -c with interpolation
+    // This prevents command injection vulnerabilities
+    const tempScript = path.join(DATA_DIR, '_fetch_candles.py');
     const script = `
 import yfinance as yf
 import pandas as pd
 import json
 import sys
+import os
 
-data = yf.download('${PROXY}', period='2d', interval='5m', progress=False)
+# Get symbol from environment (safe, not interpolated)
+symbol = os.environ.get('FETCH_SYMBOL', 'SPY')
+
+data = yf.download(symbol, period='2d', interval='5m', progress=False)
 if isinstance(data.columns, pd.MultiIndex):
     data.columns = data.columns.get_level_values(0)
 if data.empty:
@@ -66,9 +79,15 @@ for ts, row in data.iterrows():
     })
 print(json.dumps(candles))
 `;
-    const result = execSync(`python3 -c "${script.replace(/"/g, '\\"')}"`, {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(tempScript, script);
+
+    // Security: Use spawn-style execution with env var instead of string interpolation
+    const python = process.platform === 'win32' ? 'python' : 'python3';
+    const result = execSync(`${python} "${tempScript}"`, {
       encoding: 'utf-8',
       timeout: 30000,
+      env: { ...process.env, FETCH_SYMBOL: PROXY },  // Pass symbol via env, not interpolation
     }).trim();
 
     // Find the JSON array in output (yfinance may print progress)

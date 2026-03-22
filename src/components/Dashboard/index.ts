@@ -1,0 +1,26 @@
+// Dashboard Components barrel export
+export { default as AccomplishmentsWidget } from './AccomplishmentsWidget';
+export { default as ActiveSignals } from './ActiveSignals';
+export { default as AgentCard } from './AgentCard';
+export { default as AgentChartView } from './AgentChartView';
+export { default as AgentSidebar } from './AgentSidebar';
+export { default as AgentWorkspace } from './AgentWorkspace';
+export { default as ChartToolbar } from './ChartToolbar';
+export { default as CoffeeRoom } from './CoffeeRoom';
+export { default as DocFreshnessWidget } from './DocFreshnessWidget';
+export { default as IndicatorControls } from './IndicatorControls';
+export { default as LiveSignals } from './LiveSignals';
+export { default as MarketOverview } from './MarketOverview';
+export { default as MarketToggle } from './MarketToggle';
+export { default as OptionsChain } from './OptionsChain';
+export { default as OrderPanel } from './OrderPanel';
+export { default as RealTimeAnalytics } from './RealTimeAnalytics';
+export { default as RecentTrades } from './RecentTrades';
+export { default as SquadStatusWidget } from './SquadStatusWidget';
+export { default as StatsTile } from './StatsTile';
+export { default as StrategyPanel } from './StrategyPanel';
+export { default as TerminalChat } from './TerminalChat';
+export { default as TheLab } from './TheLab';
+export { TickerIcon } from './TickerIcons';
+export { default as TradingChart } from './TradingChart';
+export { default as TrendChart } from './TrendChart';

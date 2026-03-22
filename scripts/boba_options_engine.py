@@ -17,6 +17,7 @@ Changes from boba_trades_engine.py:
   ✅ Position sizing based on max premium risk
 """
 
+import os
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -45,7 +46,9 @@ MIN_OPEN_INTEREST   = 100            # Minimum OI
 MAX_SPREAD_PCT      = 15.0           # Max bid-ask spread %
 STATUS_FILE         = Path(__file__).parent.parent / 'data' / 'boba_agent_status.json'
 WEBHOOK_URL         = "http://localhost:3000/api/webhook/tradingview"
-WEBHOOK_SECRET      = "swjshak-tv-webhook-2026"
+WEBHOOK_SECRET      = os.getenv("WEBHOOK_SECRET")
+if not WEBHOOK_SECRET:
+    raise RuntimeError("WEBHOOK_SECRET environment variable is required")
 
 # Options selection preferences
 EXPIRY_TYPE         = 'weekly'       # weekly expirations for multi-day hold
@@ -280,7 +283,8 @@ def get_current_premium(occ_symbol: str, contract_type: str, strike: float, expi
     """
     try:
         return _get_chain().get_premium(expiration, strike, contract_type, max_cache_age=60.0)
-    except Exception:
+    except Exception as e:
+        print(f"[Boba] Failed to get premium for {contract_type} {strike} {expiration}: {e}")
         return None
 
 

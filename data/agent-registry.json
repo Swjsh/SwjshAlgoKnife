@@ -1,0 +1,48 @@
+﻿{
+    "agents":  {
+                   "arbiter":  {
+                                   "status":  "online",
+                                   "startedAt":  "2026-03-22T10:30:06.9373572-04:00",
+                                   "cwd":  "C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife",
+                                   "agentId":  "arbiter",
+                                   "sessionId":  "e656ad2a-b439-4ecb-b811-99481810a300"
+                               },
+                   "hunter":  {
+                                  "status":  "online",
+                                  "startedAt":  "2026-03-22T10:30:01.3285558-04:00",
+                                  "cwd":  "C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife",
+                                  "agentId":  "hunter",
+                                  "sessionId":  "3063f0df-49fe-4ee1-a523-f2393be4c291"
+                              },
+                   "chief":  {
+                                 "status":  "online",
+                                 "startedAt":  "2026-03-22T10:45:35.2174289-04:00",
+                                 "cwd":  "C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife",
+                                 "agentId":  "chief",
+                                 "sessionId":  "d8ee200a-9689-4451-8d71-d6dd7f9b1667"
+                             },
+                   "scout":  {
+                                 "status":  "online",
+                                 "startedAt":  "2026-03-22T10:45:31.3259702-04:00",
+                                 "cwd":  "C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife",
+                                 "agentId":  "scout",
+                                 "sessionId":  "98d20e6a-8636-4323-99ef-182b7acecfee"
+                             },
+                   "ops":  {
+                               "status":  "online",
+                               "startedAt":  "2026-03-22T10:30:07.6789060-04:00",
+                               "cwd":  "C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife",
+                               "agentId":  "ops",
+                               "sessionId":  "fcff39ae-b45d-44eb-be1d-801283a5b64f"
+                           },
+                   "cortana":  {
+                                   "status":  "online",
+                                   "startedAt":  "2026-03-22T10:45:35.7970122-04:00",
+                                   "cwd":  "C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife",
+                                   "agentId":  "cortana",
+                                   "sessionId":  "eac17a85-9119-4dae-9179-02253aa2782b"
+                               }
+               },
+    "description":  "Registry of active Halo agents",
+    "lastUpdated":  "2026-03-22T11:21:46.6969001-04:00"
+}

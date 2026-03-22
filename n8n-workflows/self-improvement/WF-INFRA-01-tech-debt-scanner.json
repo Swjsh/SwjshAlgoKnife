@@ -1,0 +1,1065 @@
+{
+  "name": "WF-INFRA-01: Tech Debt Scanner",
+  "nodes": [
+    {
+      "id": "schedule-trigger",
+      "name": "Schedule: Daily 6 AM ET",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [0, 400],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "init-scan-context",
+      "name": "Set: Initialize Scan Context",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 400],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "name": "scanId",
+              "value": "={{ `SCAN-${$now.toFormat('yyyyMMdd-HHmmss')}` }}",
+              "type": "string"
+            },
+            {
+              "name": "scanDate",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "name": "repoOwner",
+              "value": "={{ $env.GITHUB_REPO_OWNER || 'jackw' }}",
+              "type": "string"
+            },
+            {
+              "name": "repoName",
+              "value": "={{ $env.GITHUB_REPO_NAME || 'SwjshAlgoKnife' }}",
+              "type": "string"
+            },
+            {
+              "name": "defaultBranch",
+              "value": "={{ $env.GITHUB_DEFAULT_BRANCH || 'master' }}",
+              "type": "string"
+            },
+            {
+              "name": "staleFileDays",
+              "value": 90,
+              "type": "number"
+            },
+            {
+              "name": "maxFunctionLines",
+              "value": 100,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "fetch-repo-tree",
+      "name": "HTTP: Fetch Repository Tree",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [440, 200],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.github.com/repos/{{ $json.repoOwner }}/{{ $json.repoName }}/git/trees/{{ $json.defaultBranch }}?recursive=1",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "github-token-cred",
+          "name": "GitHub Token"
+        }
+      }
+    },
+    {
+      "id": "fetch-recent-commits",
+      "name": "HTTP: Fetch Recent Commits",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [440, 400],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.github.com/repos/{{ $json.repoOwner }}/{{ $json.repoName }}/commits?sha={{ $json.defaultBranch }}&per_page=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3+json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "github-token-cred",
+          "name": "GitHub Token"
+        }
+      }
+    },
+    {
+      "id": "fetch-open-issues",
+      "name": "HTTP: Fetch Open INFRA Issues",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [440, 600],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.JIRA_BASE_URL || 'https://swjsh.atlassian.net' }}/rest/api/3/search?jql=project=INFRA AND status != Done AND labels = tech-debt&maxResults=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "jira-api-cred",
+          "name": "Jira API"
+        }
+      }
+    },
+    {
+      "id": "merge-initial-data",
+      "name": "Merge: Initial Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [660, 400],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-parse-tree",
+      "name": "Code: Parse Repository Tree",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 400],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const treeData = $('HTTP: Fetch Repository Tree').first().json;\nconst commitsData = $('HTTP: Fetch Recent Commits').first().json;\nconst existingIssues = $('HTTP: Fetch Open INFRA Issues').first().json;\nconst initContext = $('Set: Initialize Scan Context').first().json;\n\n// Build last modified map from commits\nconst fileLastModified = {};\nconst commits = Array.isArray(commitsData) ? commitsData : [];\n\ncommits.forEach(commit => {\n  const date = commit.commit?.author?.date || commit.commit?.committer?.date;\n  if (!date) return;\n  \n  // For each commit, we'd need to fetch files changed - simplified approach\n  // Mark this commit date for tracking\n});\n\n// Get existing tech debt issue keys to avoid duplicates\nconst existingKeys = new Set();\nconst issues = existingIssues?.issues || [];\nissues.forEach(issue => {\n  if (issue.fields?.summary) {\n    existingKeys.add(issue.fields.summary);\n  }\n});\n\n// Filter source files from tree\nconst tree = treeData?.tree || [];\nconst sourceExtensions = ['.ts', '.tsx', '.js', '.jsx', '.py', '.css', '.json'];\nconst ignoreDirs = ['node_modules', '.git', 'dist', 'build', '.next', '__pycache__', '.claude'];\n\nconst sourceFiles = tree.filter(item => {\n  if (item.type !== 'blob') return false;\n  const path = item.path;\n  \n  // Skip ignored directories\n  if (ignoreDirs.some(dir => path.includes(`${dir}/`))) return false;\n  \n  // Only include source files\n  return sourceExtensions.some(ext => path.endsWith(ext));\n});\n\n// Categorize files for parallel scanning\nconst codeFiles = sourceFiles.filter(f => \n  ['.ts', '.tsx', '.js', '.jsx', '.py'].some(ext => f.path.endsWith(ext))\n);\n\n// Limit to reasonable batch for API calls\nconst filesToScan = codeFiles.slice(0, 50);\n\nreturn {\n  json: {\n    scanId: initContext.scanId,\n    scanDate: initContext.scanDate,\n    repoOwner: initContext.repoOwner,\n    repoName: initContext.repoName,\n    defaultBranch: initContext.defaultBranch,\n    staleFileDays: initContext.staleFileDays,\n    maxFunctionLines: initContext.maxFunctionLines,\n    totalSourceFiles: sourceFiles.length,\n    filesToScan: filesToScan,\n    existingIssueKeys: Array.from(existingKeys),\n    existingIssueCount: existingKeys.size\n  }\n};"
+      }
+    },
+    {
+      "id": "split-files-batch",
+      "name": "SplitInBatches: Process Files",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [1100, 400],
+      "parameters": {
+        "batchSize": 10,
+        "options": {}
+      }
+    },
+    {
+      "id": "code-prepare-file-urls",
+      "name": "Code: Prepare File Fetch URLs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 400],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const context = $input.first().json;\nconst files = context.filesToScan || [];\n\n// Create items for each file to fetch\nreturn files.slice(0, 10).map(file => ({\n  json: {\n    filePath: file.path,\n    sha: file.sha,\n    size: file.size,\n    repoOwner: context.repoOwner,\n    repoName: context.repoName,\n    defaultBranch: context.defaultBranch,\n    scanId: context.scanId,\n    maxFunctionLines: context.maxFunctionLines\n  }\n}));"
+      }
+    },
+    {
+      "id": "http-fetch-file-content",
+      "name": "HTTP: Fetch File Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [1540, 400],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.github.com/repos/{{ $json.repoOwner }}/{{ $json.repoName }}/contents/{{ $json.filePath }}?ref={{ $json.defaultBranch }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3.raw"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "github-token-cred",
+          "name": "GitHub Token"
+        }
+      }
+    },
+    {
+      "id": "code-analyze-file",
+      "name": "Code: Analyze File for Issues",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1760, 400],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const filePath = $json.filePath;\nconst content = $json.data || '';\nconst maxLines = $json.maxFunctionLines || 100;\nconst scanId = $json.scanId;\n\nconst issues = [];\n\n// 1. Check for TODO/FIXME/HACK comments\nconst todoPatterns = [\n  { pattern: /\\/\\/\\s*TODO[:\\s](.+)/gi, type: 'TODO' },\n  { pattern: /\\/\\/\\s*FIXME[:\\s](.+)/gi, type: 'FIXME' },\n  { pattern: /\\/\\/\\s*HACK[:\\s](.+)/gi, type: 'HACK' },\n  { pattern: /#\\s*TODO[:\\s](.+)/gi, type: 'TODO' },\n  { pattern: /#\\s*FIXME[:\\s](.+)/gi, type: 'FIXME' },\n  { pattern: /#\\s*HACK[:\\s](.+)/gi, type: 'HACK' }\n];\n\nconst lines = content.split('\\n');\nlet lineNumber = 0;\n\nfor (const line of lines) {\n  lineNumber++;\n  for (const { pattern, type } of todoPatterns) {\n    pattern.lastIndex = 0;\n    const match = pattern.exec(line);\n    if (match) {\n      issues.push({\n        category: 'comment',\n        type: type,\n        file: filePath,\n        line: lineNumber,\n        message: match[1]?.trim() || 'No description',\n        severity: type === 'HACK' ? 'high' : type === 'FIXME' ? 'medium' : 'low',\n        scanId: scanId\n      });\n    }\n  }\n}\n\n// 2. Check for long functions (basic heuristic)\nconst functionPatterns = [\n  /^\\s*(async\\s+)?function\\s+(\\w+)/,\n  /^\\s*(export\\s+)?(async\\s+)?function\\s+(\\w+)/,\n  /^\\s*(const|let|var)\\s+(\\w+)\\s*=\\s*(async\\s+)?\\(/,\n  /^\\s*(def)\\s+(\\w+)\\s*\\(/\n];\n\nlet inFunction = false;\nlet functionStartLine = 0;\nlet functionName = '';\nlet braceCount = 0;\nlet functionLines = 0;\n\nfor (let i = 0; i < lines.length; i++) {\n  const line = lines[i];\n  \n  if (!inFunction) {\n    for (const pattern of functionPatterns) {\n      const match = line.match(pattern);\n      if (match) {\n        inFunction = true;\n        functionStartLine = i + 1;\n        functionName = match[2] || match[3] || 'anonymous';\n        functionLines = 1;\n        braceCount = (line.match(/\\{/g) || []).length - (line.match(/\\}/g) || []).length;\n        break;\n      }\n    }\n  } else {\n    functionLines++;\n    braceCount += (line.match(/\\{/g) || []).length - (line.match(/\\}/g) || []).length;\n    \n    if (braceCount <= 0 || (filePath.endsWith('.py') && line.match(/^\\S/) && functionLines > 1)) {\n      if (functionLines > maxLines) {\n        issues.push({\n          category: 'complexity',\n          type: 'LONG_FUNCTION',\n          file: filePath,\n          line: functionStartLine,\n          message: `Function '${functionName}' is ${functionLines} lines (max: ${maxLines})`,\n          severity: functionLines > 200 ? 'high' : 'medium',\n          scanId: scanId\n        });\n      }\n      inFunction = false;\n    }\n  }\n}\n\n// 3. Check for duplicate code patterns (simplified - look for repeated blocks)\nconst seenBlocks = new Map();\nconst blockSize = 5;\n\nfor (let i = 0; i < lines.length - blockSize; i++) {\n  const block = lines.slice(i, i + blockSize)\n    .map(l => l.trim())\n    .filter(l => l.length > 0 && !l.startsWith('//'))\n    .join('|');\n  \n  if (block.length > 50) {\n    if (seenBlocks.has(block)) {\n      const firstOccurrence = seenBlocks.get(block);\n      issues.push({\n        category: 'duplication',\n        type: 'DUPLICATE_CODE',\n        file: filePath,\n        line: i + 1,\n        message: `Duplicate code block found (first at line ${firstOccurrence})`,\n        severity: 'low',\n        scanId: scanId\n      });\n    } else {\n      seenBlocks.set(block, i + 1);\n    }\n  }\n}\n\n// 4. Check for missing error handling patterns\nconst errorPatterns = [\n  { pattern: /\\.catch\\(\\s*\\(\\s*\\)\\s*=>\\s*\\{\\s*\\}\\s*\\)/g, message: 'Empty catch block' },\n  { pattern: /catch\\s*\\([^)]*\\)\\s*\\{\\s*\\}/g, message: 'Empty catch block' },\n  { pattern: /\\/\\/\\s*@ts-ignore/gi, message: '@ts-ignore suppresses type checking' },\n  { pattern: /\\/\\/\\s*eslint-disable/gi, message: 'ESLint rule disabled' }\n];\n\nfor (let i = 0; i < lines.length; i++) {\n  for (const { pattern, message } of errorPatterns) {\n    pattern.lastIndex = 0;\n    if (pattern.test(lines[i])) {\n      issues.push({\n        category: 'quality',\n        type: 'CODE_SMELL',\n        file: filePath,\n        line: i + 1,\n        message: message,\n        severity: 'medium',\n        scanId: scanId\n      });\n    }\n  }\n}\n\nreturn {\n  json: {\n    filePath: filePath,\n    linesOfCode: lines.length,\n    issuesFound: issues.length,\n    issues: issues\n  }\n};"
+      }
+    },
+    {
+      "id": "wait-rate-limit",
+      "name": "Wait: Rate Limit Pause",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1980, 400],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 1,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "if-more-batches",
+      "name": "If: More Batches",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [2200, 400],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $('SplitInBatches: Process Files').context.noItemsLeft }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "merge-all-issues",
+      "name": "Merge: Aggregate All Issues",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [2420, 500],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-aggregate-results",
+      "name": "Code: Aggregate Scan Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2640, 500],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const allResults = $input.all();\n\n// Flatten all issues from all files\nconst allIssues = [];\nlet totalFiles = 0;\nlet totalLines = 0;\n\nfor (const item of allResults) {\n  if (item.json.issues) {\n    allIssues.push(...item.json.issues);\n  }\n  if (item.json.linesOfCode) {\n    totalFiles++;\n    totalLines += item.json.linesOfCode;\n  }\n}\n\n// Group by category\nconst byCategory = {};\nconst bySeverity = { high: 0, medium: 0, low: 0 };\nconst byType = {};\n\nfor (const issue of allIssues) {\n  byCategory[issue.category] = (byCategory[issue.category] || 0) + 1;\n  bySeverity[issue.severity] = (bySeverity[issue.severity] || 0) + 1;\n  byType[issue.type] = (byType[issue.type] || 0) + 1;\n}\n\n// Sort issues by severity for prioritization\nconst severityOrder = { high: 0, medium: 1, low: 2 };\nconst sortedIssues = allIssues.sort((a, b) => \n  severityOrder[a.severity] - severityOrder[b.severity]\n);\n\n// Get top priority issues for AI analysis\nconst topIssues = sortedIssues.slice(0, 20);\n\nreturn {\n  json: {\n    scanId: allResults[0]?.json?.scanId || 'unknown',\n    summary: {\n      filesScanned: totalFiles,\n      totalLines: totalLines,\n      totalIssues: allIssues.length,\n      byCategory: byCategory,\n      bySeverity: bySeverity,\n      byType: byType\n    },\n    topIssues: topIssues,\n    allIssues: sortedIssues\n  }\n};"
+      }
+    },
+    {
+      "id": "code-build-claude-prompt",
+      "name": "Code: Build Claude Analysis Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2860, 500],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const data = $json;\nconst summary = data.summary;\nconst topIssues = data.topIssues;\n\nconst issuesList = topIssues.map((issue, i) => \n  `${i + 1}. [${issue.severity.toUpperCase()}] ${issue.type} in ${issue.file}:${issue.line}\\n   ${issue.message}`\n).join('\\n\\n');\n\nconst prompt = `You are a senior software architect reviewing tech debt in the SwjshAlgoKnife trading platform codebase.\n\nSCAN SUMMARY:\n- Files Scanned: ${summary.filesScanned}\n- Total Lines: ${summary.totalLines.toLocaleString()}\n- Total Issues Found: ${summary.totalIssues}\n\nISSUES BY SEVERITY:\n- High: ${summary.bySeverity.high || 0}\n- Medium: ${summary.bySeverity.medium || 0}\n- Low: ${summary.bySeverity.low || 0}\n\nISSUES BY CATEGORY:\n${Object.entries(summary.byCategory).map(([k, v]) => `- ${k}: ${v}`).join('\\n')}\n\nTOP 20 PRIORITY ISSUES:\n${issuesList}\n\nANALYZE AND PROVIDE:\n\n1. **Executive Summary** (2-3 sentences): Overall health assessment\n\n2. **Critical Priorities** (max 5): Issues requiring immediate attention with:\n   - Issue reference\n   - Why it's critical\n   - Recommended fix approach\n   - Estimated effort (hours)\n\n3. **Quick Wins** (max 5): Low-effort, high-value improvements\n\n4. **Technical Debt Score**: Rate 1-10 (1=critical debt, 10=minimal debt)\n\n5. **Recommended Sprint Focus**: What should the next sprint prioritize?\n\nRespond as JSON:\n{\n  \"executiveSummary\": \"string\",\n  \"criticalPriorities\": [\n    {\n      \"issue\": \"string\",\n      \"file\": \"string\",\n      \"reason\": \"string\",\n      \"fix\": \"string\",\n      \"effortHours\": number\n    }\n  ],\n  \"quickWins\": [\n    {\n      \"issue\": \"string\",\n      \"benefit\": \"string\",\n      \"effort\": \"string\"\n    }\n  ],\n  \"techDebtScore\": number,\n  \"sprintFocus\": \"string\",\n  \"jiraTickets\": [\n    {\n      \"summary\": \"string\",\n      \"description\": \"string\",\n      \"priority\": \"High|Medium|Low\",\n      \"labels\": [\"string\"]\n    }\n  ]\n}`;\n\nreturn {\n  json: {\n    ...data,\n    claudePrompt: prompt\n  }\n};"
+      }
+    },
+    {
+      "id": "http-call-claude",
+      "name": "HTTP: Call Claude API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [3080, 500],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 4096, messages: [{ role: 'user', content: $json.claudePrompt }] }) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "anthropic-api-cred",
+          "name": "Anthropic API Key"
+        }
+      }
+    },
+    {
+      "id": "code-parse-claude-response",
+      "name": "Code: Parse Claude Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3300, 500],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const input = $json;\nlet analysis;\n\ntry {\n  const responseText = input.content?.[0]?.text || input.content || '';\n  \n  // Extract JSON from response\n  const jsonMatch = responseText.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    analysis = JSON.parse(jsonMatch[0]);\n  } else {\n    throw new Error('No JSON found in response');\n  }\n} catch (e) {\n  analysis = {\n    executiveSummary: 'Unable to parse AI analysis - please review manually',\n    criticalPriorities: [],\n    quickWins: [],\n    techDebtScore: 5,\n    sprintFocus: 'Review scan results manually',\n    jiraTickets: [],\n    _parseError: e.message\n  };\n}\n\nreturn {\n  json: {\n    scanId: input.scanId,\n    summary: input.summary,\n    topIssues: input.topIssues,\n    allIssues: input.allIssues,\n    analysis: analysis\n  }\n};"
+      }
+    },
+    {
+      "id": "if-has-tickets",
+      "name": "If: Has Jira Tickets to Create",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [3520, 500],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.analysis?.jiraTickets?.length || 0 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "code-prepare-jira-tickets",
+      "name": "Code: Prepare Jira Tickets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3740, 400],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $input.first().json;\nconst tickets = data.analysis?.jiraTickets || [];\n\n// Create an item for each ticket\nreturn tickets.map(ticket => ({\n  json: {\n    summary: ticket.summary,\n    description: ticket.description,\n    priority: ticket.priority,\n    labels: [...(ticket.labels || []), 'tech-debt', 'automated-scan'],\n    scanId: data.scanId\n  }\n}));"
+      }
+    },
+    {
+      "id": "jira-create-ticket",
+      "name": "Jira: Create INFRA Ticket",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [3960, 400],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "INFRA",
+        "issueType": "Task",
+        "additionalFields": {
+          "summary": "={{ $json.summary }}",
+          "description": "={{ $json.description }}\\n\\n---\\n_Created by Tech Debt Scanner ({{ $json.scanId }})_",
+          "labels": "={{ $json.labels }}",
+          "priority": "={{ $json.priority }}"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "merge-tickets-result",
+      "name": "Merge: Ticket Creation Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [4180, 500],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-build-discord-message",
+      "name": "Code: Build Discord Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4400, 500],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Get the main scan data\nconst scanData = $('Code: Parse Claude Response').first().json;\nconst analysis = scanData.analysis;\nconst summary = scanData.summary;\n\n// Count created tickets\nconst ticketResults = $input.all();\nconst createdTickets = ticketResults.filter(t => t.json?.key).length;\n\nconst debtEmoji = analysis.techDebtScore >= 7 ? ':white_check_mark:' : \n                  analysis.techDebtScore >= 4 ? ':warning:' : ':red_circle:';\n\nreturn {\n  json: {\n    scanId: scanData.scanId,\n    summary: summary,\n    analysis: analysis,\n    ticketsCreated: createdTickets,\n    embedTitle: `Tech Debt Scan: ${scanData.scanId}`,\n    embedDescription: analysis.executiveSummary,\n    embedColor: analysis.techDebtScore >= 7 ? 3066993 : \n                analysis.techDebtScore >= 4 ? 16776960 : 15158332,\n    debtScore: `${debtEmoji} ${analysis.techDebtScore}/10`,\n    sprintFocus: analysis.sprintFocus\n  }\n};"
+      }
+    },
+    {
+      "id": "discord-post-summary",
+      "name": "Discord: Post Scan Summary",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [4620, 500],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "authentication": "botToken",
+        "guildId": {
+          "mode": "id",
+          "value": "={{ $env.DISCORD_GUILD_ID }}"
+        },
+        "channelId": {
+          "mode": "id",
+          "value": "={{ $env.DISCORD_SYSTEM_CHANNEL }}"
+        },
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "={{ $json.embedTitle }}",
+              "description": "={{ $json.embedDescription }}",
+              "color": "={{ $json.embedColor }}",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Files Scanned",
+                    "value": "={{ $json.summary.filesScanned }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Total Issues",
+                    "value": "={{ $json.summary.totalIssues }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Tech Debt Score",
+                    "value": "={{ $json.debtScore }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "High Priority",
+                    "value": "={{ $json.summary.bySeverity.high || 0 }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Medium Priority",
+                    "value": "={{ $json.summary.bySeverity.medium || 0 }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Tickets Created",
+                    "value": "={{ $json.ticketsCreated }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Sprint Focus",
+                    "value": "={{ $json.sprintFocus }}",
+                    "inline": false
+                  }
+                ]
+              },
+              "footer": "SwjshAK Tech Debt Scanner",
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "http-store-scan-results",
+      "name": "HTTP: Store Scan Results",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [4840, 500],
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:3000/api/scans/tech-debt",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ scanId: $json.scanId, summary: $json.summary, analysis: $json.analysis, ticketsCreated: $json.ticketsCreated, timestamp: $now.toISO() }) }}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "noop-skip-tickets",
+      "name": "NoOp: No Tickets Needed",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [3740, 600],
+      "parameters": {}
+    },
+    {
+      "id": "error-handler-trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 800],
+      "parameters": {}
+    },
+    {
+      "id": "code-format-error",
+      "name": "Code: Format Error Details",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 800],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const error = $json;\n\nreturn {\n  json: {\n    workflowId: error.workflow?.id || 'unknown',\n    workflowName: error.workflow?.name || 'Tech Debt Scanner',\n    errorMessage: error.execution?.error?.message || 'Unknown error',\n    errorNode: error.execution?.lastNodeExecuted || 'unknown',\n    timestamp: new Date().toISOString(),\n    executionId: error.execution?.id || 'unknown'\n  }\n};"
+      }
+    },
+    {
+      "id": "discord-post-error",
+      "name": "Discord: Post Error Alert",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [440, 800],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "authentication": "botToken",
+        "guildId": {
+          "mode": "id",
+          "value": "={{ $env.DISCORD_GUILD_ID }}"
+        },
+        "channelId": {
+          "mode": "id",
+          "value": "={{ $env.DISCORD_ALERTS_CHANNEL }}"
+        },
+        "content": "@here - Tech Debt Scanner workflow failed",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "Tech Debt Scanner Error",
+              "description": "={{ $json.errorMessage }}",
+              "color": "15158332",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Failed Node",
+                    "value": "={{ $json.errorNode }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Execution ID",
+                    "value": "={{ $json.executionId }}",
+                    "inline": true
+                  }
+                ]
+              },
+              "footer": "SwjshAK Error Handler",
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "sticky-overview",
+      "name": "Note: Workflow Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-220, 100],
+      "parameters": {
+        "content": "## WF-INFRA-01: Tech Debt Scanner\n\n**Schedule:** Daily at 6 AM ET\n**Purpose:** Automated codebase health monitoring\n\n### Scan Targets:\n- TODO/FIXME/HACK comments\n- Functions over 100 lines\n- Duplicate code patterns\n- Code smells (empty catches, @ts-ignore)\n\n### Outputs:\n1. Claude AI analysis with priorities\n2. INFRA Jira tickets for critical issues\n3. Discord summary in #system\n4. Scan results stored in database",
+        "width": 380,
+        "height": 340
+      }
+    },
+    {
+      "id": "sticky-github-fetch",
+      "name": "Note: GitHub Integration",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [380, 0],
+      "parameters": {
+        "content": "## GitHub API Calls\n\n**Parallel fetches:**\n1. Repository tree (all files)\n2. Recent commits (last 100)\n3. Existing INFRA issues (avoid duplicates)\n\n**Rate Limiting:**\nGitHub API: 5000/hr (authenticated)\n1s delay between file fetches",
+        "width": 300,
+        "height": 220
+      }
+    },
+    {
+      "id": "sticky-ai-analysis",
+      "name": "Note: AI Analysis",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [2800, 300],
+      "parameters": {
+        "content": "## Claude Analysis\n\nSends top 20 priority issues to Claude for:\n- Executive summary\n- Critical priorities with fix estimates\n- Quick wins identification\n- Tech debt score (1-10)\n- Sprint planning recommendations\n- Suggested Jira tickets\n\n**Model:** claude-sonnet-4-20250514\n**Timeout:** 120s",
+        "width": 320,
+        "height": 260
+      }
+    },
+    {
+      "id": "sticky-error-handling",
+      "name": "Note: Error Handling",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-220, 700],
+      "parameters": {
+        "content": "## Error Handling\n\n**Error Flow:**\n1. Capture error details\n2. Post to #alerts Discord channel\n3. Include execution ID for debugging\n\n**API Failures:**\nAll HTTP requests use `neverError: true` to continue with partial data\n\n**Retry Logic:**\nJira ticket creation has `continueOnFail: true`",
+        "width": 320,
+        "height": 240
+      }
+    }
+  ],
+  "connections": {
+    "Schedule: Daily 6 AM ET": {
+      "main": [
+        [
+          {
+            "node": "Set: Initialize Scan Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: Initialize Scan Context": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Fetch Repository Tree",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP: Fetch Recent Commits",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP: Fetch Open INFRA Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch Repository Tree": {
+      "main": [
+        [
+          {
+            "node": "Merge: Initial Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch Recent Commits": {
+      "main": [
+        [
+          {
+            "node": "Merge: Initial Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch Open INFRA Issues": {
+      "main": [
+        [
+          {
+            "node": "Merge: Initial Data",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge: Initial Data": {
+      "main": [
+        [
+          {
+            "node": "Code: Parse Repository Tree",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Parse Repository Tree": {
+      "main": [
+        [
+          {
+            "node": "SplitInBatches: Process Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SplitInBatches: Process Files": {
+      "main": [
+        [
+          {
+            "node": "Code: Prepare File Fetch URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare File Fetch URLs": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Fetch File Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch File Content": {
+      "main": [
+        [
+          {
+            "node": "Code: Analyze File for Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Analyze File for Issues": {
+      "main": [
+        [
+          {
+            "node": "Wait: Rate Limit Pause",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait: Rate Limit Pause": {
+      "main": [
+        [
+          {
+            "node": "If: More Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: More Batches": {
+      "main": [
+        [
+          {
+            "node": "SplitInBatches: Process Files",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge: Aggregate All Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge: Aggregate All Issues": {
+      "main": [
+        [
+          {
+            "node": "Code: Aggregate Scan Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Aggregate Scan Results": {
+      "main": [
+        [
+          {
+            "node": "Code: Build Claude Analysis Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Build Claude Analysis Prompt": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Call Claude API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Call Claude API": {
+      "main": [
+        [
+          {
+            "node": "Code: Parse Claude Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Parse Claude Response": {
+      "main": [
+        [
+          {
+            "node": "If: Has Jira Tickets to Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Has Jira Tickets to Create": {
+      "main": [
+        [
+          {
+            "node": "Code: Prepare Jira Tickets",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NoOp: No Tickets Needed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Jira Tickets": {
+      "main": [
+        [
+          {
+            "node": "Jira: Create INFRA Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jira: Create INFRA Ticket": {
+      "main": [
+        [
+          {
+            "node": "Merge: Ticket Creation Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NoOp: No Tickets Needed": {
+      "main": [
+        [
+          {
+            "node": "Merge: Ticket Creation Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge: Ticket Creation Results": {
+      "main": [
+        [
+          {
+            "node": "Code: Build Discord Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Build Discord Summary": {
+      "main": [
+        [
+          {
+            "node": "Discord: Post Scan Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord: Post Scan Summary": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Store Scan Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code: Format Error Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Format Error Details": {
+      "main": [
+        [
+          {
+            "node": "Discord: Post Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York",
+    "errorWorkflow": "error-handler-workflow-id"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "infrastructure"
+    },
+    {
+      "name": "tech-debt"
+    },
+    {
+      "name": "scheduled"
+    },
+    {
+      "name": "self-improvement"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-20T06:00:00.000Z",
+  "versionId": "1"
+}

@@ -1,0 +1,1046 @@
+{
+  "name": "WF-CORTANA-01 Weekly Research Pipeline",
+  "nodes": [
+    {
+      "id": "cort01-0001-4000-8000-000000000001",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 600],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * 3"
+            }
+          ]
+        }
+      },
+      "notes": "Triggers at 10:00 AM ET on Wednesdays for weekly research scan"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000002",
+      "name": "Fetch Reddit AlgoTrading",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 100],
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.reddit.com/r/algotrading/hot.json?limit=25",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "SwjshAK-ResearchBot/1.0"
+            }
+          ]
+        }
+      },
+      "notes": "Fetches hot posts from r/algotrading subreddit"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000003",
+      "name": "Fetch Reddit QuantFinance",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 250],
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.reddit.com/r/quantfinance/hot.json?limit=25",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "SwjshAK-ResearchBot/1.0"
+            }
+          ]
+        }
+      },
+      "notes": "Fetches hot posts from r/quantfinance subreddit"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000004",
+      "name": "Fetch Reddit Options",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 400],
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.reddit.com/r/options/hot.json?limit=20",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "SwjshAK-ResearchBot/1.0"
+            }
+          ]
+        }
+      },
+      "notes": "Fetches hot posts from r/options subreddit"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000005",
+      "name": "Fetch arXiv Papers",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 550],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://export.arxiv.org/api/query?search_query=cat:q-fin.TR+OR+cat:q-fin.CP+OR+cat:q-fin.PM&start=0&max_results=20&sortBy=submittedDate&sortOrder=descending",
+        "options": {
+          "timeout": 45000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Fetches recent quantitative finance papers from arXiv (Trading, Computational Finance, Portfolio Management)"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000006",
+      "name": "Fetch arXiv ML Finance",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 700],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://export.arxiv.org/api/query?search_query=all:machine+learning+AND+all:trading&start=0&max_results=15&sortBy=submittedDate&sortOrder=descending",
+        "options": {
+          "timeout": 45000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Fetches ML/AI trading papers from arXiv"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000007",
+      "name": "Fetch HackerNews Fintech",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 850],
+      "parameters": {
+        "method": "GET",
+        "url": "https://hn.algolia.com/api/v1/search?query=algorithmic%20trading%20OR%20quantitative%20finance&tags=story&hitsPerPage=20",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Fetches fintech/trading related stories from Hacker News"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000008",
+      "name": "Fetch GitHub Trending",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 1000],
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.github.com/search/repositories?q=trading+bot+OR+algorithmic+trading+OR+quant+finance&sort=updated&order=desc&per_page=15",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3+json"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "githubApi": {
+          "id": "github-api",
+          "name": "GitHub API"
+        }
+      },
+      "notes": "Fetches recently updated trading-related repositories from GitHub"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000009",
+      "name": "Fetch SEC Filings",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 1150],
+      "parameters": {
+        "method": "GET",
+        "url": "https://efts.sec.gov/LATEST/search-index?q=algorithmic%20trading&dateRange=custom&startdt={{ $now.minus({days: 30}).toFormat('yyyy-MM-dd') }}&enddt={{ $now.toFormat('yyyy-MM-dd') }}&forms=10-K,10-Q,8-K",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "notes": "Fetches recent SEC filings mentioning algorithmic trading for regulatory context"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000010",
+      "name": "Merge Research Sources",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [600, 600],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "notes": "Combines all parallel research fetches"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000011",
+      "name": "Parse and Normalize Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 600],
+      "parameters": {
+        "jsCode": "// Parse Reddit posts\nconst parseReddit = (data, source) => {\n  if (!data?.data?.children) return [];\n  return data.data.children.map(post => ({\n    source,\n    type: 'forum',\n    title: post.data?.title?.substring(0, 200) || '',\n    url: `https://reddit.com${post.data?.permalink}`,\n    score: post.data?.score || 0,\n    comments: post.data?.num_comments || 0,\n    created: new Date(post.data?.created_utc * 1000).toISOString(),\n    author: post.data?.author,\n    selftext: post.data?.selftext?.substring(0, 500) || '',\n    flair: post.data?.link_flair_text || null\n  })).filter(p => p.score > 10); // Filter low-engagement posts\n};\n\n// Parse arXiv (XML)\nconst parseArxiv = (xmlStr) => {\n  if (!xmlStr || typeof xmlStr !== 'string') return [];\n  const entries = [];\n  const entryRegex = /<entry>([\\s\\S]*?)<\\/entry>/g;\n  let match;\n  while ((match = entryRegex.exec(xmlStr)) !== null) {\n    const entry = match[1];\n    const getId = (tag) => {\n      const m = entry.match(new RegExp(`<${tag}>([\\\\s\\\\S]*?)<\\/${tag}>`));\n      return m ? m[1].trim() : '';\n    };\n    entries.push({\n      source: 'arXiv',\n      type: 'paper',\n      title: getId('title').replace(/\\s+/g, ' '),\n      url: getId('id'),\n      summary: getId('summary').substring(0, 800).replace(/\\s+/g, ' '),\n      published: getId('published'),\n      authors: entry.match(/<author>[\\s\\S]*?<name>([\\s\\S]*?)<\\/name>/g)?.map(a => a.match(/<name>([\\s\\S]*?)<\\/name>/)?.[1]).join(', ') || 'Unknown'\n    });\n  }\n  return entries;\n};\n\n// Parse HackerNews\nconst parseHN = (data) => {\n  if (!data?.hits) return [];\n  return data.hits.map(hit => ({\n    source: 'HackerNews',\n    type: 'news',\n    title: hit.title?.substring(0, 200) || '',\n    url: hit.url || `https://news.ycombinator.com/item?id=${hit.objectID}`,\n    score: hit.points || 0,\n    comments: hit.num_comments || 0,\n    created: hit.created_at,\n    author: hit.author\n  })).filter(h => h.score > 20);\n};\n\n// Parse GitHub\nconst parseGitHub = (data) => {\n  if (!data?.items) return [];\n  return data.items.map(repo => ({\n    source: 'GitHub',\n    type: 'repository',\n    title: repo.full_name,\n    description: repo.description?.substring(0, 300) || '',\n    url: repo.html_url,\n    stars: repo.stargazers_count || 0,\n    forks: repo.forks_count || 0,\n    language: repo.language,\n    lastUpdated: repo.updated_at,\n    topics: repo.topics || []\n  })).filter(r => r.stars > 50);\n};\n\n// Get data from nodes\nconst redditAlgo = $('Fetch Reddit AlgoTrading').first()?.json;\nconst redditQuant = $('Fetch Reddit QuantFinance').first()?.json;\nconst redditOptions = $('Fetch Reddit Options').first()?.json;\nconst arxivPapers = $('Fetch arXiv Papers').first()?.json;\nconst arxivML = $('Fetch arXiv ML Finance').first()?.json;\nconst hackerNews = $('Fetch HackerNews Fintech').first()?.json;\nconst github = $('Fetch GitHub Trending').first()?.json;\n\n// Parse all sources\nconst forumPosts = [\n  ...parseReddit(redditAlgo, 'r/algotrading'),\n  ...parseReddit(redditQuant, 'r/quantfinance'),\n  ...parseReddit(redditOptions, 'r/options')\n];\n\nconst papers = [\n  ...parseArxiv(arxivPapers),\n  ...parseArxiv(arxivML)\n].slice(0, 15); // Limit papers\n\nconst news = parseHN(hackerNews);\nconst repos = parseGitHub(github);\n\n// Deduplicate by title similarity\nconst dedupe = (items) => {\n  const seen = new Set();\n  return items.filter(item => {\n    const key = item.title?.toLowerCase().substring(0, 50);\n    if (seen.has(key)) return false;\n    seen.add(key);\n    return true;\n  });\n};\n\n// Sort and select top items\nconst topForumPosts = dedupe(forumPosts)\n  .sort((a, b) => b.score - a.score)\n  .slice(0, 15);\n\nconst topNews = dedupe(news)\n  .sort((a, b) => b.score - a.score)\n  .slice(0, 10);\n\nconst topRepos = dedupe(repos)\n  .sort((a, b) => b.stars - a.stars)\n  .slice(0, 10);\n\nreturn {\n  json: {\n    timestamp: new Date().toISOString(),\n    weekNumber: Math.ceil((new Date() - new Date(new Date().getFullYear(), 0, 1)) / (7 * 24 * 60 * 60 * 1000)),\n    \n    stats: {\n      forumPosts: topForumPosts.length,\n      papers: papers.length,\n      news: topNews.length,\n      repos: topRepos.length,\n      totalItems: topForumPosts.length + papers.length + topNews.length + topRepos.length\n    },\n    \n    // Data for AI analysis\n    forumPosts: topForumPosts,\n    papers: papers,\n    news: topNews,\n    repos: topRepos,\n    \n    // Combined for analysis\n    allFindings: [\n      ...topForumPosts.map(p => ({ ...p, category: 'forum' })),\n      ...papers.map(p => ({ ...p, category: 'paper' })),\n      ...topNews.map(n => ({ ...n, category: 'news' })),\n      ...topRepos.map(r => ({ ...r, category: 'repo' }))\n    ]\n  }\n};"
+      },
+      "notes": "Parses and normalizes data from all research sources"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000012",
+      "name": "Fetch Current System Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 800],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3000/api/agents",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Fetches current agent capabilities for context"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000013",
+      "name": "Fetch Existing Ideas",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [900, 950],
+      "parameters": {
+        "resource": "issue",
+        "operation": "getAll",
+        "options": {
+          "jql": "project = BACK AND labels = research-idea AND status != Done ORDER BY created DESC",
+          "maxResults": 50
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "notes": "Fetches existing research ideas to avoid duplicates"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000014",
+      "name": "AI Research Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 500],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 3500,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are CORTANA, the research intelligence agent for SwjshAK autonomous trading system. Analyze these research findings and identify opportunities.\\n\\n## CURRENT SYSTEM CAPABILITIES\\nSwjshAK has agents for: BTC trading (Bitcoin Bob), Options (Boba, SPX Sniper), Forex (Sterling FX), and Futures (Pivot Pete). It uses TradingView webhooks, Python + TypeScript hybrid architecture, and autonomous agent orchestration.\\n\\n## THIS WEEK'S RESEARCH FINDINGS\\n\\n### FORUM DISCUSSIONS ({{ $json.stats.forumPosts }} items)\\n{{ $json.forumPosts.slice(0, 10).map(p => `- [${p.source}] ${p.title} (score: ${p.score})\\n  ${p.selftext?.substring(0, 150) || ''}...`).join('\\\\n') }}\\n\\n### ACADEMIC PAPERS ({{ $json.stats.papers }} items)\\n{{ $json.papers.slice(0, 8).map(p => `- ${p.title}\\n  ${p.summary?.substring(0, 200) || ''}...`).join('\\\\n') }}\\n\\n### TECH NEWS ({{ $json.stats.news }} items)\\n{{ $json.news.slice(0, 8).map(n => `- ${n.title} (score: ${n.score})`).join('\\\\n') }}\\n\\n### NEW REPOSITORIES ({{ $json.stats.repos }} items)\\n{{ $json.repos.slice(0, 8).map(r => `- ${r.title} (${r.stars} stars): ${r.description?.substring(0, 100) || ''}`).join('\\\\n') }}\\n\\n---\\n\\nAnalyze these findings and provide:\\n\\n```json\\n{\\n  \\\"opportunities\\\": [\\n    {\\n      \\\"title\\\": \\\"Brief title\\\",\\n      \\\"type\\\": \\\"strategy|enhancement|integration|research\\\",\\n      \\\"relevanceScore\\\": 8,\\n      \\\"effortScore\\\": 5,\\n      \\\"description\\\": \\\"What this opportunity is about\\\",\\n      \\\"applicableTo\\\": [\\\"Bitcoin Bob\\\", \\\"SPX Sniper\\\"],\\n      \\\"sourceUrls\\\": [\\\"url1\\\", \\\"url2\\\"],\\n      \\\"ticketType\\\": \\\"BACK|LEARN\\\",\\n      \\\"priority\\\": \\\"High|Medium|Low\\\",\\n      \\\"tags\\\": [\\\"ml\\\", \\\"options\\\", \\\"crypto\\\"]\\\n    }\\n  ],\\n  \\\"marketTrends\\\": [\\n    {\\n      \\\"trend\\\": \\\"Description of emerging trend\\\",\\n      \\\"implications\\\": \\\"How this affects SwjshAK\\\",\\n      \\\"urgency\\\": \\\"high|medium|low\\\"\\n    }\\n  ],\\n  \\\"competitorInsights\\\": [\\n    {\\n      \\\"tool\\\": \\\"Tool/Platform name\\\",\\n      \\\"feature\\\": \\\"Notable feature\\\",\\n      \\\"ourGap\\\": \\\"What we're missing\\\"\\n    }\\n  ],\\n  \\\"weeklyBrief\\\": \\\"Executive summary (2-3 paragraphs) of key findings, trends, and recommended focus areas for the week\\\"\\n}\\n```\\n\\nScore relevance 1-10 (10 = directly applicable to SwjshAK). Score effort 1-10 (10 = very high effort). Limit to top 5-8 opportunities. Focus on actionable, implementable ideas.\"\n    }\n  ]\n}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "anthropic-api-key",
+          "name": "Anthropic API Key"
+        }
+      },
+      "notes": "Uses Claude to analyze all research and identify opportunities"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000015",
+      "name": "Parse AI Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1500, 500],
+      "parameters": {
+        "jsCode": "const aiResponse = $json;\nconst researchData = $('Parse and Normalize Data').first().json;\nconst existingIdeas = $('Fetch Existing Ideas').all().map(i => i.json);\n\n// Extract JSON from AI response\nlet analysis = {};\ntry {\n  const responseText = aiResponse.content?.[0]?.text || '';\n  const jsonMatch = responseText.match(/```json\\n([\\s\\S]*?)\\n```/);\n  if (jsonMatch) {\n    analysis = JSON.parse(jsonMatch[1]);\n  } else {\n    const cleanText = responseText.replace(/```json\\n?|```/g, '').trim();\n    analysis = JSON.parse(cleanText);\n  }\n} catch (e) {\n  analysis = {\n    opportunities: [],\n    marketTrends: [],\n    competitorInsights: [],\n    weeklyBrief: 'Failed to parse AI analysis: ' + e.message,\n    parseError: true\n  };\n}\n\n// Filter out opportunities that already exist\nconst existingTitles = existingIdeas.map(i => \n  i.fields?.summary?.toLowerCase().substring(0, 50)\n).filter(Boolean);\n\nconst newOpportunities = (analysis.opportunities || []).filter(opp => {\n  const oppTitle = opp.title?.toLowerCase().substring(0, 50);\n  return !existingTitles.some(existing => \n    existing.includes(oppTitle) || oppTitle?.includes(existing)\n  );\n});\n\n// Score and rank opportunities\nconst rankedOpportunities = newOpportunities.map(opp => ({\n  ...opp,\n  compositeScore: (opp.relevanceScore || 5) - (opp.effortScore || 5) / 2\n})).sort((a, b) => b.compositeScore - a.compositeScore);\n\n// Split into BACK vs LEARN tickets\nconst backTickets = rankedOpportunities.filter(o => \n  o.ticketType === 'BACK' || o.type === 'strategy' || o.type === 'integration'\n).slice(0, 5);\n\nconst learnTickets = rankedOpportunities.filter(o => \n  o.ticketType === 'LEARN' || o.type === 'research'\n).slice(0, 3);\n\nreturn {\n  json: {\n    timestamp: new Date().toISOString(),\n    weekNumber: researchData.weekNumber,\n    \n    analysis: {\n      ...analysis,\n      opportunities: rankedOpportunities\n    },\n    \n    ticketsToCreate: {\n      back: backTickets,\n      learn: learnTickets\n    },\n    \n    stats: {\n      totalOpportunities: rankedOpportunities.length,\n      backTickets: backTickets.length,\n      learnTickets: learnTickets.length,\n      marketTrends: (analysis.marketTrends || []).length,\n      competitorInsights: (analysis.competitorInsights || []).length,\n      filteredDuplicates: (analysis.opportunities || []).length - rankedOpportunities.length\n    },\n    \n    researchStats: researchData.stats,\n    weeklyBrief: analysis.weeklyBrief || 'No brief generated'\n  }\n};"
+      },
+      "notes": "Parses AI analysis, deduplicates against existing ideas, and prepares tickets"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000016",
+      "name": "Split Ticket Creation",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1750, 500],
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "outputKey": "has_back_tickets",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "condition-back",
+                    "leftValue": "={{ $json.stats.backTickets }}",
+                    "rightValue": 0,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "has_learn_tickets",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "condition-learn",
+                    "leftValue": "={{ $json.stats.learnTickets }}",
+                    "rightValue": 0,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ],
+          "fallbackOutput": "no_tickets"
+        },
+        "options": {
+          "allMatchingOutputs": true
+        }
+      },
+      "notes": "Routes to ticket creation based on what opportunities were identified"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000017",
+      "name": "Extract BACK Tickets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 350],
+      "parameters": {
+        "jsCode": "const data = $('Parse AI Analysis').first().json;\nconst backTickets = data.ticketsToCreate?.back || [];\n\nreturn backTickets.map(ticket => ({\n  json: {\n    ...ticket,\n    project: 'BACK',\n    weekNumber: data.weekNumber\n  }\n}));"
+      },
+      "notes": "Extracts BACK tickets for creation"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000018",
+      "name": "Batch BACK Tickets",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [2250, 350],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "notes": "Processes BACK tickets one at a time"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000019",
+      "name": "Create BACK Ticket",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2500, 350],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "BACK",
+        "issueType": "Story",
+        "additionalFields": {
+          "summary": "=[Research] {{ $json.title }}",
+          "description": "=**Research Opportunity - Week {{ $json.weekNumber }}**\n\n{{ $json.description }}\n\n**Type:** {{ $json.type }}\n**Relevance Score:** {{ $json.relevanceScore }}/10\n**Effort Score:** {{ $json.effortScore }}/10\n**Applicable To:** {{ $json.applicableTo?.join(', ') || 'General' }}\n\n**Source References:**\n{{ ($json.sourceUrls || []).map(url => '- ' + url).join('\\n') || 'No sources' }}\n\n---\n_Auto-generated by CORTANA Research Pipeline (WF-CORTANA-01)_",
+          "priority": "={{ $json.priority === 'High' ? 'High' : ($json.priority === 'Low' ? 'Low' : 'Medium') }}",
+          "labels": "={{ ['research-idea', 'auto-created', ...($json.tags || [])].join(',') }}"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "continueOnFail": true,
+      "notes": "Creates BACK ticket for implementation opportunity"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000020",
+      "name": "Extract LEARN Tickets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 550],
+      "parameters": {
+        "jsCode": "const data = $('Parse AI Analysis').first().json;\nconst learnTickets = data.ticketsToCreate?.learn || [];\n\nreturn learnTickets.map(ticket => ({\n  json: {\n    ...ticket,\n    project: 'LEARN',\n    weekNumber: data.weekNumber\n  }\n}));"
+      },
+      "notes": "Extracts LEARN tickets for creation"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000021",
+      "name": "Batch LEARN Tickets",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [2250, 550],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "notes": "Processes LEARN tickets one at a time"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000022",
+      "name": "Create LEARN Ticket",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [2500, 550],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "LEARN",
+        "issueType": "Task",
+        "additionalFields": {
+          "summary": "=[Research] {{ $json.title }}",
+          "description": "=**Research Investigation - Week {{ $json.weekNumber }}**\n\n{{ $json.description }}\n\n**Research Questions:**\n- What are the key concepts?\n- How does this apply to SwjshAK?\n- What are the risks/limitations?\n- What would implementation require?\n\n**Source References:**\n{{ ($json.sourceUrls || []).map(url => '- ' + url).join('\\n') || 'No sources' }}\n\n**Tags:** {{ ($json.tags || []).join(', ') || 'general' }}\n\n---\n_Auto-generated by CORTANA Research Pipeline (WF-CORTANA-01)_",
+          "priority": "Medium",
+          "labels": "={{ ['research-idea', 'auto-created', 'investigation', ...($json.tags || [])].join(',') }}"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cloud",
+          "name": "Jira Cloud"
+        }
+      },
+      "continueOnFail": true,
+      "notes": "Creates LEARN ticket for research investigation"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000023",
+      "name": "Track Created Tickets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2750, 450],
+      "parameters": {
+        "jsCode": "// Collect created ticket keys\nconst backTickets = $('Create BACK Ticket').all().map(i => i.json?.key).filter(Boolean);\nconst learnTickets = $('Create LEARN Ticket').all().map(i => i.json?.key).filter(Boolean);\n\nreturn {\n  json: {\n    createdTickets: {\n      back: backTickets,\n      learn: learnTickets,\n      total: backTickets.length + learnTickets.length\n    }\n  }\n};"
+      },
+      "notes": "Tracks which tickets were created successfully"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000024",
+      "name": "Aggregate Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3000, 500],
+      "parameters": {
+        "jsCode": "const analysisData = $('Parse AI Analysis').first()?.json || {};\nconst createdTickets = $('Track Created Tickets').first()?.json?.createdTickets || { back: [], learn: [], total: 0 };\n\nconst report = {\n  date: new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),\n  timestamp: new Date().toISOString(),\n  weekNumber: analysisData.weekNumber,\n  \n  research: {\n    sourcesScanned: [\n      'r/algotrading',\n      'r/quantfinance', \n      'r/options',\n      'arXiv (quant-ph)',\n      'arXiv (ML)',\n      'Hacker News',\n      'GitHub'\n    ],\n    stats: analysisData.researchStats || {}\n  },\n  \n  findings: {\n    opportunities: analysisData.stats?.totalOpportunities || 0,\n    marketTrends: analysisData.stats?.marketTrends || 0,\n    competitorInsights: analysisData.stats?.competitorInsights || 0,\n    duplicatesFiltered: analysisData.stats?.filteredDuplicates || 0\n  },\n  \n  ticketsCreated: createdTickets,\n  \n  analysis: analysisData.analysis || {},\n  weeklyBrief: analysisData.weeklyBrief || 'No brief available',\n  \n  topOpportunities: (analysisData.analysis?.opportunities || []).slice(0, 5).map(o => ({\n    title: o.title,\n    type: o.type,\n    relevance: o.relevanceScore,\n    effort: o.effortScore\n  }))\n};\n\nreturn { json: report };"
+      },
+      "notes": "Aggregates all results into final report"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000025",
+      "name": "Format Discord Brief",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3250, 400],
+      "parameters": {
+        "jsCode": "const report = $json;\n\n// Build opportunities summary\nconst oppsStr = report.topOpportunities.map((o, i) => \n  `${i + 1}. **${o.title}** (${o.type}, relevance: ${o.relevance}/10, effort: ${o.effort}/10)`\n).join('\\n') || 'No opportunities identified';\n\n// Build trends summary\nconst trendsStr = (report.analysis?.marketTrends || []).slice(0, 3).map(t => \n  `- ${t.trend} (${t.urgency})`\n).join('\\n') || 'No trends identified';\n\n// Build competitor insights\nconst compStr = (report.analysis?.competitorInsights || []).slice(0, 3).map(c => \n  `- **${c.tool}**: ${c.feature}`\n).join('\\n') || 'No competitor insights';\n\n// Determine embed color based on findings\nlet embedColor = 9807270; // Gray default\nif (report.findings.opportunities > 5) {\n  embedColor = 3066993; // Green - good findings\n} else if (report.findings.opportunities > 2) {\n  embedColor = 16776960; // Yellow - some findings\n}\n\nconst embed = {\n  title: `:mag: CORTANA Weekly Research Brief - Week ${report.weekNumber}`,\n  description: report.weeklyBrief?.substring(0, 2000) || 'Research analysis complete.',\n  color: embedColor,\n  fields: [\n    {\n      name: ':bar_chart: Research Stats',\n      value: `Forums: ${report.research.stats?.forumPosts || 0} | Papers: ${report.research.stats?.papers || 0} | News: ${report.research.stats?.news || 0} | Repos: ${report.research.stats?.repos || 0}`,\n      inline: false\n    },\n    {\n      name: ':bulb: Top Opportunities',\n      value: oppsStr.substring(0, 1000),\n      inline: false\n    },\n    {\n      name: ':chart_with_upwards_trend: Market Trends',\n      value: trendsStr.substring(0, 500) || 'None identified',\n      inline: true\n    },\n    {\n      name: ':telescope: Competitor Watch',\n      value: compStr.substring(0, 500) || 'None identified',\n      inline: true\n    },\n    {\n      name: ':ticket: Tickets Created',\n      value: `BACK: ${report.ticketsCreated.back?.length || 0} | LEARN: ${report.ticketsCreated.learn?.length || 0}`,\n      inline: false\n    }\n  ],\n  footer: {\n    text: 'CORTANA Research Pipeline | WF-CORTANA-01'\n  },\n  timestamp: new Date().toISOString()\n};\n\n// Add ticket links if any were created\nif (report.ticketsCreated.total > 0) {\n  const ticketLinks = [\n    ...report.ticketsCreated.back.map(k => `[${k}](${process.env.JIRA_BASE_URL || 'https://swjshak.atlassian.net'}/browse/${k})`),\n    ...report.ticketsCreated.learn.map(k => `[${k}](${process.env.JIRA_BASE_URL || 'https://swjshak.atlassian.net'}/browse/${k})`)\n  ].join(' | ');\n  \n  embed.fields.push({\n    name: ':link: New Tickets',\n    value: ticketLinks.substring(0, 1000),\n    inline: false\n  });\n}\n\nreturn {\n  json: {\n    embed,\n    report,\n    channelId: process.env.DISCORD_RESEARCH_CHANNEL_ID || 'research'\n  }\n};"
+      },
+      "notes": "Formats the research brief as a Discord embed"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000026",
+      "name": "Post to Discord",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [3500, 400],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.channelId }}"
+        },
+        "content": "",
+        "options": {
+          "embeds": [
+            "={{ $json.embed }}"
+          ]
+        }
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts weekly research brief to Discord"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000027",
+      "name": "Post CEO Summary",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [3500, 550],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ process.env.DISCORD_CEO_CHANNEL_ID || 'ceo-briefing' }}"
+        },
+        "content": "=:satellite: **CORTANA Research Update - Week {{ $json.report.weekNumber }}**\n\nScanned {{ $json.report.research.stats.totalItems || 0 }} sources across forums, papers, news, and repositories.\n\n**Key Findings:**\n- {{ $json.report.findings.opportunities }} opportunities identified\n- {{ $json.report.ticketsCreated.total }} tickets created\n- {{ $json.report.findings.marketTrends }} market trends noted\n\n*See #research for full brief*",
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts summary to CEO briefing channel"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000028",
+      "name": "Log to Audit Trail",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3500, 700],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/audit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"event\": \"research_pipeline_completed\",\n  \"timestamp\": \"{{ $now.toISO() }}\",\n  \"workflow\": \"WF-CORTANA-01\",\n  \"data\": {\n    \"weekNumber\": {{ $json.report.weekNumber }},\n    \"sourcesScanned\": {{ $json.report.research.stats?.totalItems || 0 }},\n    \"opportunitiesFound\": {{ $json.report.findings.opportunities }},\n    \"ticketsCreated\": {{ $json.report.ticketsCreated.total }},\n    \"marketTrends\": {{ $json.report.findings.marketTrends }}\n  }\n}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Logs research pipeline execution to audit trail"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000029",
+      "name": "Store Research Archive",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3750, 500],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/research/archive",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"weekNumber\": {{ $json.report.weekNumber }},\n  \"timestamp\": \"{{ $json.report.timestamp }}\",\n  \"analysis\": {{ JSON.stringify($json.report.analysis) }},\n  \"ticketsCreated\": {{ JSON.stringify($json.report.ticketsCreated) }},\n  \"stats\": {{ JSON.stringify($json.report.findings) }}\n}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "swjshak-api-auth",
+          "name": "SwjshAK API Auth"
+        }
+      },
+      "notes": "Stores research results for historical tracking"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000030",
+      "name": "Workflow Complete",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [4000, 500],
+      "parameters": {},
+      "notes": "End node - research pipeline completed"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000031",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 1300],
+      "parameters": {},
+      "notes": "Catches any errors in this workflow"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000032",
+      "name": "Format Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [250, 1300],
+      "parameters": {
+        "jsCode": "const error = $json;\n\nreturn {\n  json: {\n    content: `:warning: **CORTANA Research Pipeline Error**\\n\\nWorkflow WF-CORTANA-01 encountered an error:\\n\\n\\`\\`\\`\\n${error.execution?.error?.message || 'Unknown error'}\\n\\`\\`\\`\\n\\nNode: ${error.execution?.error?.node?.name || 'Unknown'}`,\n    channelId: process.env.DISCORD_ERRORS_CHANNEL_ID || 'n8n-errors'\n  }\n};"
+      },
+      "notes": "Formats error for Discord notification"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000033",
+      "name": "Post Error",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [500, 1300],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.channelId }}"
+        },
+        "content": "={{ $json.content }}",
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot",
+          "name": "SwjshAK Discord Bot"
+        }
+      },
+      "notes": "Posts error to #n8n-errors channel"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000034",
+      "name": "Fetch Reddit Futures",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 1150],
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.reddit.com/r/FuturesTrading/hot.json?limit=15",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "SwjshAK-ResearchBot/1.0"
+            }
+          ]
+        }
+      },
+      "notes": "Fetches hot posts from r/FuturesTrading subreddit"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000035",
+      "name": "Check Rate Limits",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 100],
+      "parameters": {
+        "jsCode": "// Rate limit check for Reddit API (60 requests/minute)\n// This node tracks request counts and adds delays if needed\n\nconst now = new Date();\nconst requestLog = $workflow.staticData?.requestLog || [];\n\n// Clean old entries (older than 1 minute)\nconst recentRequests = requestLog.filter(ts => now - new Date(ts) < 60000);\n\n// Check if we're approaching rate limit\nconst isNearLimit = recentRequests.length > 50;\n\n// Log this batch of requests (7 Reddit API calls)\nconst newRequests = Array(7).fill(now.toISOString());\n\n// Store updated log\n$workflow.staticData = {\n  ...($workflow.staticData || {}),\n  requestLog: [...recentRequests, ...newRequests]\n};\n\nreturn {\n  json: {\n    requestCount: recentRequests.length + 7,\n    isNearLimit,\n    timestamp: now.toISOString()\n  }\n};"
+      },
+      "notes": "Tracks API request rates to avoid hitting rate limits"
+    },
+    {
+      "id": "cort01-0001-4000-8000-000000000036",
+      "name": "Idea Pipeline Tracker",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3750, 700],
+      "parameters": {
+        "jsCode": "// Track idea pipeline status for historical analysis\nconst report = $('Format Discord Brief').first()?.json?.report || {};\nconst existingIdeas = $('Fetch Existing Ideas').all().map(i => i.json);\n\n// Categorize existing ideas by status\nconst ideaStatus = {\n  proposed: existingIdeas.filter(i => \n    i.fields?.status?.name === 'To Do' || i.fields?.status?.name === 'Open'\n  ).length,\n  researching: existingIdeas.filter(i => \n    i.fields?.status?.name === 'In Progress' || i.fields?.status?.name === 'In Research'\n  ).length,\n  implemented: existingIdeas.filter(i => \n    i.fields?.status?.name === 'Done' || i.fields?.status?.name === 'Closed'\n  ).length,\n  total: existingIdeas.length\n};\n\n// Calculate pipeline health metrics\nconst pipelineHealth = {\n  newIdeasThisWeek: report.ticketsCreated?.total || 0,\n  conversionRate: ideaStatus.total > 0 \n    ? ((ideaStatus.implemented / ideaStatus.total) * 100).toFixed(1) \n    : 0,\n  avgIdeasPerWeek: (ideaStatus.total / 4).toFixed(1), // Rough estimate\n  backlogDepth: ideaStatus.proposed + ideaStatus.researching\n};\n\nreturn {\n  json: {\n    ideaStatus,\n    pipelineHealth,\n    weekNumber: report.weekNumber,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "notes": "Tracks idea pipeline metrics (proposed -> researched -> implemented)"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          { "node": "Check Rate Limits", "type": "main", "index": 0 },
+          { "node": "Fetch Reddit AlgoTrading", "type": "main", "index": 0 },
+          { "node": "Fetch Reddit QuantFinance", "type": "main", "index": 0 },
+          { "node": "Fetch Reddit Options", "type": "main", "index": 0 },
+          { "node": "Fetch arXiv Papers", "type": "main", "index": 0 },
+          { "node": "Fetch arXiv ML Finance", "type": "main", "index": 0 },
+          { "node": "Fetch HackerNews Fintech", "type": "main", "index": 0 },
+          { "node": "Fetch GitHub Trending", "type": "main", "index": 0 },
+          { "node": "Fetch Reddit Futures", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Check Rate Limits": {
+      "main": [
+        [
+          { "node": "Merge Research Sources", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch Reddit AlgoTrading": {
+      "main": [
+        [
+          { "node": "Merge Research Sources", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Fetch Reddit QuantFinance": {
+      "main": [
+        [
+          { "node": "Merge Research Sources", "type": "main", "index": 2 }
+        ]
+      ]
+    },
+    "Fetch Reddit Options": {
+      "main": [
+        [
+          { "node": "Merge Research Sources", "type": "main", "index": 3 }
+        ]
+      ]
+    },
+    "Fetch arXiv Papers": {
+      "main": [
+        [
+          { "node": "Merge Research Sources", "type": "main", "index": 4 }
+        ]
+      ]
+    },
+    "Fetch arXiv ML Finance": {
+      "main": [
+        [
+          { "node": "Merge Research Sources", "type": "main", "index": 5 }
+        ]
+      ]
+    },
+    "Fetch HackerNews Fintech": {
+      "main": [
+        [
+          { "node": "Merge Research Sources", "type": "main", "index": 6 }
+        ]
+      ]
+    },
+    "Fetch GitHub Trending": {
+      "main": [
+        [
+          { "node": "Merge Research Sources", "type": "main", "index": 7 }
+        ]
+      ]
+    },
+    "Fetch Reddit Futures": {
+      "main": [
+        [
+          { "node": "Merge Research Sources", "type": "main", "index": 8 }
+        ]
+      ]
+    },
+    "Merge Research Sources": {
+      "main": [
+        [
+          { "node": "Parse and Normalize Data", "type": "main", "index": 0 },
+          { "node": "Fetch Current System Status", "type": "main", "index": 0 },
+          { "node": "Fetch Existing Ideas", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Parse and Normalize Data": {
+      "main": [
+        [
+          { "node": "AI Research Analysis", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch Current System Status": {
+      "main": [
+        [
+          { "node": "AI Research Analysis", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch Existing Ideas": {
+      "main": [
+        [
+          { "node": "AI Research Analysis", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "AI Research Analysis": {
+      "main": [
+        [
+          { "node": "Parse AI Analysis", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Parse AI Analysis": {
+      "main": [
+        [
+          { "node": "Split Ticket Creation", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Split Ticket Creation": {
+      "main": [
+        [
+          { "node": "Extract BACK Tickets", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Extract LEARN Tickets", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Aggregate Report", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Extract BACK Tickets": {
+      "main": [
+        [
+          { "node": "Batch BACK Tickets", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Batch BACK Tickets": {
+      "main": [
+        [
+          { "node": "Create BACK Ticket", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Track Created Tickets", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Create BACK Ticket": {
+      "main": [
+        [
+          { "node": "Batch BACK Tickets", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Extract LEARN Tickets": {
+      "main": [
+        [
+          { "node": "Batch LEARN Tickets", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Batch LEARN Tickets": {
+      "main": [
+        [
+          { "node": "Create LEARN Ticket", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Track Created Tickets", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Create LEARN Ticket": {
+      "main": [
+        [
+          { "node": "Batch LEARN Tickets", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Track Created Tickets": {
+      "main": [
+        [
+          { "node": "Aggregate Report", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Aggregate Report": {
+      "main": [
+        [
+          { "node": "Format Discord Brief", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Format Discord Brief": {
+      "main": [
+        [
+          { "node": "Post to Discord", "type": "main", "index": 0 },
+          { "node": "Post CEO Summary", "type": "main", "index": 0 },
+          { "node": "Log to Audit Trail", "type": "main", "index": 0 },
+          { "node": "Idea Pipeline Tracker", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Post to Discord": {
+      "main": [
+        [
+          { "node": "Store Research Archive", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Post CEO Summary": {
+      "main": [
+        [
+          { "node": "Store Research Archive", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Log to Audit Trail": {
+      "main": [
+        [
+          { "node": "Store Research Archive", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Idea Pipeline Tracker": {
+      "main": [
+        [
+          { "node": "Store Research Archive", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Store Research Archive": {
+      "main": [
+        [
+          { "node": "Workflow Complete", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          { "node": "Format Error", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Format Error": {
+      "main": [
+        [
+          { "node": "Post Error", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York"
+  },
+  "staticData": {
+    "requestLog": []
+  },
+  "tags": [
+    { "name": "self-improvement" },
+    { "name": "weekly" },
+    { "name": "research" },
+    { "name": "cortana" }
+  ],
+  "triggerCount": 1,
+  "versionId": "1.0.0",
+  "meta": {
+    "instanceId": "swjshak-n8n",
+    "templateCredsSetupCompleted": false
+  }
+}

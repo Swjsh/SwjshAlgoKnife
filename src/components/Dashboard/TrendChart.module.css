@@ -1,0 +1,228 @@
+/* TrendChart.module.css */
+
+.widget {
+  background: hsl(var(--surface-glass));
+  border: 1px solid hsl(var(--border-primary));
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.headerIcon {
+  color: hsl(var(--accent-neon));
+}
+
+.title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: hsl(var(--text-primary));
+  margin: 0;
+}
+
+.refreshButton {
+  background: transparent;
+  border: none;
+  color: hsl(var(--text-muted));
+  padding: 0.25rem;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.refreshButton:hover {
+  color: hsl(var(--brand-primary));
+  background: hsl(var(--surface-elevated));
+}
+
+.refreshButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Metric Selector */
+.metricSelector {
+  display: flex;
+  gap: 0.25rem;
+  background: hsl(var(--surface-elevated));
+  padding: 0.25rem;
+  border-radius: 8px;
+}
+
+.metricButton {
+  flex: 1;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: hsl(var(--text-muted));
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.metricButton:hover {
+  color: hsl(var(--text-primary));
+  background: hsl(var(--surface-hover));
+}
+
+.metricButton.active {
+  color: hsl(var(--text-primary));
+  background: hsl(var(--background));
+  box-shadow: 0 1px 3px hsla(0, 0%, 0%, 0.3);
+}
+
+/* Trend Summary */
+.trendSummary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: hsl(var(--surface-elevated));
+  border-radius: 8px;
+}
+
+.trendUp {
+  color: hsl(var(--status-success));
+}
+
+.trendDown {
+  color: hsl(var(--status-error));
+}
+
+.trendNeutral {
+  color: hsl(var(--text-muted));
+}
+
+.trendValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: hsl(var(--text-primary));
+}
+
+.trendLabel {
+  font-size: 0.75rem;
+  color: hsl(var(--text-muted));
+}
+
+/* Chart Container */
+.chartContainer {
+  flex: 1;
+  min-height: 120px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.loading,
+.empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--text-muted));
+  font-size: 0.75rem;
+}
+
+.chart {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  height: 100%;
+}
+
+.barContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  height: 100%;
+}
+
+.barWrapper {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.bar {
+  width: 100%;
+  max-width: 40px;
+  background: linear-gradient(180deg, hsl(var(--brand-primary)), hsla(var(--brand-primary), 0.5));
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  min-height: 4px;
+  transition: height 0.3s ease;
+}
+
+.bar.negative {
+  background: linear-gradient(180deg, hsl(var(--status-error)), hsla(var(--status-error), 0.5));
+}
+
+.barValue {
+  position: absolute;
+  top: -1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: hsl(var(--text-primary));
+  white-space: nowrap;
+}
+
+.barLabel {
+  font-size: 0.625rem;
+  color: hsl(var(--text-muted));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.625rem;
+  color: hsl(var(--text-muted));
+}
+
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}

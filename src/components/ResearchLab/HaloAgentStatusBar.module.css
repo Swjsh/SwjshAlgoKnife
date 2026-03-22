@@ -1,0 +1,194 @@
+/* HaloAgentStatusBar.module.css */
+
+.container {
+  padding: 10px 14px;
+  background: rgba(168, 85, 247, 0.04);
+  border: 1px solid rgba(168, 85, 247, 0.12);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.container.compact {
+  padding: 6px 10px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.container.compact .header {
+  margin-bottom: 6px;
+}
+
+.label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #a855f7;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.count {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+}
+
+.onlineCount {
+  color: #10b981;
+}
+
+.slash {
+  margin: 0 2px;
+  opacity: 0.5;
+}
+
+/* Agent Grid */
+.agentGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Agent Pills */
+.agentPill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  font-size: 0.7rem;
+  color: var(--text-secondary, #94a3b8);
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.agentPill:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.agentPill.online {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.agentPill.busy {
+  border-color: rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.agentPill.stale {
+  border-color: rgba(245, 158, 11, 0.2);
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.agentPill.dead {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.agentPill.offline,
+.agentPill.unknown {
+  opacity: 0.5;
+}
+
+.emoji {
+  font-size: 0.85rem;
+}
+
+.agentName {
+  font-weight: 600;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.container.compact .agentName {
+  display: none;
+}
+
+/* Status Dot */
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted, #64748b);
+  flex-shrink: 0;
+}
+
+.statusDot[data-status="online"] {
+  background: #10b981;
+  box-shadow: 0 0 4px rgba(16, 185, 129, 0.6);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.statusDot[data-status="busy"] {
+  background: #f59e0b;
+  box-shadow: 0 0 4px rgba(245, 158, 11, 0.6);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.statusDot[data-status="stale"] {
+  background: #f59e0b;
+  opacity: 0.7;
+}
+
+.statusDot[data-status="dead"] {
+  background: #ef4444;
+}
+
+.statusDot[data-status="offline"],
+.statusDot[data-status="unknown"] {
+  background: #64748b;
+  opacity: 0.5;
+}
+
+.waitingIcon {
+  font-size: 0.7rem;
+  animation: blink 1s ease-in-out infinite;
+}
+
+/* Loading & Error States */
+.loading,
+.error {
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+  text-align: center;
+  padding: 8px;
+}
+
+.error {
+  color: #ef4444;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .agentGrid {
+    gap: 4px;
+  }
+
+  .agentPill {
+    padding: 3px 6px;
+  }
+
+  .agentName {
+    display: none;
+  }
+}

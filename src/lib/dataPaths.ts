@@ -18,5 +18,10 @@ export const AGENTS_DB_PATH =
     process.env.AGENTS_DB_PATH ??
     path.join(DATA_DIR, 'agents_db.json');
 
+/** Activity feed data (for Activity Dashboard API) */
+export const ACTIVITY_FEED_PATH =
+    process.env.ACTIVITY_FEED_PATH ??
+    path.join(DATA_DIR, 'data', 'activity-feed.json');
+
 /** Python bot status / log files live under DATA_DIR/  */
 export const dataFile = (filename: string) => path.join(DATA_DIR, filename);

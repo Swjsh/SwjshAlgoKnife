@@ -1,0 +1,334 @@
+.container {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+  background: linear-gradient(135deg, hsl(222 47% 12% / 0.6), hsl(222 47% 10% / 0.4));
+  border: 1px solid hsl(220 20% 22% / 0.5);
+  border-radius: 12px;
+  padding: 16px 20px;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+/* Subtle scanline effect */
+.container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    hsl(220 20% 15% / 0.03) 2px,
+    hsl(220 20% 15% / 0.03) 4px
+  );
+  pointer-events: none;
+}
+
+.statsPanel {
+  flex: 0 0 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1;
+  overflow-y: auto;
+}
+
+.sectionLabel {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: hsl(188 95% 43%);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 700;
+  color: hsl(0 0% 95%);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.summaryStats {
+  display: flex;
+  gap: 14px;
+  padding: 10px 0;
+  border-top: 1px solid hsl(220 20% 25% / 0.4);
+  border-bottom: 1px solid hsl(220 20% 25% / 0.4);
+}
+
+.summaryStat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summaryValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: hsl(0 0% 95%);
+  font-family: var(--font-mono);
+}
+
+.summaryLabel {
+  font-size: 9px;
+  color: hsl(220 10% 55%);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.categoryBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.categoryRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: hsl(222 47% 13% / 0.6);
+  border-radius: 6px;
+  border: 1px solid hsl(220 20% 25% / 0.3);
+  color: var(--cat-color);
+}
+
+.categoryName {
+  flex: 1;
+  font-size: 12px;
+  color: hsl(220 10% 70%);
+}
+
+.categoryCount {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cat-color);
+  font-family: var(--font-mono);
+}
+
+.gridWrapper {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.orbitalSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  max-width: 400px;
+  padding: 24px;
+}
+
+.tile {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  cursor: pointer;
+  animation: tileAppear 0.4s ease-out backwards;
+  animation-delay: var(--tile-delay);
+}
+
+@keyframes tileAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.tileInner {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, hsl(222 47% 16%), hsl(222 47% 12%));
+  border: 1px solid hsl(220 20% 30% / 0.6);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.tile[data-active="true"] .tileInner {
+  border-color: var(--tile-color);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--tile-color) 30%, transparent);
+}
+
+.tile:hover .tileInner {
+  transform: scale(1.08);
+  border-color: var(--tile-color);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--tile-color) 40%, transparent);
+}
+
+.iconGlow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, color-mix(in srgb, var(--tile-color) 15%, transparent) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.tile:hover .iconGlow,
+.tile[data-active="true"] .iconGlow {
+  opacity: 1;
+}
+
+.icon {
+  color: var(--tile-color);
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.tile:hover .icon,
+.tile[data-active="true"] .icon {
+  opacity: 1;
+}
+
+.statusDot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid hsl(222 47% 11%);
+  z-index: 2;
+}
+
+.statusDot[data-status="active"] {
+  background: hsl(142 70% 50%);
+  box-shadow: 0 0 6px hsl(142 70% 50%);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.statusDot[data-status="paused"] {
+  background: hsl(45 90% 50%);
+}
+
+.statusDot[data-status="error"] {
+  background: hsl(0 70% 50%);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.codeBadge {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: hsl(222 47% 11%);
+  border: 1px solid hsl(220 20% 25% / 0.6);
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-size: 7px;
+  font-weight: 600;
+  color: hsl(220 10% 65%);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.tile:hover .codeBadge {
+  opacity: 1;
+}
+
+.tooltip {
+  position: absolute;
+  top: -70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: hsl(222 47% 10% / 0.95);
+  border: 1px solid var(--tile-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 130px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.tooltipVisible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-5px);
+}
+
+.tooltipName {
+  font-size: 11px;
+  font-weight: 600;
+  color: hsl(0 0% 95%);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.tooltipCategory {
+  font-size: 9px;
+  color: var(--tile-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tooltipStatus {
+  font-size: 9px;
+  color: hsl(220 10% 55%);
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .statsPanel {
+    flex: none;
+    width: 100%;
+  }
+
+  .summaryStats {
+    justify-content: space-around;
+  }
+
+  .categoryBreakdown {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .categoryRow {
+    flex: 1 1 45%;
+  }
+}

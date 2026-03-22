@@ -90,5 +90,20 @@ PERSONAS = {
             "Anomaly detected in reported entry price. Investigating.",
             "Trust, but verify. Numbers don't lie."
         ]
+    },
+    'gold_dxy': {
+        'name': 'Gold-DXY Watcher',
+        'avatar': '/avatars/gold_dxy.png',
+        'voice': 'analytical-macro',
+        'profile_path': 'docs/agents/gold_dxy/profile.md',
+        'quips': [
+            "Scanning DXY-Gold divergence. Correlation at -0.62.",
+            "DXY pushing hard. Gold sleeping. Mismatch forming.",
+            "Retracement in progress. Entry zone approaching.",
+            "Correlation breakdown detected. Skipping this setup.",
+            "Dollar weakness confirmed. Gold should catch up.",
+            "Z-scores diverging. The rubber band stretches.",
+            "Patience. The mean always reverts."
+        ]
     }
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { ADMIN_EMAILS } from '@/lib/adminGuard';
+import { ADMIN_EMAILS } from '@/lib/adminEmails';
 import Link from 'next/link';
 
 // ═══════════════════════════════════════════════════════════════
@@ -1103,8 +1103,8 @@ export default function BrainDashboard() {
   const [now, setNow] = useState(Date.now());
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<string>('');
-  const tickRef = useRef<ReturnType<typeof setInterval>>();
-  const fetchRef = useRef<ReturnType<typeof setInterval>>();
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fetchRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -1124,8 +1124,8 @@ export default function BrainDashboard() {
     fetchRef.current = setInterval(fetchData, 15000);
     tickRef.current = setInterval(() => setNow(Date.now()), 1000);
     return () => {
-      clearInterval(fetchRef.current);
-      clearInterval(tickRef.current);
+      if (fetchRef.current) clearInterval(fetchRef.current);
+      if (tickRef.current) clearInterval(tickRef.current);
     };
   }, [fetchData]);
 
@@ -1339,7 +1339,7 @@ export default function BrainDashboard() {
       </GlassCard>
 
       {/* ── Live Activity Feed (NEW) ────────────────────── */}
-      <GlassCard style={{ marginBottom: 14, glow: '0 0 30px rgba(6,182,212,0.05)' }}>
+      <GlassCard style={{ marginBottom: 14, boxShadow: '0 0 30px rgba(6,182,212,0.05)' }}>
         <SectionHeader title="Live Activity Feed" subtitle="Recent system decisions and actions — refreshes every 30s"
           right={
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

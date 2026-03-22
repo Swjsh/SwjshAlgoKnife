@@ -1,0 +1,35 @@
+[2026-03-22T06:03:54.191Z] [INFO] Starting Agent Proxy: overnight-brain-updater
+[2026-03-22T06:03:54.192Z] [INFO] WebSocket URL: ws://localhost:3001
+[2026-03-22T06:03:54.193Z] [INFO] Terminal Number: 4
+[2026-03-22T06:03:54.193Z] [INFO] Interactive Mode: true
+[2026-03-22T06:03:54.193Z] [INFO] Connecting to WebSocket server...
+[2026-03-22T06:03:54.206Z] [INFO] Connected to WebSocket server
+[2026-03-22T06:03:54.207Z] [INFO] Sending prompt file: C:\\Users\\jackw\\Desktop\\SwjshAlgoKnife\\.claude\\overnight\\terminal_4_prompt.md
+[2026-03-22T06:03:54.209Z] [DEBUG] Received message type: hub:state
+[2026-03-22T06:03:54.209Z] [DEBUG] Received message type: heartbeat:state
+[2026-03-22T06:03:54.720Z] [INFO] Sending init message
+[2026-03-22T06:04:09.318Z] [DEBUG] Received message type: agent:heartbeat
+[2026-03-22T06:04:09.319Z] [DEBUG] Received message type: agent:heartbeat
+[2026-03-22T06:04:09.320Z] [DEBUG] Received message type: agent:heartbeat
+[2026-03-22T06:04:09.320Z] [DEBUG] Received message type: agent:heartbeat
+[2026-03-22T06:04:09.321Z] [DEBUG] Received message type: agent:heartbeat
+[2026-03-22T06:04:09.321Z] [DEBUG] Received message type: agent:heartbeat
+[2026-03-22T06:04:09.322Z] [DEBUG] Received message type: agent:heartbeat
+[2026-03-22T06:04:25.324Z] [DEBUG] Received message type: agent:status
+[2026-03-22T06:04:25.325Z] [DEBUG] Received message type: agent:log
+[2026-03-22T06:04:30.884Z] [DEBUG] Received message type: agent:status
+[2026-03-22T06:04:30.885Z] [DEBUG] Received message type: agent:log
+[2026-03-22T06:04:31.705Z] [DEBUG] Received message type: agent:status
+[2026-03-22T06:04:31.706Z] [DEBUG] Received message type: agent:log
+[2026-03-22T06:04:31.707Z] [DEBUG] Received message type: agent:status
+[2026-03-22T06:04:31.708Z] [DEBUG] Received message type: agent:log
+[2026-03-22T06:04:31.853Z] [DEBUG] Received message type: agent:status
+[2026-03-22T06:04:31.854Z] [DEBUG] Received message type: agent:log
+[2026-03-22T06:04:32.418Z] [DEBUG] Received message type: agent:status
+[2026-03-22T06:04:32.419Z] [DEBUG] Received message type: agent:log
+[2026-03-22T06:04:33.167Z] [DEBUG] Received message type: agent:status
+[2026-03-22T06:04:33.168Z] [DEBUG] Received message type: agent:log
+[2026-03-22T06:04:33.168Z] [DEBUG] Received message type: agent:status
+[2026-03-22T06:04:33.169Z] [DEBUG] Received message type: agent:log
+[2026-03-22T06:04:36.395Z] [DEBUG] Received message type: agent:status
+[2026-03-22T06:04:36.396Z] [DEBUG] Received message type: agent:log

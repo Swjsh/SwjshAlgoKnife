@@ -18,7 +18,7 @@ export default function SignInPage() {
       try {
         const user = await handleRedirectResult();
         if (user) {
-          router.push('/command-center');
+          router.push('/activity-feed');
         }
       } catch (err: any) {
         console.error('Redirect error:', err);
@@ -34,7 +34,7 @@ export default function SignInPage() {
     setLoading(true);
     try {
       await signIn(email, password);
-      router.push('/command-center');
+      router.push('/activity-feed');
     } catch (err: any) {
       console.error('Sign in error:', err);
       setError(err.message || 'Failed to sign in');
@@ -49,7 +49,7 @@ export default function SignInPage() {
     try {
       const user = await signInWithGoogle();
       if (user) {
-        router.push('/command-center');
+        router.push('/activity-feed');
       }
     } catch (err: any) {
       console.error('Google sign-in error:', err);

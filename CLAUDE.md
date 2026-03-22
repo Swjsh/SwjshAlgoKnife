@@ -226,6 +226,8 @@ RISK_PER_TRADE=1
 - `scripts/agent_runner.ts` - Multi-agent orchestration
 - `src/app/agents/page.tsx` - Real-time agent dashboard
 - `src/lib/scanner/engine.ts` - Pre-market opportunity scanner
+- `scripts/position_sync.py` - Broker position sync (prevents duplicate orders)
+- `scripts/alpaca_executor.py` - Direct Alpaca REST API integration
 
 ## Python Dependencies
 

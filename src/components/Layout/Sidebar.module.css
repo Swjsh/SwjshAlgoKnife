@@ -546,6 +546,94 @@
     color: rgba(255, 255, 255, 0.4);
 }
 
+/* ─── Collapse Button (Purple SwjshAK Theme) ─────────────────────── */
+.collapseBtn {
+    position: absolute;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(217, 70, 239, 0.08));
+    border: 1px solid rgba(168, 85, 247, 0.35);
+    border-radius: 6px;
+    color: #d8b4fe;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.15);
+}
+
+.collapseBtn:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(217, 70, 239, 0.15));
+    border-color: #d8b4fe;
+    color: #fff;
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.4);
+    transform: scale(1.05);
+}
+
+/* ─── Collapsed State ───────────────────────────────────────────── */
+.sidebar.collapsed {
+    width: 64px;
+}
+
+.collapsed .header {
+    padding: 0 12px;
+    justify-content: center;
+}
+
+.collapsed .logoContainer {
+    justify-content: center;
+}
+
+.collapsed .collapseBtn {
+    position: static;
+    margin-left: auto;
+}
+
+.collapsed .nav {
+    padding: 16px 8px 8px;
+    align-items: center;
+}
+
+.collapsed .groupBtn {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 10px;
+}
+
+.collapsed .groupIcon {
+    margin: 0;
+}
+
+.collapsed .deploySection {
+    margin: 0 8px 16px;
+}
+
+.collapsed .deployBtn {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 10px;
+}
+
+.collapsed .footer {
+    padding: 12px;
+    justify-content: center;
+}
+
+.collapsed .userProfile {
+    justify-content: center;
+}
+
+.collapsed .avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    NATURE (COFFEE) MODE OVERRIDES
    ═══════════════════════════════════════════════════════════════ */

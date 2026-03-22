@@ -1,0 +1,1444 @@
+{
+  "name": "WF-INFRA-02: Dependency Auditor",
+  "nodes": [
+    {
+      "id": "schedule-trigger",
+      "name": "Schedule: Weekly Sunday 2 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [0, 400],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 2 * * 0"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "init-audit-context",
+      "name": "Set: Initialize Audit Context",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 400],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "name": "auditId",
+              "value": "={{ `AUDIT-${$now.toFormat('yyyyMMdd-HHmmss')}` }}",
+              "type": "string"
+            },
+            {
+              "name": "auditDate",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "name": "repoOwner",
+              "value": "={{ $env.GITHUB_REPO_OWNER || 'jackw' }}",
+              "type": "string"
+            },
+            {
+              "name": "repoName",
+              "value": "={{ $env.GITHUB_REPO_NAME || 'SwjshAlgoKnife' }}",
+              "type": "string"
+            },
+            {
+              "name": "defaultBranch",
+              "value": "={{ $env.GITHUB_DEFAULT_BRANCH || 'master' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "http-fetch-package-json",
+      "name": "HTTP: Fetch package.json",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [440, 200],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.github.com/repos/{{ $json.repoOwner }}/{{ $json.repoName }}/contents/package.json?ref={{ $json.defaultBranch }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3.raw"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "github-token-cred",
+          "name": "GitHub Token"
+        }
+      }
+    },
+    {
+      "id": "http-fetch-package-lock",
+      "name": "HTTP: Fetch package-lock.json",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [440, 350],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.github.com/repos/{{ $json.repoOwner }}/{{ $json.repoName }}/contents/package-lock.json?ref={{ $json.defaultBranch }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3.raw"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "github-token-cred",
+          "name": "GitHub Token"
+        }
+      }
+    },
+    {
+      "id": "http-fetch-requirements",
+      "name": "HTTP: Fetch requirements.txt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [440, 500],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.github.com/repos/{{ $json.repoOwner }}/{{ $json.repoName }}/contents/scripts/requirements.txt?ref={{ $json.defaultBranch }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3.raw"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "github-token-cred",
+          "name": "GitHub Token"
+        }
+      }
+    },
+    {
+      "id": "http-fetch-existing-issues",
+      "name": "HTTP: Fetch Existing Dependency Issues",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [440, 650],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.JIRA_BASE_URL || 'https://swjsh.atlassian.net' }}/rest/api/3/search?jql=project=INFRA AND status != Done AND labels = dependency-audit&maxResults=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "jira-api-cred",
+          "name": "Jira API"
+        }
+      }
+    },
+    {
+      "id": "merge-dependency-files",
+      "name": "Merge: Dependency Files",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [660, 400],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-parse-dependencies",
+      "name": "Code: Parse Dependencies",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 400],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const packageJsonRaw = $('HTTP: Fetch package.json').first().json;\nconst packageLockRaw = $('HTTP: Fetch package-lock.json').first().json;\nconst requirementsRaw = $('HTTP: Fetch requirements.txt').first().json;\nconst existingIssues = $('HTTP: Fetch Existing Dependency Issues').first().json;\nconst initContext = $('Set: Initialize Audit Context').first().json;\n\n// Parse package.json\nlet packageJson = {};\ntry {\n  packageJson = typeof packageJsonRaw.data === 'string' \n    ? JSON.parse(packageJsonRaw.data) \n    : packageJsonRaw.data || {};\n} catch (e) {\n  packageJson = { dependencies: {}, devDependencies: {} };\n}\n\n// Parse package-lock.json (for exact versions)\nlet packageLock = {};\ntry {\n  packageLock = typeof packageLockRaw.data === 'string'\n    ? JSON.parse(packageLockRaw.data)\n    : packageLockRaw.data || {};\n} catch (e) {\n  packageLock = { packages: {} };\n}\n\n// Parse requirements.txt\nlet pythonDeps = [];\nconst reqContent = requirementsRaw.data || '';\nif (typeof reqContent === 'string') {\n  pythonDeps = reqContent.split('\\n')\n    .map(line => line.trim())\n    .filter(line => line && !line.startsWith('#'))\n    .map(line => {\n      const match = line.match(/^([a-zA-Z0-9_-]+)([>=<~!]+)?(.+)?$/);\n      return match ? {\n        name: match[1],\n        constraint: match[2] || '',\n        version: match[3]?.trim() || 'latest',\n        ecosystem: 'pip'\n      } : null;\n    })\n    .filter(Boolean);\n}\n\n// Build NPM dependencies list\nconst npmDeps = [];\nconst deps = packageJson.dependencies || {};\nconst devDeps = packageJson.devDependencies || {};\n\nfor (const [name, version] of Object.entries(deps)) {\n  npmDeps.push({\n    name,\n    version: version.replace(/^[\\^~]/, ''),\n    constraint: version.charAt(0),\n    isDev: false,\n    ecosystem: 'npm'\n  });\n}\n\nfor (const [name, version] of Object.entries(devDeps)) {\n  npmDeps.push({\n    name,\n    version: version.replace(/^[\\^~]/, ''),\n    constraint: version.charAt(0),\n    isDev: true,\n    ecosystem: 'npm'\n  });\n}\n\n// Get existing issue summaries to avoid duplicates\nconst existingIssueSummaries = new Set();\n(existingIssues?.issues || []).forEach(issue => {\n  if (issue.fields?.summary) {\n    existingIssueSummaries.add(issue.fields.summary.toLowerCase());\n  }\n});\n\nreturn {\n  json: {\n    auditId: initContext.auditId,\n    auditDate: initContext.auditDate,\n    npmDeps: npmDeps,\n    pythonDeps: pythonDeps,\n    existingIssueSummaries: Array.from(existingIssueSummaries),\n    totalNpmDeps: npmDeps.length,\n    totalPythonDeps: pythonDeps.length\n  }\n};"
+      }
+    },
+    {
+      "id": "code-prepare-npm-audit",
+      "name": "Code: Prepare NPM Packages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 300],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Prepare NPM packages for registry lookup\nconst data = $json;\nconst topPackages = data.npmDeps.slice(0, 30); // Limit for API efficiency\n\nreturn topPackages.map(pkg => ({\n  json: {\n    ...pkg,\n    auditId: data.auditId,\n    lookupUrl: `https://registry.npmjs.org/${pkg.name}`\n  }\n}));"
+      }
+    },
+    {
+      "id": "code-prepare-pypi-audit",
+      "name": "Code: Prepare Python Packages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 500],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Prepare Python packages for PyPI lookup\nconst data = $json;\nconst packages = data.pythonDeps || [];\n\nreturn packages.map(pkg => ({\n  json: {\n    ...pkg,\n    auditId: data.auditId,\n    lookupUrl: `https://pypi.org/pypi/${pkg.name}/json`\n  }\n}));"
+      }
+    },
+    {
+      "id": "http-npm-registry-lookup",
+      "name": "HTTP: NPM Registry Lookup",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [1320, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.lookupUrl }}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "http-pypi-lookup",
+      "name": "HTTP: PyPI Lookup",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [1320, 500],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.lookupUrl }}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "code-analyze-npm-versions",
+      "name": "Code: Analyze NPM Versions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1540, 300],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const pkg = $json;\nconst auditId = $('Code: Prepare NPM Packages').first().json.auditId;\n\nlet result = {\n  name: pkg.name,\n  currentVersion: pkg.version,\n  ecosystem: 'npm',\n  isDev: pkg.isDev,\n  status: 'unknown',\n  latestVersion: null,\n  updateType: null,\n  isOutdated: false,\n  vulnerability: null,\n  auditId: auditId\n};\n\ntry {\n  // Parse registry response\n  const latestVersion = pkg['dist-tags']?.latest;\n  const versions = Object.keys(pkg.versions || {});\n  \n  if (latestVersion) {\n    result.latestVersion = latestVersion;\n    \n    // Simple version comparison\n    const currentParts = (result.currentVersion || '0.0.0').split('.').map(Number);\n    const latestParts = latestVersion.split('.').map(Number);\n    \n    if (latestParts[0] > currentParts[0]) {\n      result.updateType = 'major';\n      result.isOutdated = true;\n      result.status = 'outdated-major';\n    } else if (latestParts[1] > currentParts[1]) {\n      result.updateType = 'minor';\n      result.isOutdated = true;\n      result.status = 'outdated-minor';\n    } else if (latestParts[2] > currentParts[2]) {\n      result.updateType = 'patch';\n      result.isOutdated = true;\n      result.status = 'outdated-patch';\n    } else {\n      result.status = 'current';\n    }\n  }\n  \n  // Check for deprecated\n  if (pkg.deprecated) {\n    result.status = 'deprecated';\n    result.vulnerability = { severity: 'high', message: pkg.deprecated };\n  }\n  \n} catch (e) {\n  result.status = 'error';\n  result._error = e.message;\n}\n\nreturn { json: result };"
+      }
+    },
+    {
+      "id": "code-analyze-python-versions",
+      "name": "Code: Analyze Python Versions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1540, 500],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const pkg = $json;\nconst auditId = $('Code: Prepare Python Packages').first().json.auditId;\n\nlet result = {\n  name: pkg.name,\n  currentVersion: pkg.version,\n  ecosystem: 'pip',\n  isDev: false,\n  status: 'unknown',\n  latestVersion: null,\n  updateType: null,\n  isOutdated: false,\n  vulnerability: null,\n  auditId: auditId\n};\n\ntry {\n  const info = pkg.info || {};\n  const releases = Object.keys(pkg.releases || {});\n  \n  // Get latest stable version (exclude pre-releases)\n  const stableReleases = releases\n    .filter(v => !v.includes('a') && !v.includes('b') && !v.includes('rc'))\n    .sort((a, b) => {\n      const aParts = a.split('.').map(Number);\n      const bParts = b.split('.').map(Number);\n      for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {\n        if ((aParts[i] || 0) !== (bParts[i] || 0)) {\n          return (bParts[i] || 0) - (aParts[i] || 0);\n        }\n      }\n      return 0;\n    });\n  \n  const latestVersion = stableReleases[0] || info.version;\n  \n  if (latestVersion) {\n    result.latestVersion = latestVersion;\n    \n    // Simple version comparison\n    const currentParts = (result.currentVersion || '0.0.0').split('.').map(Number);\n    const latestParts = latestVersion.split('.').map(Number);\n    \n    if (latestParts[0] > currentParts[0]) {\n      result.updateType = 'major';\n      result.isOutdated = true;\n      result.status = 'outdated-major';\n    } else if (latestParts[1] > currentParts[1]) {\n      result.updateType = 'minor';\n      result.isOutdated = true;\n      result.status = 'outdated-minor';\n    } else if ((latestParts[2] || 0) > (currentParts[2] || 0)) {\n      result.updateType = 'patch';\n      result.isOutdated = true;\n      result.status = 'outdated-patch';\n    } else {\n      result.status = 'current';\n    }\n  }\n  \n} catch (e) {\n  result.status = 'error';\n  result._error = e.message;\n}\n\nreturn { json: result };"
+      }
+    },
+    {
+      "id": "http-check-osv-npm",
+      "name": "HTTP: Check OSV Database (NPM)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [1760, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.osv.dev/v1/query",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ package: { name: $json.name, ecosystem: 'npm' }, version: $json.currentVersion }) }}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "http-check-osv-python",
+      "name": "HTTP: Check OSV Database (Python)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [1760, 500],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.osv.dev/v1/query",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ package: { name: $json.name, ecosystem: 'PyPI' }, version: $json.currentVersion }) }}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "code-merge-osv-npm",
+      "name": "Code: Merge OSV Results (NPM)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1980, 300],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const pkg = $json;\nconst vulnerabilities = pkg.vulns || [];\n\nlet result = {\n  name: $('Code: Analyze NPM Versions').item.json.name,\n  currentVersion: $('Code: Analyze NPM Versions').item.json.currentVersion,\n  latestVersion: $('Code: Analyze NPM Versions').item.json.latestVersion,\n  ecosystem: 'npm',\n  isDev: $('Code: Analyze NPM Versions').item.json.isDev,\n  status: $('Code: Analyze NPM Versions').item.json.status,\n  updateType: $('Code: Analyze NPM Versions').item.json.updateType,\n  isOutdated: $('Code: Analyze NPM Versions').item.json.isOutdated,\n  auditId: $('Code: Analyze NPM Versions').item.json.auditId\n};\n\nif (vulnerabilities.length > 0) {\n  // Get highest severity\n  const severityOrder = { 'CRITICAL': 0, 'HIGH': 1, 'MODERATE': 2, 'MEDIUM': 2, 'LOW': 3 };\n  const sortedVulns = vulnerabilities.sort((a, b) => \n    (severityOrder[a.severity] || 4) - (severityOrder[b.severity] || 4)\n  );\n  \n  result.vulnerability = {\n    count: vulnerabilities.length,\n    severity: sortedVulns[0]?.severity || 'UNKNOWN',\n    ids: vulnerabilities.map(v => v.id).slice(0, 5),\n    summary: sortedVulns[0]?.summary || 'See vulnerability database'\n  };\n  result.status = 'vulnerable';\n}\n\nreturn { json: result };"
+      }
+    },
+    {
+      "id": "code-merge-osv-python",
+      "name": "Code: Merge OSV Results (Python)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1980, 500],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const pkg = $json;\nconst vulnerabilities = pkg.vulns || [];\n\nlet result = {\n  name: $('Code: Analyze Python Versions').item.json.name,\n  currentVersion: $('Code: Analyze Python Versions').item.json.currentVersion,\n  latestVersion: $('Code: Analyze Python Versions').item.json.latestVersion,\n  ecosystem: 'pip',\n  isDev: false,\n  status: $('Code: Analyze Python Versions').item.json.status,\n  updateType: $('Code: Analyze Python Versions').item.json.updateType,\n  isOutdated: $('Code: Analyze Python Versions').item.json.isOutdated,\n  auditId: $('Code: Analyze Python Versions').item.json.auditId\n};\n\nif (vulnerabilities.length > 0) {\n  const severityOrder = { 'CRITICAL': 0, 'HIGH': 1, 'MODERATE': 2, 'MEDIUM': 2, 'LOW': 3 };\n  const sortedVulns = vulnerabilities.sort((a, b) => \n    (severityOrder[a.severity] || 4) - (severityOrder[b.severity] || 4)\n  );\n  \n  result.vulnerability = {\n    count: vulnerabilities.length,\n    severity: sortedVulns[0]?.severity || 'UNKNOWN',\n    ids: vulnerabilities.map(v => v.id).slice(0, 5),\n    summary: sortedVulns[0]?.summary || 'See vulnerability database'\n  };\n  result.status = 'vulnerable';\n}\n\nreturn { json: result };"
+      }
+    },
+    {
+      "id": "merge-all-packages",
+      "name": "Merge: All Package Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [2200, 400],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-aggregate-audit",
+      "name": "Code: Aggregate Audit Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2420, 400],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const allPackages = $input.all().map(i => i.json);\nconst auditId = allPackages[0]?.auditId || 'unknown';\n\n// Categorize packages\nconst vulnerable = allPackages.filter(p => p.vulnerability);\nconst outdatedMajor = allPackages.filter(p => p.updateType === 'major' && !p.vulnerability);\nconst outdatedMinor = allPackages.filter(p => p.updateType === 'minor' && !p.vulnerability);\nconst outdatedPatch = allPackages.filter(p => p.updateType === 'patch' && !p.vulnerability);\nconst current = allPackages.filter(p => p.status === 'current');\nconst deprecated = allPackages.filter(p => p.status === 'deprecated');\n\n// Count by ecosystem\nconst npmCount = allPackages.filter(p => p.ecosystem === 'npm').length;\nconst pipCount = allPackages.filter(p => p.ecosystem === 'pip').length;\n\n// Calculate security score (100 = no vulnerabilities, 0 = critical issues)\nlet securityScore = 100;\nvulnerable.forEach(v => {\n  const severity = v.vulnerability?.severity || 'LOW';\n  if (severity === 'CRITICAL') securityScore -= 25;\n  else if (severity === 'HIGH') securityScore -= 15;\n  else if (severity === 'MODERATE' || severity === 'MEDIUM') securityScore -= 10;\n  else securityScore -= 5;\n});\ndeprecated.forEach(() => securityScore -= 10);\nsecurityScore = Math.max(0, securityScore);\n\nconst summary = {\n  auditId: auditId,\n  totalPackages: allPackages.length,\n  npmPackages: npmCount,\n  pythonPackages: pipCount,\n  vulnerableCount: vulnerable.length,\n  deprecatedCount: deprecated.length,\n  outdatedMajorCount: outdatedMajor.length,\n  outdatedMinorCount: outdatedMinor.length,\n  outdatedPatchCount: outdatedPatch.length,\n  currentCount: current.length,\n  securityScore: securityScore,\n  hasCriticalIssues: vulnerable.some(v => \n    ['CRITICAL', 'HIGH'].includes(v.vulnerability?.severity)\n  )\n};\n\nreturn {\n  json: {\n    summary: summary,\n    vulnerable: vulnerable,\n    deprecated: deprecated,\n    outdatedMajor: outdatedMajor,\n    outdatedMinor: outdatedMinor,\n    allPackages: allPackages\n  }\n};"
+      }
+    },
+    {
+      "id": "code-build-claude-prompt",
+      "name": "Code: Build Claude Risk Assessment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2640, 400],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const data = $json;\nconst summary = data.summary;\n\n// Build vulnerability list\nconst vulnList = data.vulnerable.map(v => \n  `- ${v.name}@${v.currentVersion} (${v.ecosystem}): ${v.vulnerability?.severity} - ${v.vulnerability?.summary || 'See CVE'}`\n).join('\\n');\n\n// Build deprecated list\nconst deprecatedList = data.deprecated.map(d =>\n  `- ${d.name}@${d.currentVersion}`\n).join('\\n');\n\n// Build major updates list\nconst majorList = data.outdatedMajor.slice(0, 10).map(m =>\n  `- ${m.name}: ${m.currentVersion} -> ${m.latestVersion}`\n).join('\\n');\n\nconst prompt = `You are a security-focused DevOps engineer reviewing dependency audit results for the SwjshAlgoKnife trading platform.\n\nAUDIT SUMMARY:\n- Total Packages: ${summary.totalPackages} (NPM: ${summary.npmPackages}, Python: ${summary.pythonPackages})\n- Vulnerable: ${summary.vulnerableCount}\n- Deprecated: ${summary.deprecatedCount}\n- Major Updates Available: ${summary.outdatedMajorCount}\n- Minor Updates Available: ${summary.outdatedMinorCount}\n- Patch Updates Available: ${summary.outdatedPatchCount}\n- Security Score: ${summary.securityScore}/100\n\nVULNERABLE PACKAGES:\n${vulnList || 'None found'}\n\nDEPRECATED PACKAGES:\n${deprecatedList || 'None found'}\n\nMAJOR VERSION UPDATES AVAILABLE:\n${majorList || 'None found'}\n\nANALYZE AND PROVIDE:\n\n1. **Risk Assessment**: Overall security posture (Critical/High/Medium/Low)\n\n2. **Immediate Actions** (must-fix within 24h):\n   - Package name\n   - Current -> Required version\n   - Why urgent\n   - Breaking change risk (High/Medium/Low)\n\n3. **Scheduled Updates** (within 1 week):\n   - Package updates to plan\n   - Any compatibility concerns\n\n4. **Recommendations**:\n   - Dependency management improvements\n   - Security scanning suggestions\n\n5. **Jira Tickets to Create**:\n   - Only for critical/high priority issues\n   - Include clear acceptance criteria\n\nRespond as JSON:\n{\n  \"riskLevel\": \"Critical|High|Medium|Low\",\n  \"riskSummary\": \"string\",\n  \"immediateActions\": [\n    {\n      \"package\": \"string\",\n      \"currentVersion\": \"string\",\n      \"targetVersion\": \"string\",\n      \"urgency\": \"string\",\n      \"breakingRisk\": \"High|Medium|Low\"\n    }\n  ],\n  \"scheduledUpdates\": [\n    {\n      \"package\": \"string\",\n      \"update\": \"string\",\n      \"notes\": \"string\"\n    }\n  ],\n  \"recommendations\": [\"string\"],\n  \"jiraTickets\": [\n    {\n      \"summary\": \"string\",\n      \"description\": \"string\",\n      \"priority\": \"Highest|High|Medium\",\n      \"labels\": [\"string\"]\n    }\n  ],\n  \"sendAlert\": boolean\n}`;\n\nreturn {\n  json: {\n    ...data,\n    claudePrompt: prompt\n  }\n};"
+      }
+    },
+    {
+      "id": "http-call-claude",
+      "name": "HTTP: Call Claude API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [2860, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 4096, messages: [{ role: 'user', content: $json.claudePrompt }] }) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "anthropic-api-cred",
+          "name": "Anthropic API Key"
+        }
+      }
+    },
+    {
+      "id": "code-parse-claude-response",
+      "name": "Code: Parse Claude Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3080, 400],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const input = $json;\nlet analysis;\n\ntry {\n  const responseText = input.content?.[0]?.text || input.content || '';\n  const jsonMatch = responseText.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    analysis = JSON.parse(jsonMatch[0]);\n  } else {\n    throw new Error('No JSON found');\n  }\n} catch (e) {\n  analysis = {\n    riskLevel: input.summary?.hasCriticalIssues ? 'High' : 'Medium',\n    riskSummary: 'Unable to parse AI analysis - manual review required',\n    immediateActions: [],\n    scheduledUpdates: [],\n    recommendations: ['Review audit results manually'],\n    jiraTickets: [],\n    sendAlert: input.summary?.hasCriticalIssues || false,\n    _parseError: e.message\n  };\n}\n\nreturn {\n  json: {\n    summary: input.summary,\n    vulnerable: input.vulnerable,\n    deprecated: input.deprecated,\n    analysis: analysis\n  }\n};"
+      }
+    },
+    {
+      "id": "switch-alert-level",
+      "name": "Switch: Route by Alert Level",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [3300, 400],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "outputKey": "critical",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "or",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.analysis?.riskLevel }}",
+                    "rightValue": "Critical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json.analysis?.sendAlert }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "high",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.analysis?.riskLevel }}",
+                    "rightValue": "High",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "normal",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "or",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.analysis?.riskLevel }}",
+                    "rightValue": "Medium",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json.analysis?.riskLevel }}",
+                    "rightValue": "Low",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      }
+    },
+    {
+      "id": "discord-critical-alert",
+      "name": "Discord: Critical Security Alert",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [3520, 200],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "authentication": "botToken",
+        "guildId": {
+          "mode": "id",
+          "value": "={{ $env.DISCORD_GUILD_ID }}"
+        },
+        "channelId": {
+          "mode": "id",
+          "value": "={{ $env.DISCORD_ALERTS_CHANNEL }}"
+        },
+        "content": "@everyone - CRITICAL SECURITY VULNERABILITIES DETECTED",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": ":rotating_light: Dependency Security Alert",
+              "description": "={{ $json.analysis.riskSummary }}",
+              "color": "15158332",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Risk Level",
+                    "value": "={{ $json.analysis.riskLevel }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Vulnerable Packages",
+                    "value": "={{ $json.summary.vulnerableCount }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Security Score",
+                    "value": "={{ $json.summary.securityScore }}/100",
+                    "inline": true
+                  },
+                  {
+                    "name": "Immediate Actions Required",
+                    "value": "={{ $json.analysis.immediateActions.map(a => `- ${a.package}: ${a.currentVersion} -> ${a.targetVersion}`).join('\\n') || 'See Jira tickets' }}",
+                    "inline": false
+                  }
+                ]
+              },
+              "footer": "SwjshAK Dependency Auditor - URGENT",
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "discord-high-alert",
+      "name": "Discord: High Priority Notice",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [3520, 400],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "authentication": "botToken",
+        "guildId": {
+          "mode": "id",
+          "value": "={{ $env.DISCORD_GUILD_ID }}"
+        },
+        "channelId": {
+          "mode": "id",
+          "value": "={{ $env.DISCORD_SYSTEM_CHANNEL }}"
+        },
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": ":warning: Dependency Audit - Action Required",
+              "description": "={{ $json.analysis.riskSummary }}",
+              "color": "16776960",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Risk Level",
+                    "value": "={{ $json.analysis.riskLevel }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Vulnerable",
+                    "value": "={{ $json.summary.vulnerableCount }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Outdated (Major)",
+                    "value": "={{ $json.summary.outdatedMajorCount }}",
+                    "inline": true
+                  }
+                ]
+              },
+              "footer": "SwjshAK Dependency Auditor",
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "discord-normal-summary",
+      "name": "Discord: Weekly Summary",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [3520, 600],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "authentication": "botToken",
+        "guildId": {
+          "mode": "id",
+          "value": "={{ $env.DISCORD_GUILD_ID }}"
+        },
+        "channelId": {
+          "mode": "id",
+          "value": "={{ $env.DISCORD_SYSTEM_CHANNEL }}"
+        },
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": ":white_check_mark: Weekly Dependency Audit",
+              "description": "={{ $json.analysis.riskSummary }}",
+              "color": "3066993",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Total Packages",
+                    "value": "={{ $json.summary.totalPackages }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Security Score",
+                    "value": "={{ $json.summary.securityScore }}/100",
+                    "inline": true
+                  },
+                  {
+                    "name": "Updates Available",
+                    "value": "={{ $json.summary.outdatedMajorCount + $json.summary.outdatedMinorCount + $json.summary.outdatedPatchCount }}",
+                    "inline": true
+                  }
+                ]
+              },
+              "footer": "SwjshAK Dependency Auditor",
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "merge-discord-results",
+      "name": "Merge: Discord Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [3740, 400],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "if-has-tickets",
+      "name": "If: Has Jira Tickets",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [3960, 400],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $('Code: Parse Claude Response').first().json.analysis?.jiraTickets?.length || 0 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "code-prepare-jira-tickets",
+      "name": "Code: Prepare Jira Tickets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4180, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const data = $('Code: Parse Claude Response').first().json;\nconst tickets = data.analysis?.jiraTickets || [];\n\nreturn tickets.map(ticket => ({\n  json: {\n    summary: ticket.summary,\n    description: ticket.description,\n    priority: ticket.priority,\n    labels: [...(ticket.labels || []), 'dependency-audit', 'security', 'automated'],\n    auditId: data.summary.auditId\n  }\n}));"
+      }
+    },
+    {
+      "id": "jira-create-ticket",
+      "name": "Jira: Create INFRA Ticket",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [4400, 300],
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "INFRA",
+        "issueType": "Bug",
+        "additionalFields": {
+          "summary": "={{ $json.summary }}",
+          "description": "={{ $json.description }}\\n\\n---\\n_Created by Dependency Auditor ({{ $json.auditId }})_",
+          "labels": "={{ $json.labels }}",
+          "priority": "={{ $json.priority }}"
+        }
+      },
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "jira-cred",
+          "name": "Jira Cloud"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "noop-skip-tickets",
+      "name": "NoOp: No Tickets",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [4180, 500],
+      "parameters": {}
+    },
+    {
+      "id": "merge-final",
+      "name": "Merge: Final Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [4620, 400],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "http-store-audit-results",
+      "name": "HTTP: Store Audit Results",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [4840, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:3000/api/audits/dependencies",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ auditId: $('Code: Parse Claude Response').first().json.summary.auditId, summary: $('Code: Parse Claude Response').first().json.summary, analysis: $('Code: Parse Claude Response').first().json.analysis, timestamp: $now.toISO() }) }}",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "error-trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 800],
+      "parameters": {}
+    },
+    {
+      "id": "code-format-error",
+      "name": "Code: Format Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 800],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const error = $json;\n\nreturn {\n  json: {\n    workflowName: 'Dependency Auditor',\n    errorMessage: error.execution?.error?.message || 'Unknown error',\n    errorNode: error.execution?.lastNodeExecuted || 'unknown',\n    timestamp: new Date().toISOString(),\n    executionId: error.execution?.id || 'unknown'\n  }\n};"
+      }
+    },
+    {
+      "id": "discord-error-alert",
+      "name": "Discord: Error Alert",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [440, 800],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "authentication": "botToken",
+        "guildId": {
+          "mode": "id",
+          "value": "={{ $env.DISCORD_GUILD_ID }}"
+        },
+        "channelId": {
+          "mode": "id",
+          "value": "={{ $env.DISCORD_ALERTS_CHANNEL }}"
+        },
+        "content": "@here - Dependency Auditor workflow failed",
+        "messageType": "embed",
+        "embeds": {
+          "values": [
+            {
+              "title": "Dependency Auditor Error",
+              "description": "={{ $json.errorMessage }}",
+              "color": "15158332",
+              "fields": {
+                "values": [
+                  {
+                    "name": "Failed Node",
+                    "value": "={{ $json.errorNode }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Execution ID",
+                    "value": "={{ $json.executionId }}",
+                    "inline": true
+                  }
+                ]
+              },
+              "footer": "SwjshAK Error Handler",
+              "timestamp": "={{ $now.toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "discordBotApi": {
+          "id": "discord-bot-cred",
+          "name": "Discord Bot"
+        }
+      }
+    },
+    {
+      "id": "sticky-overview",
+      "name": "Note: Workflow Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-220, 100],
+      "parameters": {
+        "content": "## WF-INFRA-02: Dependency Auditor\n\n**Schedule:** Weekly Sunday 2 AM ET\n**Purpose:** Automated security and dependency health monitoring\n\n### Checks Performed:\n1. Fetch package.json + requirements.txt\n2. Query NPM Registry for latest versions\n3. Query PyPI for Python packages\n4. Check OSV database for vulnerabilities\n5. Claude AI risk assessment\n\n### Outputs:\n- Critical: @everyone Discord alert\n- High: System channel notice\n- Normal: Weekly summary\n- INFRA Jira tickets for urgent issues",
+        "width": 380,
+        "height": 380
+      }
+    },
+    {
+      "id": "sticky-osv-check",
+      "name": "Note: OSV Security Database",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1700, 100],
+      "parameters": {
+        "content": "## OSV Vulnerability Check\n\n**OSV (Open Source Vulnerabilities)** is Google's comprehensive vulnerability database.\n\n**Covers:**\n- CVEs\n- GitHub Security Advisories\n- PyPI advisories\n- npm advisories\n- Go vulns\n- Rust advisories\n\n**API:** https://api.osv.dev\n**Docs:** https://osv.dev/docs/",
+        "width": 300,
+        "height": 260
+      }
+    },
+    {
+      "id": "sticky-alert-routing",
+      "name": "Note: Alert Routing",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [3240, 0],
+      "parameters": {
+        "content": "## Alert Routing Logic\n\n**Critical/sendAlert=true:**\n- @everyone in #alerts\n- Immediate Jira tickets\n- Red embed color\n\n**High Risk:**\n- Post to #system channel\n- Yellow embed color\n\n**Medium/Low Risk:**\n- Weekly summary in #system\n- Green embed color\n\n**Security Score:**\n100 = No issues\n-25 per CRITICAL vuln\n-15 per HIGH vuln\n-10 per MEDIUM vuln\n-10 per deprecated pkg",
+        "width": 280,
+        "height": 360
+      }
+    },
+    {
+      "id": "sticky-error-handling",
+      "name": "Note: Error Handling",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-220, 700],
+      "parameters": {
+        "content": "## Error Handling\n\n**All HTTP requests:** `neverError: true`\n- Continues with partial data if API fails\n\n**Jira creation:** `continueOnFail: true`\n- Won't block workflow if ticket fails\n\n**Claude parsing fallback:**\n- Returns default risk assessment\n- Sets alert based on vuln count",
+        "width": 300,
+        "height": 220
+      }
+    }
+  ],
+  "connections": {
+    "Schedule: Weekly Sunday 2 AM": {
+      "main": [
+        [
+          {
+            "node": "Set: Initialize Audit Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set: Initialize Audit Context": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Fetch package.json",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP: Fetch package-lock.json",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP: Fetch requirements.txt",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP: Fetch Existing Dependency Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch package.json": {
+      "main": [
+        [
+          {
+            "node": "Merge: Dependency Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch package-lock.json": {
+      "main": [
+        [
+          {
+            "node": "Merge: Dependency Files",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch requirements.txt": {
+      "main": [
+        [
+          {
+            "node": "Merge: Dependency Files",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "HTTP: Fetch Existing Dependency Issues": {
+      "main": [
+        [
+          {
+            "node": "Merge: Dependency Files",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Merge: Dependency Files": {
+      "main": [
+        [
+          {
+            "node": "Code: Parse Dependencies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Parse Dependencies": {
+      "main": [
+        [
+          {
+            "node": "Code: Prepare NPM Packages",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code: Prepare Python Packages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare NPM Packages": {
+      "main": [
+        [
+          {
+            "node": "HTTP: NPM Registry Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Python Packages": {
+      "main": [
+        [
+          {
+            "node": "HTTP: PyPI Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: NPM Registry Lookup": {
+      "main": [
+        [
+          {
+            "node": "Code: Analyze NPM Versions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: PyPI Lookup": {
+      "main": [
+        [
+          {
+            "node": "Code: Analyze Python Versions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Analyze NPM Versions": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Check OSV Database (NPM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Analyze Python Versions": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Check OSV Database (Python)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Check OSV Database (NPM)": {
+      "main": [
+        [
+          {
+            "node": "Code: Merge OSV Results (NPM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Check OSV Database (Python)": {
+      "main": [
+        [
+          {
+            "node": "Code: Merge OSV Results (Python)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Merge OSV Results (NPM)": {
+      "main": [
+        [
+          {
+            "node": "Merge: All Package Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Merge OSV Results (Python)": {
+      "main": [
+        [
+          {
+            "node": "Merge: All Package Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge: All Package Results": {
+      "main": [
+        [
+          {
+            "node": "Code: Aggregate Audit Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Aggregate Audit Results": {
+      "main": [
+        [
+          {
+            "node": "Code: Build Claude Risk Assessment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Build Claude Risk Assessment": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Call Claude API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Call Claude API": {
+      "main": [
+        [
+          {
+            "node": "Code: Parse Claude Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Parse Claude Response": {
+      "main": [
+        [
+          {
+            "node": "Switch: Route by Alert Level",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Route by Alert Level": {
+      "main": [
+        [
+          {
+            "node": "Discord: Critical Security Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Discord: High Priority Notice",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Discord: Weekly Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Discord: Weekly Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord: Critical Security Alert": {
+      "main": [
+        [
+          {
+            "node": "Merge: Discord Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord: High Priority Notice": {
+      "main": [
+        [
+          {
+            "node": "Merge: Discord Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Discord: Weekly Summary": {
+      "main": [
+        [
+          {
+            "node": "Merge: Discord Results",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge: Discord Results": {
+      "main": [
+        [
+          {
+            "node": "If: Has Jira Tickets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Has Jira Tickets": {
+      "main": [
+        [
+          {
+            "node": "Code: Prepare Jira Tickets",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NoOp: No Tickets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Prepare Jira Tickets": {
+      "main": [
+        [
+          {
+            "node": "Jira: Create INFRA Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jira: Create INFRA Ticket": {
+      "main": [
+        [
+          {
+            "node": "Merge: Final Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NoOp: No Tickets": {
+      "main": [
+        [
+          {
+            "node": "Merge: Final Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge: Final Results": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Store Audit Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code: Format Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Format Error": {
+      "main": [
+        [
+          {
+            "node": "Discord: Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/New_York",
+    "errorWorkflow": "error-handler-workflow-id"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "infrastructure"
+    },
+    {
+      "name": "security"
+    },
+    {
+      "name": "dependencies"
+    },
+    {
+      "name": "scheduled"
+    },
+    {
+      "name": "self-improvement"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-20T02:00:00.000Z",
+  "versionId": "1"
+}

@@ -216,7 +216,8 @@ def load_data_file(filename: str) -> dict:
     try:
         with open(path) as f:
             return json.load(f)
-    except Exception:
+    except Exception as e:
+        log.warning(f"Failed to load data file {filename}: {e}")
         return {}
 
 
@@ -254,7 +255,8 @@ def parse_iso(ts_str: str) -> Optional[datetime]:
         # Handle various ISO formats
         cleaned = ts_str.replace("Z", "+00:00").split("+")[0].split(".")[0]
         return datetime.fromisoformat(cleaned)
-    except Exception:
+    except Exception as e:
+        log.debug(f"Failed to parse ISO timestamp '{ts_str}': {e}")
         return None
 
 
@@ -418,8 +420,8 @@ def check_disk_space():
         elif pct >= DISK_WARN_PCT:
             post_discord(f"Disk usage: **{pct:.1f}%** — clean up logs or old data.",
                          title="Disk Space Warning", level="warn")
-    except Exception:
-        pass
+    except Exception as e:
+        log.warning(f"Failed to check disk space: {e}")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -807,8 +809,8 @@ def daily_system_health_report():
         usage = shutil.disk_usage("/")
         pct = (usage.used / usage.total) * 100
         lines.append(f"\n**Disk**: {pct:.1f}% used")
-    except Exception:
-        pass
+    except Exception as e:
+        log.debug(f"Could not get disk usage for EOD report: {e}")
 
     post_discord("\n".join(lines), title="EOD System Report", level="info")
 

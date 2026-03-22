@@ -8,7 +8,7 @@ export default function BreakRoomRedirect() {
     const router = useRouter();
     
     useEffect(() => {
-        router.replace('/command-center');
+        router.replace('/activity-feed');
     }, [router]);
 
     return null;

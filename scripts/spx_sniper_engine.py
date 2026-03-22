@@ -11,6 +11,7 @@ SPX Sniper Agent — 0DTE Options Scalper (Proxy via SPY)
 • Broadcasts AGENT_STATUS_UPDATE for the dashboard
 """
 
+import os
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -20,7 +21,12 @@ import requests
 from pathlib import Path
 from datetime import datetime, time as dtime
 import pytz
-from agent_utils import log_message, get_random_quip, save_agent_state, load_agent_state
+from agent_utils import log_message, get_random_quip, save_agent_state, load_agent_state, load_brain_knowledge
+from position_sync import sync_positions_on_startup, pre_trade_health_check, check_existing_position
+
+# ── Brain Integration ─────────────────────────────────────────────────────────
+# Load agent-specific learning and strategy knowledge from the brain system
+BRAIN = load_brain_knowledge('spx_sniper')
 
 # ── Config ────────────────────────────────────────────────────────────────────
 TICKER             = 'SPY'            # Use SPY directly — eliminates SPX/SPY price divergence
@@ -32,7 +38,151 @@ MAX_OPEN_TRADES    = 1               # 0DTE = one at a time
 RISK_REWARD        = 1.5
 STATUS_FILE        = Path(__file__).parent.parent / 'data' / 'spx_agent_status.json'
 WEBHOOK_URL        = "http://localhost:3000/api/webhook/tradingview"
-WEBHOOK_SECRET     = "swjshak-tv-webhook-2026"
+WEBHOOK_SECRET     = os.getenv("WEBHOOK_SECRET")
+if not WEBHOOK_SECRET:
+    raise RuntimeError("WEBHOOK_SECRET environment variable is required")
+
+# ── Direct Alpaca Execution (SCRUM-5) ──────────────────────────────────────────
+# When USE_DIRECT_ALPACA=true, bypass webhook and execute directly via REST API.
+# This provides: fill confirmation, slippage logging, and eliminates webhook latency.
+USE_DIRECT_ALPACA = os.getenv("USE_DIRECT_ALPACA", "false").lower() == "true"
+
+# Lazy-loaded executor instance (P023 pattern - avoid import errors if credentials not set)
+_executor_instance = None
+
+def _get_executor():
+    """Lazy-load AlpacaExecutor to avoid import errors when credentials not set."""
+    global _executor_instance
+    if _executor_instance is None:
+        from alpaca_executor import AlpacaExecutor
+        _executor_instance = AlpacaExecutor()
+    return _executor_instance
+
+
+def execute_direct(
+    action: str,
+    price: float,
+    stop_loss: float = None,
+    take_profit: float = None,
+    reason: str = "",
+    max_poll_attempts: int = 10,
+    poll_interval_sec: float = 0.5
+) -> dict:
+    """
+    Execute trade directly via Alpaca REST API.
+
+    Args:
+        action: "BUY", "SELL", or "EXIT"
+        price: Expected entry/exit price (for slippage calculation)
+        stop_loss: Stop loss price (not used for EXIT)
+        take_profit: Take profit price (not used for EXIT)
+        reason: Trade reason for logging
+        max_poll_attempts: Maximum times to poll for fill status
+        poll_interval_sec: Seconds between poll attempts
+
+    Returns:
+        {
+            'success': bool,
+            'order_id': str,
+            'fill_price': float or None,
+            'slippage': float (difference from expected price),
+            'error': str (if failed)
+        }
+    """
+    try:
+        executor = _get_executor()
+
+        # Handle EXIT action - close position
+        if action == "EXIT":
+            close_result = executor.close_position(PROXY_SYMBOL)
+            if close_result:
+                fill_price = float(close_result.get('filled_avg_price') or price)
+                slippage = fill_price - price
+                log_message('spx', f"🎯 EXIT {PROXY_SYMBOL} @ ${fill_price:.2f} | Slippage: ${slippage:+.2f} | {reason}", type='trade')
+                print(f"[SPX Sniper] ✅ Direct EXIT filled @ ${fill_price:.2f} | Slippage: ${slippage:+.2f}")
+                return {
+                    'success': True,
+                    'order_id': close_result.get('id'),
+                    'fill_price': fill_price,
+                    'slippage': slippage,
+                }
+            else:
+                return {'success': True, 'order_id': None, 'fill_price': None, 'slippage': 0}
+
+        # Calculate position size from stop loss
+        if stop_loss is None:
+            raise ValueError("stop_loss required for BUY/SELL orders")
+
+        account = executor.get_account_info()
+        risk_per_unit = abs(price - stop_loss)
+        if risk_per_unit <= 0:
+            raise ValueError(f"Invalid stop loss: entry={price}, sl={stop_loss}")
+
+        # 1% risk per trade
+        risk_amount = account['cash'] * 0.01
+        qty = int(risk_amount / risk_per_unit)
+        qty = max(1, qty)  # Minimum 1 share
+
+        side = "buy" if action == "BUY" else "sell"
+        time_in_force = "day"
+
+        # Submit order
+        print(f"[SPX Sniper] 📤 Direct order: {action} {qty} {PROXY_SYMBOL} @ ~${price:.2f}")
+        order = executor.submit_market_order(PROXY_SYMBOL, qty, side, time_in_force)
+        order_id = order['id']
+
+        # Poll for fill status
+        fill_price = None
+        for attempt in range(max_poll_attempts):
+            order_status = executor.get_order(order_id)
+            status = order_status.get('status')
+
+            if status == 'filled':
+                fill_price = float(order_status.get('filled_avg_price') or price)
+                break
+            elif status in ('canceled', 'rejected', 'expired'):
+                return {
+                    'success': False,
+                    'order_id': order_id,
+                    'fill_price': None,
+                    'slippage': 0,
+                    'error': f"Order {status}: {order_status}",
+                }
+
+            time.sleep(poll_interval_sec)
+
+        if fill_price is None:
+            # Still not filled after polling - return partial success
+            print(f"[SPX Sniper] ⚠️ Order {order_id} not filled after {max_poll_attempts} polls")
+            return {
+                'success': True,  # Order submitted successfully
+                'order_id': order_id,
+                'fill_price': None,
+                'slippage': 0,
+            }
+
+        slippage = fill_price - price
+        log_message('spx', f"⚡ {action} {PROXY_SYMBOL} @ ${fill_price:.2f} | Slippage: ${slippage:+.2f} | {reason}", type='trade')
+        print(f"[SPX Sniper] ✅ Direct {action} filled @ ${fill_price:.2f} | Slippage: ${slippage:+.2f}")
+
+        return {
+            'success': True,
+            'order_id': order_id,
+            'fill_price': fill_price,
+            'slippage': slippage,
+        }
+
+    except Exception as e:
+        error_msg = str(e)
+        print(f"[SPX Sniper] ❌ Direct execution failed: {error_msg}")
+        return {
+            'success': False,
+            'order_id': None,
+            'fill_price': None,
+            'slippage': 0,
+            'error': error_msg,
+        }
+
 
 EST = pytz.timezone('US/Eastern')
 
@@ -83,9 +233,27 @@ def is_market_hours() -> bool:
     return dtime(9, 30) <= now_et.time() <= dtime(16, 0)
 
 
-# ── Webhook ───────────────────────────────────────────────────────────────────
+# ── Webhook / Direct Execution ────────────────────────────────────────────────
 def fire_signal(action: str, price: float, stop_loss: float = None,
                 take_profit: float = None, reason: str = "") -> bool:
+    """
+    Execute trade signal via webhook or direct Alpaca API.
+
+    When USE_DIRECT_ALPACA=true, bypasses webhook and executes directly
+    via Alpaca REST API for fill confirmation and slippage logging.
+    """
+    # Route to direct execution if enabled
+    if USE_DIRECT_ALPACA:
+        result = execute_direct(
+            action=action,
+            price=price,
+            stop_loss=stop_loss,
+            take_profit=take_profit,
+            reason=reason,
+        )
+        return result.get('success', False)
+
+    # Default: webhook execution
     payload = {
         "symbol":      PROXY_SYMBOL,
         "action":      action,
@@ -240,6 +408,11 @@ def run():
     if active_trades:
         print(f"[SPX Sniper] Restored {len(active_trades)} active trades from saved state")
 
+    # ── Sync with broker positions ──────────────────────────────────────────
+    print("[SPX Sniper] Syncing positions with Alpaca broker...")
+    active_trades = sync_positions_on_startup('spx_sniper', PROXY_SYMBOL, active_trades)
+    save_agent_state('spx_sniper', {'active_trades': active_trades, 'scan_count': scan_count})
+
     while True:
         try:
             # Check market hours
@@ -277,23 +450,32 @@ def run():
             # Only enter during safe time window
             if is_safe_time() and signals and len(active_trades) < MAX_OPEN_TRADES:
                 sig = signals[0]
-                print(f"[SPX Sniper] {sig['type']} signal: {PROXY_SYMBOL} @ ${sig['price']:.2f}")
-                success = fire_signal(
-                    action=sig['action'],
-                    price=sig['price'],
-                    stop_loss=sig['stop_loss'],
-                    take_profit=sig['take_profit'],
-                    reason=sig['reason'],
-                )
-                if success:
-                    active_trades.append({
-                        'direction':   'LONG' if sig['action'] == 'BUY' else 'SHORT',
-                        'entry_price': sig['price'],
-                        'stop_loss':   sig['stop_loss'],
-                        'take_profit': sig['take_profit'],
-                        'opened_at':   datetime.now().isoformat(),
-                        'signal_type': sig['type'],
-                    })
+
+                # Pre-trade health check: skip if position already exists
+                health = pre_trade_health_check('spx_sniper', PROXY_SYMBOL)
+                if health.get('skip'):
+                    print(f"[SPX Sniper] Skipping entry: {health.get('reason')}")
+                elif not health.get('ok'):
+                    print(f"[SPX Sniper] Health check failed: {health.get('reason')}")
+                else:
+                    print(f"[SPX Sniper] {sig['type']} signal: {PROXY_SYMBOL} @ ${sig['price']:.2f}")
+                    success = fire_signal(
+                        action=sig['action'],
+                        price=sig['price'],
+                        stop_loss=sig['stop_loss'],
+                        take_profit=sig['take_profit'],
+                        reason=sig['reason'],
+                    )
+                    if success:
+                        active_trades.append({
+                            'symbol':      PROXY_SYMBOL,
+                            'direction':   'LONG' if sig['action'] == 'BUY' else 'SHORT',
+                            'entry_price': sig['price'],
+                            'stop_loss':   sig['stop_loss'],
+                            'take_profit': sig['take_profit'],
+                            'opened_at':   datetime.now().isoformat(),
+                            'signal_type': sig['type'],
+                        })
             elif not is_safe_time():
                 print(f"   Time gate active - waiting for 10:30 AM EST")
 

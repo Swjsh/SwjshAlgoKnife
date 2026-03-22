@@ -84,6 +84,18 @@ graph TB
 - `/journal` - Trade logging and analytics
 - `/strategies` - Strategy management
 
+**UI Components** (21st Century Premium Library):
+See: [[UI Components]] for full documentation
+
+| Component | Purpose |
+|-----------|---------|
+| `PulseIndicator` | Animated status dots (LIVE/IDLE/ERROR) |
+| `CounterAnimation` | Spring-animated P&L numbers |
+| `ShimmerButton` | Primary CTAs with shimmer effect |
+| `EncryptButton` | Async buttons with scrambling text |
+| `GlowHoverCard` | Cards with cursor-following glow |
+| `SplitBorderPanel` | P&L-driven animated borders |
+
 **Communication**:
 - Polls `/api/agents` for status updates
 - WebSocket-like experience via React Context + polling
@@ -376,4 +388,5 @@ See: [[Deployment]] for full guide
 - [[Risk Management]] - Kill switch & position sizing
 - [[Database Schema]] - Table definitions
 - [[API Reference]] - All endpoints
+- [[UI Components]] - Premium UI component library
 - [[Troubleshooting]] - Common issues

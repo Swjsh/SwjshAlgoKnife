@@ -38,7 +38,9 @@ load_dotenv(os.path.join(os.getcwd(), '.env.local'))
 # ============================================================================
 
 WEBHOOK_URL       = "http://localhost:3000/api/webhook/tradingview"
-WEBHOOK_SECRET    = os.getenv("WEBHOOK_SECRET", "swjshak-tv-webhook-2026")
+WEBHOOK_SECRET    = os.getenv("WEBHOOK_SECRET")
+if not WEBHOOK_SECRET:
+    raise RuntimeError("WEBHOOK_SECRET environment variable is required")
 
 ET = pytz.timezone("America/New_York")
 
