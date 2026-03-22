@@ -7,13 +7,13 @@
     position: relative;
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 10px 20px;
+    gap: 20px;
+    padding: 12px 24px;
     background: rgba(6, 182, 212, 0.04);
     border: 1px solid rgba(6, 182, 212, 0.12);
-    border-radius: 12px;
-    min-width: 560px;
-    height: 72px;
+    border-radius: 14px;
+    min-width: 660px;
+    height: 86px;
     flex-shrink: 0;
     transition: all 0.25s ease;
 }
@@ -35,7 +35,7 @@
 }
 
 .clockLabel {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
     letter-spacing: 0.14em;
@@ -53,21 +53,21 @@
 .sessionTag {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 11px;
+    gap: 5px;
+    font-size: 13px;
     font-weight: 700;
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
     letter-spacing: 0.04em;
-    padding: 2px 8px;
+    padding: 3px 10px;
     border: 1px solid;
-    border-radius: 4px;
+    border-radius: 5px;
     white-space: nowrap;
     line-height: 1.4;
 }
 
 .tagDot {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     flex-shrink: 0;
     animation: dotPulse 2s ease-in-out infinite;
@@ -79,7 +79,7 @@
 }
 
 .sessionTagClosed {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
     letter-spacing: 0.08em;
@@ -100,23 +100,23 @@
 .timelineInner {
     display: flex;
     flex-direction: column;
-    gap: 3px;
-    padding-left: 36px;
+    gap: 4px;
+    padding-left: 44px;
 }
 
 .sessionRow {
     display: flex;
     align-items: center;
-    height: 10px;
+    height: 12px;
     position: relative;
 }
 
 .rowLabel {
     position: absolute;
-    left: -36px;
-    width: 32px;
+    left: -44px;
+    width: 40px;
     text-align: right;
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 700;
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
     letter-spacing: 0.03em;
@@ -159,14 +159,14 @@
 /* Hour scale */
 .hourScale {
     position: relative;
-    height: 13px;
-    margin-top: 2px;
+    height: 15px;
+    margin-top: 3px;
 }
 
 .hourTick {
     position: absolute;
     transform: translateX(-50%);
-    font-size: 9px;
+    font-size: 10px;
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
     color: rgba(255, 255, 255, 0.15);
     font-weight: 500;
@@ -178,13 +178,13 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 2px;
+    gap: 3px;
     flex-shrink: 0;
-    min-width: 90px;
+    min-width: 110px;
 }
 
 .etTime {
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 700;
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
     color: rgba(255, 255, 255, 0.85);
@@ -193,7 +193,7 @@
 }
 
 .etLabel {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 600;
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
     color: rgba(255, 255, 255, 0.3);
@@ -208,14 +208,14 @@
 }
 
 .nextDot {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     flex-shrink: 0;
 }
 
 .nextText {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
     color: rgba(255, 255, 255, 0.45);
@@ -516,7 +516,7 @@
 
 @media (max-width: 1400px) {
     .wrapper {
-        min-width: 480px;
+        min-width: 560px;
     }
 }
 
@@ -525,7 +525,7 @@
         display: none;
     }
     .wrapper {
-        min-width: 340px;
+        min-width: 400px;
     }
 }
 
