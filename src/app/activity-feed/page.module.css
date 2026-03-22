@@ -10,24 +10,17 @@
     box-sizing: border-box;
 }
 
-/* Header — single compact row */
-.header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 4px;
-    gap: 12px;
-    flex-shrink: 0;
-}
-
-.titleSection {
+/* Unified top bar — title + stats + clock in one row */
+.topBar {
     display: flex;
     align-items: center;
     gap: 10px;
+    margin-bottom: 4px;
+    flex-shrink: 0;
 }
 
 .title {
-    font-size: 20px;
+    font-size: 15px;
     font-weight: 700;
     margin: 0;
     line-height: 1;
@@ -36,37 +29,30 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     white-space: nowrap;
-}
-
-.subtitle {
-    font-size: 11px;
-    font-family: 'JetBrains Mono', 'Consolas', monospace;
-    color: rgba(255, 255, 255, 0.35);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .clockSection {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
+    gap: 5px;
+    padding: 3px 8px;
     background: rgba(6, 182, 212, 0.08);
     border: 1px solid rgba(6, 182, 212, 0.2);
-    border-radius: 6px;
+    border-radius: 5px;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 .clockTime {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
     color: #06b6d4;
 }
 
 .clockDate {
-    font-size: 11px;
+    font-size: 10px;
     font-family: 'JetBrains Mono', monospace;
     color: rgba(255, 255, 255, 0.4);
 }
@@ -165,12 +151,10 @@
     box-shadow: none;
 }
 
-/* Jira Ticket Strip - Bottom Row — capped height, scrollable */
+/* Jira Ticket Strip - Bottom Row */
 .ticketStripWrapper {
     flex-shrink: 0;
     margin-top: 6px;
-    max-height: 160px;
-    overflow-y: auto;
 }
 
 /* Agent Grid - 2x3 layout, full width */
@@ -225,9 +209,9 @@
         padding: 10px;
     }
 
-    .header {
-        flex-direction: column;
-        gap: 8px;
+    .topBar {
+        flex-wrap: wrap;
+        gap: 6px;
     }
 
     .agentGrid {

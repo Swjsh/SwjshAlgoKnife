@@ -159,24 +159,13 @@ export default function ActivityFeedPage() {
 
     return (
         <div className={styles.container}>
-            {/* Header */}
-            <header className={styles.header}>
-                <div className={styles.titleSection}>
-                    <h1 className={styles.title}>
-                        <Activity size={18} style={{ display: 'inline', marginRight: 6 }} />
-                        Activity Feed
-                    </h1>
-                    <span className={styles.subtitle}>Halo Crew // Real-Time Agent Monitoring</span>
-                </div>
-
-                <div className={styles.clockSection}>
-                    <span className={styles.clockTime}>{formattedTime}</span>
-                    <span className={styles.clockDate}>{formattedDate}</span>
-                </div>
-            </header>
-
-            {/* Activity Stats Bar */}
-            <ActivityStats
+            {/* Unified top bar: title + stats + clock */}
+            <div className={styles.topBar}>
+                <h1 className={styles.title}>
+                    <Activity size={16} style={{ display: 'inline', marginRight: 4 }} />
+                    Activity Feed
+                </h1>
+                <ActivityStats
                 onlineCount={onlineCount}
                 busyCount={busyCount}
                 activeCount={activeCount}
@@ -196,6 +185,11 @@ export default function ActivityFeedPage() {
                 onStartLoop={startLoop}
                 onStopLoop={stopLoop}
             />
+                <div className={styles.clockSection}>
+                    <span className={styles.clockTime}>{formattedTime}</span>
+                    <span className={styles.clockDate}>{formattedDate}</span>
+                </div>
+            </div>
 
             {/* Master Broadcast Input */}
             <div className={styles.broadcastSection}>
