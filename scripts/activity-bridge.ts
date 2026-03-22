@@ -14,6 +14,11 @@ import * as path from 'path';
 import * as readline from 'readline';
 import { addLogEntry, addStatusEntry, flush as flushActivityLog } from '../src/lib/activity-log';
 
+// ─── Configuration Constants ─────────────────────────────────────────────────
+
+// Maximum characters to broadcast from assistant text (increased for terminal fidelity)
+const MAX_LOG_TEXT_LENGTH = 2000;
+
 // ─── Command Queue ────────────────────────────────────────────────────────────
 
 const COMMAND_DIR = path.join(process.cwd(), 'data', 'commands');
@@ -79,7 +84,9 @@ interface HeartbeatAgentState {
   lastSeen: string | null;
   lastNudge: string | null;
   nudgeCount: number;
-  status: 'alive' | 'stale' | 'dead' | 'unknown';
+  status: 'alive' | 'stale' | 'dead' | 'unknown' | 'waiting_input';
+  waitingDetectedAt: string | null;
+  lastPrompt: string | null;
 }
 
 interface HeartbeatConfig {
@@ -111,6 +118,8 @@ function loadHeartbeatState(): HeartbeatState {
       lastNudge: null,
       nudgeCount: 0,
       status: 'unknown',
+      waitingDetectedAt: null,
+      lastPrompt: null,
     };
   }
   return {
@@ -144,6 +153,36 @@ function computeHeartbeatStatus(lastSeen: string | null, config: HeartbeatConfig
   return 'dead';
 }
 
+function detectWaitingState(text: string): boolean {
+  // Exclude patterns - don't detect these as waiting
+  const excludePatterns = [
+    /^\[TOOL\]/i,           // Tool calls
+    /^\[USER\]/i,           // User messages
+    /^\[RESULT\]/i,         // Tool results
+    /^```/,                 // Code blocks
+    /"command":/,           // JSON tool commands
+    /"description":/,       // JSON tool descriptions
+  ];
+  for (const pattern of excludePatterns) {
+    if (pattern.test(text)) return false;
+  }
+
+  // Waiting patterns - detect these as waiting for input
+  const waitingPatterns = [
+    /Shall I\s+(proceed|continue|fix|create|implement)/i,
+    /Should I\s+(proceed|continue|fix|create|implement)/i,
+    /Do you want me to/i,
+    /Would you like me to/i,
+    /Please (confirm|choose|select|pick)/i,
+    /Which (option|approach|one) (would you|do you|should)/i,
+    /ready to (proceed|continue|start)/i,
+  ];
+  for (const pattern of waitingPatterns) {
+    if (pattern.test(text)) return true;
+  }
+  return false;
+}
+
 function updateHeartbeat(agentId: string) {
   const state = loadHeartbeatState();
   if (!state.agents[agentId]) {
@@ -152,6 +191,8 @@ function updateHeartbeat(agentId: string) {
       lastNudge: null,
       nudgeCount: 0,
       status: 'unknown',
+      waitingDetectedAt: null,
+      lastPrompt: null,
     };
   }
   state.agents[agentId].lastSeen = new Date().toISOString();
@@ -181,7 +222,7 @@ function sendNudge(agentId: string, isAuto: boolean = false): boolean {
 
   // Update nudge tracking
   if (!heartbeatState.agents[agentId]) {
-    heartbeatState.agents[agentId] = { lastSeen: null, lastNudge: null, nudgeCount: 0, status: 'unknown' };
+    heartbeatState.agents[agentId] = { lastSeen: null, lastNudge: null, nudgeCount: 0, status: 'unknown', waitingDetectedAt: null, lastPrompt: null };
   }
   heartbeatState.agents[agentId].lastNudge = now.toISOString();
   heartbeatState.agents[agentId].nudgeCount++;
@@ -197,6 +238,37 @@ function sendNudge(agentId: string, isAuto: boolean = false): boolean {
     timestamp: now.toISOString(),
   });
 
+  return true;
+}
+
+function sendAutonomyNudge(agentId: string): boolean {
+  const command = `CONTINUE: You are operating in AUTONOMOUS mode per your SOUL file. Do not wait for human approval. Execute your PRIMARY WORKFLOW now. If you asked a question, pick the safer/smaller option and proceed. Status: Autonomous, no permission required.`;
+
+  const agentWs = agentConnections.get(agentId);
+  if (agentWs && agentWs.readyState === WebSocket.OPEN) {
+    agentWs.send(JSON.stringify({
+      type: 'hub:command',
+      command,
+      from: 'auto-continue',
+      timestamp: new Date().toISOString(),
+    }));
+  } else {
+    enqueueCommand(agentId, command);
+  }
+
+  // Clear waiting state
+  if (heartbeatState.agents[agentId]) {
+    heartbeatState.agents[agentId].status = 'alive';
+    heartbeatState.agents[agentId].waitingDetectedAt = null;
+  }
+
+  broadcast({
+    type: 'agent:auto_continued',
+    agent: agentId,
+    timestamp: new Date().toISOString(),
+  });
+
+  console.log(`[Heartbeat] Sent autonomy nudge to ${agentId}`);
   return true;
 }
 
@@ -292,6 +364,76 @@ for (const dir of PROJECT_DIRS) {
   console.log(`  - ${dir}`);
 }
 console.log('');
+
+// ─── Startup Detection: Check historical messages for waiting states ─────────
+function detectWaitingOnStartup(): void {
+  const activityFeedPath = path.join(process.cwd(), 'data', 'activity-feed.json');
+  if (!fs.existsSync(activityFeedPath)) {
+    console.log('[Startup] No activity-feed.json found, skipping historical detection');
+    return;
+  }
+
+  try {
+    const feedData = JSON.parse(fs.readFileSync(activityFeedPath, 'utf-8'));
+    const entries = feedData.entries || [];
+
+    // Find the last log message from each agent (assistant output, not user input)
+    const lastMessages: Map<string, { text: string; timestamp: string }> = new Map();
+
+    for (const entry of entries) {
+      if (entry.type !== 'log') continue;
+      const agentName = entry.agent?.toLowerCase();
+      const line = entry.data?.line || '';
+      const level = entry.data?.level || '';
+
+      // Skip user messages - look for assistant output (level: 'assistant' or lines that don't start with [USER])
+      if (line.startsWith('[USER]')) continue;
+
+      if (agentName && line) {
+        lastMessages.set(agentName, { text: line, timestamp: entry.timestamp });
+      }
+    }
+
+    // Check each agent's last message for waiting patterns
+    let detectedCount = 0;
+    for (const [agentId, { text, timestamp }] of lastMessages) {
+      if (detectWaitingState(text)) {
+        // Only mark as waiting if the message is recent (within 24 hours)
+        const messageAge = Date.now() - new Date(timestamp).getTime();
+        const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+
+        if (messageAge < maxAge) {
+          if (!heartbeatState.agents[agentId]) {
+            heartbeatState.agents[agentId] = {
+              lastSeen: null,
+              lastNudge: null,
+              nudgeCount: 0,
+              status: 'unknown',
+              waitingDetectedAt: null,
+              lastPrompt: null,
+            };
+          }
+          heartbeatState.agents[agentId].status = 'waiting_input';
+          heartbeatState.agents[agentId].waitingDetectedAt = timestamp;
+          heartbeatState.agents[agentId].lastPrompt = text.substring(0, 200);
+          detectedCount++;
+          console.log(`[Startup] Detected waiting state for ${agentId}: "${text.substring(0, 60)}..."`);
+        }
+      }
+    }
+
+    // Persist updated state if we found any
+    if (detectedCount > 0) {
+      saveHeartbeatState(heartbeatState);
+    }
+    console.log(`[Startup] Historical waiting detection complete (${detectedCount} agents waiting)`);
+  } catch (err) {
+    console.error('[Startup] Error checking historical messages:', err);
+  }
+}
+
+// Run startup detection
+detectWaitingOnStartup();
 
 wss.on('connection', (ws: WebSocket) => {
   console.log('[Bridge] New connection');
@@ -490,6 +632,13 @@ wss.on('connection', (ws: WebSocket) => {
         return;
       }
 
+      // Handle auto-continue request
+      if (msg.type === 'dashboard:continue' && msg.agentId) {
+        const agentId = msg.agentId.toLowerCase();
+        sendAutonomyNudge(agentId);
+        return;
+      }
+
       // Handle manual nudge request
       if (msg.type === 'dashboard:nudge' && msg.agentId) {
         const agentWs = agentConnections.get(msg.agentId.toLowerCase());
@@ -677,22 +826,39 @@ function broadcastLog(agentId: string, text: string, level: string = 'info') {
     logId: `log-${logIdCounter}`,
   });
 
+  // Detect waiting state
+  if (detectWaitingState(text)) {
+    if (heartbeatState.agents[agentId]) {
+      heartbeatState.agents[agentId].status = 'waiting_input';
+      heartbeatState.agents[agentId].waitingDetectedAt = new Date().toISOString();
+      heartbeatState.agents[agentId].lastPrompt = text.substring(0, 200);
+    }
+
+    broadcast({
+      type: 'agent:waiting',
+      agent: agentId,
+      prompt: text.substring(0, 200),
+      timestamp: new Date().toISOString(),
+    });
+  }
+
   console.log(`[${agentId.toUpperCase()}] ${text.substring(0, 80)}...`);
 }
 
 // ─── Agent Detection ───────────────────────────────────────────────────────────
 
 // Broad patterns to detect agent type from session content
+// Updated to match current SOUL file names and agent role keywords
 function detectAgent(content: string): string | null {
   const patterns: Record<string, RegExp> = {
-    // Explicit terminal/agent identifiers
-    chief:   /Terminal 1.*Chief|agent-mgmt\.md|MGMT Agent|Chief.*Command|management|orchestrat/i,
-    hunter:  /Terminal 2.*Hunter|agent-hunter\.md|agent-infra\.md|INFRA Agent|Hunter.*Bug|bug.*hunt|debug|fix.*error/i,
-    ops:     /Terminal 3.*Ops|agent-scrum\.md|SCRUM Agent|Ops.*Core|scrum|sprint|task|hourly.*audit|sync|status/i,
-    scout:   /Terminal 4.*Scout|agent-back\.md|BACK Agent|Scout.*Research|research|explore|search|investigate/i,
-    arbiter: /Terminal 5.*Arbiter|agent-pulse\.md|PULSE Agent|Arbiter.*Health|health.*check|monitor|pulse|validation/i,
-    cortana: /Terminal 6.*Cortana|agent-learn\.md|agent-grade\.md|LEARN Agent|GRADE Agent|Cortana.*Pattern|learn|grade|pattern|review/i,
-    oracle:  /Terminal 7.*Oracle|oracle[\/\\]CLAUDE\.md|SAGE Agent|Oracle.*Knowledge|knowledge|intel|scoring|validation|source.*reliability/i,
+    // Match agent name, SOUL file, or role keywords
+    chief:   /\bChief\b|CHIEF_SOUL|COO|management|orchestrat|coordinat|brief/i,
+    hunter:  /\bHunter\b|HUNTER_SOUL|security|vulnerab|tech.?debt|bug.*hunt|scan/i,
+    ops:     /\bOps\b|OPS_SOUL|SRE|incident|system.*health|monitor|uptime/i,
+    scout:   /\bScout\b|SCOUT_SOUL|strategy|feature|backlog|research|explore/i,
+    arbiter: /\bArbiter\b|ARBITER_SOUL|QA|quality|constraint|gate|validation/i,
+    cortana: /\bCortana\b|CORTANA_SOUL|pattern|learn|knowledge|extract/i,
+    oracle:  /\bOracle\b|ORACLE_SOUL|intel|scoring|source.*reliability/i,
   };
 
   for (const [agent, pattern] of Object.entries(patterns)) {
@@ -718,19 +884,19 @@ function detectAgentFromActivity(toolName: string, input: Record<string, unknown
   return null;
 }
 
-// STRICT agent detection - only matches explicit Halo agent identifiers from LAUNCH_AGENTS.ps1
-// This ensures we only show the 7 VS Code terminals, not random Claude sessions
+// STRICT agent detection - matches explicit Halo agent identifiers from LAUNCH_AGENTS.ps1
+// Updated to match the current launch format: "You are {Agent}. Your SOUL file has been loaded..."
+// and SOUL file paths like "Library\agent-souls\CHIEF_SOUL.md"
 function detectAgentStrict(content: string): string | null {
-  // Must match the exact format from LAUNCH_AGENTS.ps1:
-  // "Terminal 1: Chief" or "halo-crew/agents/chief/CLAUDE.md"
   const strictPatterns: Record<string, RegExp> = {
-    chief:   /Terminal 1[:\s]+Chief|halo-crew[\/\\]agents[\/\\]chief[\/\\]CLAUDE\.md/i,
-    hunter:  /Terminal 2[:\s]+Hunter|halo-crew[\/\\]agents[\/\\]hunter[\/\\]CLAUDE\.md/i,
-    ops:     /Terminal 3[:\s]+Ops|halo-crew[\/\\]agents[\/\\]ops[\/\\]CLAUDE\.md/i,
-    scout:   /Terminal 4[:\s]+Scout|halo-crew[\/\\]agents[\/\\]scout[\/\\]CLAUDE\.md/i,
-    arbiter: /Terminal 5[:\s]+Arbiter|halo-crew[\/\\]agents[\/\\]arbiter[\/\\]CLAUDE\.md/i,
-    cortana: /Terminal 6[:\s]+Cortana|halo-crew[\/\\]agents[\/\\]cortana[\/\\]CLAUDE\.md/i,
-    oracle:  /Terminal 7[:\s]+Oracle|halo-crew[\/\\]agents[\/\\]oracle[\/\\]CLAUDE\.md/i,
+    // Match "You are Chief" or CHIEF_SOUL.md path (with proper escaping)
+    chief:   /You are Chief\b|CHIEF_SOUL\.md|agent-souls[\/\\]CHIEF_SOUL\.md/i,
+    hunter:  /You are Hunter\b|HUNTER_SOUL\.md|agent-souls[\/\\]HUNTER_SOUL\.md/i,
+    ops:     /You are Ops\b|OPS_SOUL\.md|agent-souls[\/\\]OPS_SOUL\.md/i,
+    scout:   /You are Scout\b|SCOUT_SOUL\.md|agent-souls[\/\\]SCOUT_SOUL\.md/i,
+    arbiter: /You are Arbiter\b|ARBITER_SOUL\.md|agent-souls[\/\\]ARBITER_SOUL\.md/i,
+    cortana: /You are Cortana\b|CORTANA_SOUL\.md|agent-souls[\/\\]CORTANA_SOUL\.md/i,
+    oracle:  /You are Oracle\b|ORACLE_SOUL\.md|agent-souls[\/\\]ORACLE_SOUL\.md/i,
   };
 
   for (const [agent, pattern] of Object.entries(strictPatterns)) {
@@ -787,7 +953,13 @@ function parseSessionLine(line: string, sessionId: string): void {
     if (agentId === 'unknown') {
       agentId = 'chief'; // Default to Chief for general sessions
       agentSessions.set(sessionId, agentId);
-      console.log(`[Bridge] Assigning unidentified session ${sessionId.substring(0, 8)} to Chief (default)`);
+      // Log content snippet to help debug detection failures
+      const contentSnippet = event.type === 'user' && event.message?.content
+        ? (typeof event.message.content === 'string'
+            ? event.message.content.substring(0, 100)
+            : JSON.stringify(event.message.content).substring(0, 100))
+        : '[no content]';
+      console.log(`[Bridge] ⚠️ Unidentified session ${sessionId.substring(0, 8)} → Chief (fallback). Content: "${contentSnippet}..."`);
     }
 
     // Handle different event types
@@ -822,11 +994,11 @@ function parseSessionLine(line: string, sessionId: string): void {
       const content = event.message.content;
 
       if (Array.isArray(content)) {
-        // Check for text content
+        // Check for text content (truncation limit configured via MAX_LOG_TEXT_LENGTH)
         const textParts = content.filter((c: any) => c.type === 'text');
         for (const part of textParts) {
           if (part.text) {
-            broadcastLog(agentId, part.text.substring(0, 300), 'info');
+            broadcastLog(agentId, part.text.substring(0, MAX_LOG_TEXT_LENGTH), 'info');
           }
         }
 
@@ -1035,6 +1207,20 @@ setInterval(() => {
     if (heartbeatState.config.autoNudgeEnabled && newStatus === 'stale' && prevStatus === 'alive') {
       console.log(`[Heartbeat] ${agentId} became stale - sending auto-nudge`);
       sendNudge(agentId, true);
+    }
+  }
+
+  // Auto-continue for agents waiting too long
+  const WAITING_AUTO_CONTINUE_MS = 60000; // 1 minute
+
+  for (const agentId of ALL_AGENT_IDS) {
+    const agentState = heartbeatState.agents[agentId];
+    if (agentState?.status === 'waiting_input' && agentState.waitingDetectedAt) {
+      const waitingElapsed = Date.now() - new Date(agentState.waitingDetectedAt).getTime();
+      if (waitingElapsed > WAITING_AUTO_CONTINUE_MS) {
+        console.log(`[Heartbeat] ${agentId} waiting too long - sending auto-continue`);
+        sendAutonomyNudge(agentId);
+      }
     }
   }
 

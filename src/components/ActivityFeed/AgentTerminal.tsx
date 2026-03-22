@@ -2,15 +2,18 @@
 
 import React, { useEffect, useRef, useState, useCallback, KeyboardEvent } from 'react';
 import Image from 'next/image';
-import { Terminal, Circle, Send, Zap } from 'lucide-react';
+import { Terminal, Circle, Send, Zap, CheckCircle2, Loader2, ListTodo, Play } from 'lucide-react';
 import styles from './AgentTerminal.module.css';
 import type { AgentState, LogEntry, AgentStatus, HeartbeatAgentState } from '@/hooks/useActivityFeed';
+import type { AgentStats } from '@/hooks/useJiraStats';
 
 interface AgentTerminalProps {
     agent: AgentState;
     onSendCommand?: (agentId: string, command: string) => void;
     heartbeat?: HeartbeatAgentState;
     onNudge?: (agentId: string) => void;
+    onContinue?: (agentId: string) => void;
+    jiraStats?: AgentStats;
 }
 
 // ANSI color code mapping
@@ -74,16 +77,16 @@ function formatLogMessage(text: string): { prefix: string | null; content: strin
     if (prefixMatch) {
         return {
             prefix: prefixMatch[1],
-            content: text.substring(prefixMatch[0].length).substring(0, 200),
+            content: text.substring(prefixMatch[0].length).substring(0, 1000),
         };
     }
-    return { prefix: null, content: text.substring(0, 400) };
+    return { prefix: null, content: text.substring(0, 1500) };
 }
 
 function parseAnsiText(input: unknown): React.ReactNode[] {
     const text = stringifyMessage(input);
-    // Truncate very long messages for readability (increased for raw terminal output)
-    const truncatedText = text.length > 500 ? text.substring(0, 500) + '...' : text;
+    // Truncate very long messages for readability (increased for better terminal fidelity)
+    const truncatedText = text.length > 2000 ? text.substring(0, 2000) + '...' : text;
     const parts: React.ReactNode[] = [];
     let currentColor: string | null = null;
     let currentText = '';
@@ -186,7 +189,7 @@ function getHeartbeatLabel(status: HeartbeatAgentState['status']): string {
     }
 }
 
-export function AgentTerminal({ agent, onSendCommand, heartbeat, onNudge }: AgentTerminalProps) {
+export function AgentTerminal({ agent, onSendCommand, heartbeat, onNudge, onContinue, jiraStats }: AgentTerminalProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const [inputValue, setInputValue] = useState('');
@@ -194,6 +197,7 @@ export function AgentTerminal({ agent, onSendCommand, heartbeat, onNudge }: Agen
 
     const heartbeatStatus = heartbeat?.status || 'unknown';
     const isStaleOrDead = heartbeatStatus === 'stale' || heartbeatStatus === 'dead';
+    const isWaitingInput = heartbeatStatus === 'waiting_input';
     const heartbeatLabel = getHeartbeatLabel(heartbeatStatus);
 
     // Handle wake button click
@@ -252,7 +256,30 @@ export function AgentTerminal({ agent, onSendCommand, heartbeat, onNudge }: Agen
                     )}
                     <div className={styles.headerInfo}>
                         <span className={styles.title} style={{ color: agent.color }}>{agent.name.toUpperCase()}</span>
-                        <span className={styles.titleSub}>TERMINAL</span>
+                        {jiraStats && jiraStats.total > 0 ? (
+                            <div className={styles.ticketBadges}>
+                                {jiraStats.done > 0 && (
+                                    <span className={`${styles.ticketBadge} ${styles.ticketDone}`} title={`${jiraStats.done} completed`}>
+                                        <CheckCircle2 size={10} />
+                                        {jiraStats.done}
+                                    </span>
+                                )}
+                                {jiraStats.inProgress > 0 && (
+                                    <span className={`${styles.ticketBadge} ${styles.ticketActive}`} title={`${jiraStats.inProgress} in progress`}>
+                                        <Loader2 size={10} />
+                                        {jiraStats.inProgress}
+                                    </span>
+                                )}
+                                {jiraStats.todo > 0 && (
+                                    <span className={`${styles.ticketBadge} ${styles.ticketTodo}`} title={`${jiraStats.todo} queued`}>
+                                        <ListTodo size={10} />
+                                        {jiraStats.todo}
+                                    </span>
+                                )}
+                            </div>
+                        ) : (
+                            <span className={styles.titleSub}>TERMINAL</span>
+                        )}
                     </div>
                 </div>
                 <div className={styles.headerRight}>
@@ -267,6 +294,14 @@ export function AgentTerminal({ agent, onSendCommand, heartbeat, onNudge }: Agen
                         </div>
                     )}
 
+                    {/* Waiting state indicator */}
+                    {isWaitingInput && (
+                        <div className={styles.waitingIndicator}>
+                            <div className={styles.waitingPulse} />
+                            <span className={styles.waitingLabel}>WAITING</span>
+                        </div>
+                    )}
+
                     {/* Wake button for stale/dead agents */}
                     {isStaleOrDead && onNudge && (
                         <button
@@ -277,6 +312,19 @@ export function AgentTerminal({ agent, onSendCommand, heartbeat, onNudge }: Agen
                         >
                             <Zap size={12} />
                             Wake
+                        </button>
+                    )}
+
+                    {/* Continue button for waiting agents */}
+                    {isWaitingInput && onContinue && (
+                        <button
+                            className={styles.continueButton}
+                            onClick={() => onContinue(agent.id)}
+                            title="Tell agent to continue autonomously"
+                            style={{ '--agent-color': agent.color } as React.CSSProperties}
+                        >
+                            <Play size={12} />
+                            Continue
                         </button>
                     )}
 
@@ -365,6 +413,18 @@ export function AgentTerminal({ agent, onSendCommand, heartbeat, onNudge }: Agen
                     <Send size={14} />
                 </button>
             </div>
+
+            {/* Show waiting prompt */}
+            {isWaitingInput && heartbeat?.lastPrompt && (
+                <div className={styles.waitingPrompt}>
+                    <span className={styles.waitingPromptIcon}>💬</span>
+                    <span className={styles.waitingPromptText}>
+                        {heartbeat.lastPrompt.length > 100
+                            ? heartbeat.lastPrompt.substring(0, 100) + '...'
+                            : heartbeat.lastPrompt}
+                    </span>
+                </div>
+            )}
 
             {/* Color accent bar at bottom */}
             <div className={styles.accentBar} style={{ background: agent.color }} />

@@ -42,10 +42,12 @@ export interface PermissionStats {
 }
 
 export interface HeartbeatAgentState {
-    status: 'alive' | 'stale' | 'dead' | 'unknown';
+    status: 'alive' | 'stale' | 'dead' | 'unknown' | 'waiting_input';
     lastSeen: string | null;
     nudgeCount: number;
     lastNudge: string | null;
+    waitingDetectedAt: string | null;
+    lastPrompt: string | null;
 }
 
 export interface HeartbeatConfig {
@@ -202,11 +204,11 @@ export function useActivityFeed(wsUrl = 'ws://localhost:3001') {
     const reconnectAttemptsRef = useRef(0);
 
     // ─── Log Throttling ────────────────────────────────────────────────────────
-    // Buffer logs and flush every 750ms to prevent UI spam and fast scrolling
+    // Buffer logs and flush periodically to prevent UI spam while maintaining fidelity
     const logBufferRef = useRef<Map<string, LogEntry[]>>(new Map());
     const flushTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const LOG_FLUSH_INTERVAL = 750; // ms - slower to prevent scrolling too fast
-    const MAX_LOGS_PER_FLUSH = 3; // Max logs to add per agent per flush - reduced for readability
+    const LOG_FLUSH_INTERVAL = 400; // ms - faster for better real-time feel
+    const MAX_LOGS_PER_FLUSH = 8; // Max logs to add per agent per flush - increased for better fidelity
 
     const flushLogBuffer = useCallback(() => {
         const buffer = logBufferRef.current;
@@ -364,7 +366,7 @@ export function useActivityFeed(wsUrl = 'ws://localhost:3001') {
                 id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
                 timestamp: message.timestamp || new Date().toISOString(),
                 level: mapLogLevel(message.level || (message.stream === 'stderr' ? 'error' : 'info')),
-                text: lineText.substring(0, 1000),
+                text: lineText.substring(0, 3000),
                 agentId: agentName,
             };
 
@@ -380,7 +382,7 @@ export function useActivityFeed(wsUrl = 'ws://localhost:3001') {
                 id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
                 timestamp: message.timestamp || new Date().toISOString(),
                 level: mapLogLevel(message.level),
-                text: lineText.substring(0, 1000),
+                text: lineText.substring(0, 3000),
                 agentId: agentName,
             };
 
@@ -645,6 +647,7 @@ export function useActivityFeed(wsUrl = 'ws://localhost:3001') {
                     const agentName = message.agent?.toLowerCase();
                     if (agentName) {
                         const heartbeatStatus = (message.status as HeartbeatAgentState['status']) || 'unknown';
+                        const existingState = prev.heartbeat[agentName];
                         newState.heartbeat = {
                             ...prev.heartbeat,
                             [agentName]: {
@@ -652,6 +655,8 @@ export function useActivityFeed(wsUrl = 'ws://localhost:3001') {
                                 lastSeen: message.lastSeen || null,
                                 nudgeCount: message.nudgeCount || 0,
                                 lastNudge: message.lastNudge || null,
+                                waitingDetectedAt: existingState?.waitingDetectedAt || null,
+                                lastPrompt: existingState?.lastPrompt || null,
                             },
                         };
                     }
@@ -676,6 +681,40 @@ export function useActivityFeed(wsUrl = 'ws://localhost:3001') {
                                 ...prev.heartbeat[agentName],
                                 nudgeCount: message.nudgeCount || (prev.heartbeat[agentName]?.nudgeCount || 0) + 1,
                                 lastNudge: message.timestamp || new Date().toISOString(),
+                            },
+                        };
+                    }
+                    break;
+                }
+
+                case 'agent:waiting': {
+                    const agentName = message.agent?.toLowerCase();
+                    if (agentName) {
+                        newState.heartbeat = {
+                            ...prev.heartbeat,
+                            [agentName]: {
+                                ...prev.heartbeat[agentName],
+                                status: 'waiting_input',
+                                lastPrompt: message.prompt || null,
+                                waitingDetectedAt: message.timestamp || new Date().toISOString(),
+                                lastSeen: prev.heartbeat[agentName]?.lastSeen || null,
+                                nudgeCount: prev.heartbeat[agentName]?.nudgeCount || 0,
+                                lastNudge: prev.heartbeat[agentName]?.lastNudge || null,
+                            },
+                        };
+                    }
+                    break;
+                }
+
+                case 'agent:auto_continued': {
+                    const agentName = message.agent?.toLowerCase();
+                    if (agentName && prev.heartbeat[agentName]) {
+                        newState.heartbeat = {
+                            ...prev.heartbeat,
+                            [agentName]: {
+                                ...prev.heartbeat[agentName],
+                                status: 'alive',
+                                waitingDetectedAt: null,
                             },
                         };
                     }
@@ -835,6 +874,17 @@ export function useActivityFeed(wsUrl = 'ws://localhost:3001') {
         }
     }, []);
 
+    const continueAgent = useCallback((agentId: string) => {
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({
+                type: 'dashboard:continue',
+                agentId,
+                timestamp: new Date().toISOString(),
+            }));
+            console.log(`[ActivityFeed] Continue sent to ${agentId}`);
+        }
+    }, []);
+
     const setHeartbeatConfig = useCallback((config: Partial<HeartbeatConfig>) => {
         if (wsRef.current?.readyState === WebSocket.OPEN) {
             wsRef.current.send(JSON.stringify({
@@ -869,6 +919,7 @@ export function useActivityFeed(wsUrl = 'ws://localhost:3001') {
     const offlineCount = agentValues.filter(a => a.status === 'offline').length;
     const totalAgents = Object.keys(state.agents).length;
     const activeCount = onlineCount + busyCount; // online or busy = active
+    const waitingCount = Object.values(state.heartbeat).filter(h => h.status === 'waiting_input').length;
 
     return {
         ...state,
@@ -891,7 +942,9 @@ export function useActivityFeed(wsUrl = 'ws://localhost:3001') {
         heartbeatConfig: state.heartbeatConfig,
         nudgeAgent,
         nudgeAllStale,
+        continueAgent,
         setHeartbeatConfig,
+        waitingCount,
     };
 }
 
