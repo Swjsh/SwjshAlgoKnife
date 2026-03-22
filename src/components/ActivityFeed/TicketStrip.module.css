@@ -384,27 +384,13 @@
    Header & Refresh Section - Jira ticket controls
    ═══════════════════════════════════════════════════════════════════════════ */
 
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 4px;
-    margin-bottom: 4px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.title {
-    font-size: 12px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.85);
-    letter-spacing: 0.04em;
-}
-
 .refreshSection {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 8px;
+    justify-content: flex-end;
+    gap: 6px;
+    padding-bottom: 2px;
 }
 
 .lastUpdated {

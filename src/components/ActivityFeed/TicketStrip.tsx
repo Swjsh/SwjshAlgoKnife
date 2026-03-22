@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
+import { ArrowRight, Check, RefreshCw, Loader2 } from 'lucide-react';
 import styles from './TicketStrip.module.css';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -25,6 +26,9 @@ export interface TicketStripProps {
         [agentId: string]: AgentTickets;
     };
     isLoading?: boolean;
+    onTransition?: (key: string, status: 'In Progress' | 'Done', comment?: string) => Promise<void>;
+    onRefresh?: () => void;
+    lastUpdated?: string | null;
 }
 
 // ─── Agent Configuration ──────────────────────────────────────────────────────
@@ -65,9 +69,32 @@ function truncateSummary(summary: string, maxLength: number = 40): string {
 interface TicketCardProps {
     ticket: Ticket | null;
     slotType: 'done' | 'inProgress' | 'next';
+    onTransition?: (key: string, status: 'In Progress' | 'Done', comment?: string) => Promise<void>;
 }
 
-function TicketCard({ ticket, slotType }: TicketCardProps) {
+function TicketCard({ ticket, slotType, onTransition }: TicketCardProps) {
+    const [isTransitioning, setIsTransitioning] = useState(false);
+
+    const handlePickUp = async () => {
+        if (!ticket || !onTransition || isTransitioning) return;
+        setIsTransitioning(true);
+        try {
+            await onTransition(ticket.key, 'In Progress', 'Picked up via Activity Feed');
+        } finally {
+            setIsTransitioning(false);
+        }
+    };
+
+    const handleComplete = async () => {
+        if (!ticket || !onTransition || isTransitioning) return;
+        setIsTransitioning(true);
+        try {
+            await onTransition(ticket.key, 'Done', 'Completed via Activity Feed');
+        } finally {
+            setIsTransitioning(false);
+        }
+    };
+
     if (!ticket) {
         return (
             <div className={`${styles.ticketSlot} ${styles[slotType]} ${styles.empty}`}>
@@ -100,6 +127,38 @@ function TicketCard({ ticket, slotType }: TicketCardProps) {
                     </svg>
                 )}
             </div>
+            {slotType === 'next' && onTransition && (
+                <button
+                    className={`${styles.pickUpButton} ${isTransitioning ? styles.buttonLoading : ''}`}
+                    onClick={handlePickUp}
+                    disabled={isTransitioning}
+                >
+                    {isTransitioning ? (
+                        <Loader2 size={12} className={styles.spinning} />
+                    ) : (
+                        <>
+                            <ArrowRight size={12} />
+                            Pick Up
+                        </>
+                    )}
+                </button>
+            )}
+            {slotType === 'inProgress' && onTransition && (
+                <button
+                    className={`${styles.completeButton} ${isTransitioning ? styles.buttonLoading : ''}`}
+                    onClick={handleComplete}
+                    disabled={isTransitioning}
+                >
+                    {isTransitioning ? (
+                        <Loader2 size={12} className={styles.spinning} />
+                    ) : (
+                        <>
+                            <Check size={12} />
+                            Complete
+                        </>
+                    )}
+                </button>
+            )}
         </div>
     );
 }
@@ -109,9 +168,10 @@ interface AgentColumnProps {
     agentName: string;
     agentColor: string;
     tickets: AgentTickets;
+    onTransition?: (key: string, status: 'In Progress' | 'Done', comment?: string) => Promise<void>;
 }
 
-function AgentColumn({ agentId, agentName, agentColor, tickets }: AgentColumnProps) {
+function AgentColumn({ agentId, agentName, agentColor, tickets, onTransition }: AgentColumnProps) {
     return (
         <div
             className={styles.agentColumn}
@@ -130,9 +190,9 @@ function AgentColumn({ agentId, agentName, agentColor, tickets }: AgentColumnPro
                 <span className={styles.agentName}>{agentName}</span>
             </div>
             <div className={styles.ticketRows}>
-                <TicketCard ticket={tickets.done} slotType="done" />
-                <TicketCard ticket={tickets.inProgress} slotType="inProgress" />
-                <TicketCard ticket={tickets.next} slotType="next" />
+                <TicketCard ticket={tickets.done} slotType="done" onTransition={onTransition} />
+                <TicketCard ticket={tickets.inProgress} slotType="inProgress" onTransition={onTransition} />
+                <TicketCard ticket={tickets.next} slotType="next" onTransition={onTransition} />
             </div>
         </div>
     );
@@ -168,7 +228,20 @@ function LoadingSkeleton() {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function TicketStrip({ tickets, isLoading = false }: TicketStripProps) {
+export function TicketStrip({ tickets, isLoading = false, onTransition, onRefresh, lastUpdated }: TicketStripProps) {
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const handleRefresh = async () => {
+        if (!onRefresh || isRefreshing) return;
+        setIsRefreshing(true);
+        try {
+            onRefresh();
+        } finally {
+            // Reset after a short delay to show the animation
+            setTimeout(() => setIsRefreshing(false), 1000);
+        }
+    };
+
     if (isLoading) {
         return <LoadingSkeleton />;
     }
@@ -177,6 +250,24 @@ export function TicketStrip({ tickets, isLoading = false }: TicketStripProps) {
 
     return (
         <div className={styles.container}>
+            {/* Refresh button inline — header removed to save space */}
+            {onRefresh && (
+                <div className={styles.refreshSection}>
+                    {lastUpdated && (
+                        <span className={styles.lastUpdated}>
+                            Updated {formatTimeAgo(lastUpdated)}
+                        </span>
+                    )}
+                    <button
+                        className={`${styles.refreshButton} ${isRefreshing ? styles.spinning : ''}`}
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
+                        title="Refresh tickets"
+                    >
+                        <RefreshCw size={14} />
+                    </button>
+                </div>
+            )}
             <div className={styles.strip}>
                 {AGENTS.map((agent) => (
                     <AgentColumn
@@ -185,6 +276,7 @@ export function TicketStrip({ tickets, isLoading = false }: TicketStripProps) {
                         agentName={agent.name}
                         agentColor={agent.color}
                         tickets={tickets[agent.id] || emptyTickets}
+                        onTransition={onTransition}
                     />
                 ))}
             </div>
