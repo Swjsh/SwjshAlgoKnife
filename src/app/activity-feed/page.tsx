@@ -12,6 +12,7 @@ import { AgentTerminal } from '@/components/ActivityFeed/AgentTerminal';
 import { PermissionQueue } from '@/components/ActivityFeed/PermissionQueue';
 import { ActivityColumn } from '@/components/ActivityFeed/ActivityColumn';
 import { N8nHeartbeat } from '@/components/ActivityFeed/N8nHeartbeat';
+import { AgentLeaderboard } from '@/components/ActivityFeed/AgentLeaderboard';
 import styles from './page.module.css';
 
 // Agent order for the grid (7 agents: 2x3 + 1)
@@ -50,6 +51,7 @@ export default function ActivityFeedPage() {
         sendCommand,
         broadcastCommand,
         continueAgent,
+        rescanSessions,
         waitingCount,
     } = useActivityFeed();
 
@@ -62,11 +64,11 @@ export default function ActivityFeedPage() {
     // Jira ticket count stats per agent
     const { stats: jiraStats } = useJiraStats();
 
-    // Sync Agents — re-poll PM2/activity-bridge agent status
+    // Sync Agents — tell the bridge to clear ignored sessions and re-detect agents
     const handleSyncAgents = useCallback(async () => {
         setSyncingAgents(true);
         try {
-            await fetch('/api/activity/agents').catch(() => {});
+            rescanSessions();
         } finally {
             setTimeout(() => setSyncingAgents(false), 600);
         }
@@ -176,6 +178,12 @@ export default function ActivityFeedPage() {
                 onStartLoop={startLoop}
                 onStopLoop={stopLoop}
             />
+                <AgentLeaderboard
+                    agents={agents}
+                    toolSuccesses={toolSuccesses}
+                    toolFailures={toolFailures}
+                    actionsToday={actionsToday}
+                />
                 <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
                     <N8nHeartbeat />
                     <button

@@ -679,6 +679,34 @@ wss.on('connection', (ws: WebSocket) => {
         return;
       }
 
+      // Handle rescan request — clears 'ignored' sessions and re-detects all agents
+      if (msg.type === 'dashboard:rescan') {
+        console.log('[Bridge] Rescan requested by dashboard — clearing ignored sessions');
+        // Clear all 'ignored' mappings so sessions get re-evaluated
+        const cleared: string[] = [];
+        for (const [sessionId, agentId] of agentSessions) {
+          if (agentId === 'ignored' || agentId === 'unknown') {
+            agentSessions.delete(sessionId);
+            cleared.push(sessionId.substring(0, 8));
+          }
+        }
+        // Also clear all file watchers so they re-read from the start
+        for (const [filePath, watcher] of fileWatchers) {
+          watcher.close();
+          fileWatchers.delete(filePath);
+          filePositions.delete(filePath);
+        }
+        console.log(`[Bridge] Cleared ${cleared.length} ignored sessions, removed all file watchers`);
+        // Re-scan immediately
+        scanForSessions();
+        broadcast({
+          type: 'rescan:complete',
+          cleared: cleared.length,
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
       // Handle heartbeat config update
       if (msg.type === 'dashboard:heartbeat_config' && msg.config) {
         heartbeatState.config = { ...heartbeatState.config, ...msg.config };
@@ -1020,6 +1048,13 @@ function parseSessionLine(line: string, sessionId: string): void {
           broadcastLog(agentId, `[TOOL] ${toolName}: ${input}`, 'action');
         }
       }
+    }
+
+    // Handle top-level tool_use events (Claude Code 2.x JSONL format)
+    if (event.type === 'tool_use') {
+      const toolName = event.name || event.tool || 'unknown';
+      const input = JSON.stringify(event.input || event.params || {}).substring(0, 200);
+      broadcastLog(agentId, `[TOOL] ${toolName}: ${input}`, 'action');
     }
 
     if (event.type === 'tool_result' || event.type === 'tool') {

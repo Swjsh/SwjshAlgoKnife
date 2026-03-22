@@ -399,13 +399,16 @@ export function useActivityFeed(wsUrl = 'ws://localhost:3001') {
             buffer.set(agentName, existingLogs);
 
             // Track tool executions from log content
-            if (lineText.startsWith('[TOOL]')) {
-                setState(prev => ({ ...prev, toolExecutions: prev.toolExecutions + 1 }));
-            } else if (lineText.startsWith('[RESULT]')) {
-                if (lineText.includes('Success')) {
-                    setState(prev => ({ ...prev, toolSuccesses: prev.toolSuccesses + 1 }));
-                } else if (lineText.includes('Failed')) {
+            // Matches both [TOOL] prefix format AND raw tool call format (Read(...), Bash(...), etc.)
+            const isToolCall = lineText.startsWith('[TOOL]') || /^\s*\u25cf?\s*(Read|Bash|Write|Edit|Search|Glob|Grep|Task|Agent)\s*\(/.test(lineText);
+            const isToolResult = lineText.startsWith('[RESULT]');
+            if (isToolCall) {
+                setState(prev => ({ ...prev, toolExecutions: prev.toolExecutions + 1, toolSuccesses: prev.toolSuccesses + 1 }));
+            } else if (isToolResult) {
+                if (lineText.includes('Failed')) {
                     setState(prev => ({ ...prev, toolFailures: prev.toolFailures + 1 }));
+                } else if (lineText.includes('Success')) {
+                    setState(prev => ({ ...prev, toolSuccesses: prev.toolSuccesses + 1 }));
                 }
             }
         } else if (message.type === 'agent_log' && message.agentId && message.log) {
@@ -903,6 +906,16 @@ export function useActivityFeed(wsUrl = 'ws://localhost:3001') {
         }
     }, []);
 
+    const rescanSessions = useCallback(() => {
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({
+                type: 'dashboard:rescan',
+                timestamp: new Date().toISOString(),
+            }));
+            console.log('[ActivityFeed] Rescan sessions requested');
+        }
+    }, []);
+
     const setHeartbeatConfig = useCallback((config: Partial<HeartbeatConfig>) => {
         if (wsRef.current?.readyState === WebSocket.OPEN) {
             wsRef.current.send(JSON.stringify({
@@ -961,6 +974,7 @@ export function useActivityFeed(wsUrl = 'ws://localhost:3001') {
         nudgeAgent,
         nudgeAllStale,
         continueAgent,
+        rescanSessions,
         setHeartbeatConfig,
         waitingCount,
         // Agent actions (Jira, memory, commits, etc.)
