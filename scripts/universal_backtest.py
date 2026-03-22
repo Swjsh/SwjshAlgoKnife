@@ -347,22 +347,41 @@ class ORBStrategy:
 
 
 class BBSqueezeStrategy:
-    """Bollinger Band Squeeze and Breakout detection."""
+    """Bollinger Band Squeeze and Breakout detection.
+
+    H-006 Filters (Cortana pattern detection, statistically confirmed p < 0.05):
+    - direction_filter: "SHORT", "LONG", or None (both)
+    - max_bandwidth: Skip signals when bandwidth exceeds this (tighter = better)
+    - max_hold_hours: Hint for trade management (not enforced here)
+    - avoid_entry_hours: List of UTC hours to skip signal generation
+    """
     name = "bb_squeeze"
     display_name = "Bollinger Band Squeeze & Breakout"
 
-    def __init__(self, period=20, squeeze_threshold=0.04, rr=2.0):
+    def __init__(self, period=20, squeeze_threshold=0.04, rr=2.0,
+                 direction_filter=None, max_bandwidth=None, max_hold_hours=None,
+                 avoid_entry_hours=None):
         self.period = period
         self.squeeze_threshold = squeeze_threshold
         self.rr = rr
         self.prices = []
         self.is_squeezed = False
 
+        # H-006 filters
+        self.direction_filter = direction_filter  # "SHORT", "LONG", or None
+        self.max_bandwidth = max_bandwidth or 1.0  # Default to no filter
+        self.max_hold_hours = max_hold_hours  # For trade management reference
+        self.avoid_entry_hours = avoid_entry_hours or []  # UTC hours to skip
+
     def on_candle(self, ts, o, h, l, c, v, symbol):
         self.prices.append(c)
         if len(self.prices) > self.period:
             self.prices.pop(0)
         if len(self.prices) < self.period:
+            return None
+
+        # H-006 Filter: Skip toxic entry hours (UTC)
+        if self.avoid_entry_hours and ts.hour in self.avoid_entry_hours:
             return None
 
         sma = sum(self.prices) / self.period
@@ -377,18 +396,28 @@ class BBSqueezeStrategy:
             self.is_squeezed = True
 
         if self.is_squeezed:
+            # H-006 Filter: Skip if bandwidth too wide (only tight squeezes)
+            if bandwidth > self.max_bandwidth:
+                return None
+
             risk = abs(c - sma)
             if risk < 0.001:
                 return None
 
             if c > upper:
                 self.is_squeezed = False
+                # H-006 Filter: Skip LONG if direction_filter is "SHORT"
+                if self.direction_filter == "SHORT":
+                    return None
                 sl = sma
                 tp = c + risk * self.rr
                 return BacktestSignal(ts, symbol, "BUY", c, self.name, sl, tp,
                                       f"BB squeeze breakout UP (bw={bandwidth:.4f})")
             if c < lower:
                 self.is_squeezed = False
+                # H-006 Filter: Skip SHORT if direction_filter is "LONG"
+                if self.direction_filter == "LONG":
+                    return None
                 sl = sma
                 tp = c - risk * self.rr
                 return BacktestSignal(ts, symbol, "SELL", c, self.name, sl, tp,
@@ -629,13 +658,28 @@ class PaperTrader:
             "notes": signal.notes,
         }
 
-    def update_price(self, timestamp, high, low, close):
-        """Check SL/TP hits on the current open trade."""
+    def update_price(self, timestamp, high, low, close, max_hold_hours=None):
+        """Check SL/TP hits on the current open trade.
+
+        Args:
+            timestamp: Current bar timestamp
+            high/low/close: OHLC prices
+            max_hold_hours: Optional max hold duration (H-006 filter)
+        """
         if self.open_trade is None:
             return
 
         t = self.open_trade
         side = t["side"]
+
+        # H-006 Filter: Check max hold duration
+        if max_hold_hours is not None:
+            entry_dt = pd.Timestamp(t["entry_time"])
+            current_dt = pd.Timestamp(str(timestamp))
+            hours_held = (current_dt - entry_dt).total_seconds() / 3600
+            if hours_held >= max_hold_hours:
+                self._close_trade(close, str(timestamp), "MAX_HOLD")
+                return
 
         # Check stop loss
         if t["stop_loss"] is not None:
@@ -752,14 +796,17 @@ def run_backtest(symbol, strategy_name, strategy_instance, df, balance, risk_pct
 
     trader = PaperTrader(balance=balance, risk_pct=risk_pct, asset_class=asset_class)
 
+    # H-006 Filter: Get max_hold_hours from strategy if defined
+    max_hold_hours = getattr(strategy_instance, 'max_hold_hours', None)
+
     signals_emitted = 0
 
     for idx, row in df.iterrows():
         ts = idx.to_pydatetime() if hasattr(idx, "to_pydatetime") else idx
         o, h, l, c, v = row["open"], row["high"], row["low"], row["close"], row["volume"]
 
-        # Update open positions with OHLC (check SL/TP)
-        trader.update_price(ts, h, l, c)
+        # Update open positions with OHLC (check SL/TP + max_hold)
+        trader.update_price(ts, h, l, c, max_hold_hours=max_hold_hours)
 
         # Run strategy
         signal = strategy_instance.on_candle(ts, o, h, l, c, v, symbol)

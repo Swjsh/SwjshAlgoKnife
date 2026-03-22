@@ -65,6 +65,12 @@ AGENT_CONFIGS = {
             "period": 20,
             "squeeze_threshold": 0.04,
             "rr": 2.5,
+            # H-006 Confirmed Filters (Cortana pattern detection, p < 0.05)
+            # SHORT trades: 43.5% WR vs LONG: 12.5% WR (+31pp effect)
+            "direction_filter": "SHORT",         # Only take SHORT (SELL) signals
+            "max_bandwidth": 0.025,              # Tighter squeezes = better (57% WR vs 11%)
+            "max_hold_hours": 24,                # Sweet spot 6-24hr (42.9% WR)
+            "avoid_entry_hours": [18, 19, 20, 21, 22, 23],  # UTC - US PM/Night toxic (0% WR)
         },
     },
 
