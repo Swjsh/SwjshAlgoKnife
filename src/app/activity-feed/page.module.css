@@ -3,7 +3,7 @@
     max-height: 100%;
     background: var(--bg-main, hsl(222, 47%, 11%));
     color: var(--text-primary, #f8fafc);
-    padding: 6px 14px;
+    padding: 4px 14px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -15,7 +15,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     flex-shrink: 0;
 }
 
@@ -63,7 +63,7 @@
     align-items: center;
     gap: 8px;
     padding: 5px 10px;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
     background: rgba(168, 85, 247, 0.06);
     border: 1px solid rgba(168, 85, 247, 0.2);
     border-radius: 8px;
@@ -154,7 +154,7 @@
 /* Jira Ticket Strip - Bottom Row */
 .ticketStripWrapper {
     flex-shrink: 0;
-    margin-top: 6px;
+    margin-top: 4px;
 }
 
 /* Agent Grid - 2x3 layout, full width */
@@ -162,8 +162,8 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 10px;
-    flex: 1;
+    gap: 8px;
+    flex: 1.1;
     min-height: 0;
     overflow: hidden;
 }
