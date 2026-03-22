@@ -40,6 +40,7 @@ const NAV_GROUPS: NavGroup[] = [
         color: '#a855f7',
         items: [
             { label: 'Command Center', href: '/command-center', icon: Monitor,         desc: 'Fleet overview & control'  },
+            { label: 'Halo Command',   href: '/halo-command',   icon: Layers,          desc: 'Crew status & rooms'       },
             { label: 'Agents',         href: '/agents',         icon: Bot,             desc: 'Autonomous trading fleet'  },
             { label: 'Trades',         href: '/trades',         icon: TrendingUp,      desc: 'Positions & execution'     },
             { label: 'Coffee Room',    href: '/coffeeroom',     icon: Coffee,          desc: 'Agent lounge'              },
@@ -63,7 +64,7 @@ const NAV_GROUPS: NavGroup[] = [
         color: '#64748b',
         items: [
             { label: 'Accounts',     href: '/accounts',     icon: Wallet,   desc: 'Balances & funding'   },
-            { label: 'Connections',  href: '/connections',  icon: Plug,     desc: 'Broker integrations'  },
+            { label: 'Connections',  href: '/broker-setup', icon: Plug,     desc: 'Multi-broker setup'   },
             { label: 'Settings',     href: '/settings',     icon: Settings, desc: 'Preferences & config' },
         ],
     },
