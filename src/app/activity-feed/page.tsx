@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo, useRef, KeyboardEvent } from 'react';
-import { Activity, Radio, Send } from 'lucide-react';
+import { Activity, Radio, Send, RefreshCw } from 'lucide-react';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useJiraTickets } from '@/hooks/useJiraTickets';
@@ -19,6 +19,7 @@ export default function ActivityFeedPage() {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [isHydrated, setIsHydrated] = useState(false);
     const [broadcastValue, setBroadcastValue] = useState('');
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const broadcastInputRef = useRef<HTMLInputElement>(null);
 
     // Connect to WebSocket for real-time updates
@@ -53,6 +54,19 @@ export default function ActivityFeedPage() {
 
     // Jira loop controls
     const { loopState, isLoading: loopLoading, startLoop, stopLoop } = useJiraLoop();
+
+    // Master refresh — Jira tickets + agent status re-poll
+    const handleMasterRefresh = useCallback(async () => {
+        setIsRefreshing(true);
+        try {
+            await Promise.all([
+                refetchTickets(),
+                fetch('/api/activity/agents').catch(() => {}),
+            ]);
+        } finally {
+            setTimeout(() => setIsRefreshing(false), 600);
+        }
+    }, [refetchTickets]);
 
     // Handle ticket status transitions
     const handleTicketTransition = useCallback(async (key: string, status: 'In Progress' | 'Done', comment?: string) => {
@@ -185,6 +199,15 @@ export default function ActivityFeedPage() {
                 onStartLoop={startLoop}
                 onStopLoop={stopLoop}
             />
+                <button
+                    className={`${styles.masterRefresh} ${isRefreshing ? styles.refreshSpin : ''}`}
+                    onClick={handleMasterRefresh}
+                    disabled={isRefreshing}
+                    title="Refresh all feeds"
+                >
+                    <RefreshCw size={14} />
+                    <span className={styles.refreshLabel}>Sync</span>
+                </button>
                 <div className={styles.clockSection}>
                     <span className={styles.clockTime}>{formattedTime}</span>
                     <span className={styles.clockDate}>{formattedDate}</span>
@@ -240,8 +263,6 @@ export default function ActivityFeedPage() {
                     tickets={tickets}
                     isLoading={ticketsLoading}
                     onTransition={handleTicketTransition}
-                    onRefresh={refetchTickets}
-                    lastUpdated={lastUpdated}
                 />
             </div>
         </div>
