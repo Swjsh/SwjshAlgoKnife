@@ -324,7 +324,8 @@ def get_current_premium(contract_type: str, strike: float, expiration: str) -> f
     """
     try:
         return _get_chain().get_premium(expiration, strike, contract_type, max_cache_age=30.0)
-    except Exception:
+    except Exception as e:
+        print(f"[SPX Sniper] Failed to get premium for {contract_type} {strike} {expiration}: {e}")
         return None
 
 

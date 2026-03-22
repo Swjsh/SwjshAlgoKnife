@@ -283,7 +283,8 @@ def get_current_premium(occ_symbol: str, contract_type: str, strike: float, expi
     """
     try:
         return _get_chain().get_premium(expiration, strike, contract_type, max_cache_age=60.0)
-    except Exception:
+    except Exception as e:
+        print(f"[Boba] Failed to get premium for {contract_type} {strike} {expiration}: {e}")
         return None
 
 

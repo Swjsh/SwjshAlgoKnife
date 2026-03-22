@@ -31,7 +31,8 @@ def log_message(agent_id, content, type='status'):
     try:
         with open(LOG_FILE, 'r') as f:
             logs = json.load(f)
-    except:
+    except (json.JSONDecodeError, IOError) as e:
+        print(f"[agent_utils] Warning: Could not read log file, starting fresh: {e}")
         logs = []
         
     new_message = {
@@ -184,8 +185,9 @@ def send_feedback(
             return True
         return False
 
-    except Exception:
-        # Feedback is fire-and-forget — never block on this
+    except Exception as e:
+        # Feedback is fire-and-forget — never block on this, but log for debugging
+        print(f"[agent_utils] Feedback send failed (non-blocking): {e}")
         return False
 
 
