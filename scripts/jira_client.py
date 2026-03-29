@@ -114,6 +114,7 @@ def main():
     """CLI entry point with argparse."""
     import argparse
     import json
+    import re
 
     parser = argparse.ArgumentParser(
         description='Jira REST API client for SwjshAlgoKnife',
@@ -165,6 +166,10 @@ def main():
     if args.command == 'list':
         jql_parts = []
         if args.status:
+            # Validate status: only alphanumeric, spaces, underscores, hyphens
+            if not re.match(r'^[A-Za-z0-9 _-]+$', args.status):
+                print("Error: --status contains invalid characters. Use alphanumeric, spaces, underscores, or hyphens.", file=sys.stderr)
+                sys.exit(1)
             jql_parts.append(f"status = '{args.status}'")
         if args.jql:
             jql_parts.append(args.jql)
